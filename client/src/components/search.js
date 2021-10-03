@@ -522,12 +522,18 @@ const Search = (props) => {
             {props.queryData.map((el) => {
               return (
                 <>
-                  {Number(el[0].place_id) % 5 == 0 && (
-                    <Poems
-                      available={availablePoem}
-                      setAvailable={setAvailablePoem}
-                    />
-                  )}
+                  {Number(el[0].place_id) % 5 == 0 &&
+                    (Math.random() > 0.5 ? (
+                      <Poems
+                        available={availablePoem}
+                        setAvailable={setAvailablePoem}
+                      />
+                    ) : (
+                      <Quotes
+                        available={available}
+                        setAvailable={setAvailable}
+                      />
+                    ))}
                   <Card
                     toast={props.toast}
                     key={Math.random()}

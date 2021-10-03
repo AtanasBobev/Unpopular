@@ -42,7 +42,6 @@ const Quotes = (props) => {
       <Box
         style={{
           display: "flex",
-          flexWrap: "wrap",
           justifyContent: "space-between",
         }}
       >
