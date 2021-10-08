@@ -545,6 +545,8 @@ const Search = (props) => {
                     category={el[0].category}
                     placelocation={el[0].placelocation}
                     dangerous={el[0].dangerous}
+                    username={el[0].username}
+                    avatar={el[0].avatar}
                     likeButtonVisible={verify()}
                     reportButtonVisible={true}
                     liked={el[0].liked == "true" ? true : false}

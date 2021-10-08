@@ -655,3 +655,69 @@ header {
     background-position: 0% 2%
   }
 }
+
+.userProfileGradient {
+  background: linear-gradient(112deg, #5433ff, #20bdff, #a5fecb);
+  background-size: 600% 600%;
+
+  -webkit-animation: UserBackground 30s ease infinite;
+  -moz-animation: UserBackground 30s ease infinite;
+  -o-animation: UserBackground 30s ease infinite;
+  animation: UserBackground 30s ease infinite;
+}
+
+@-webkit-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@-moz-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@-o-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}

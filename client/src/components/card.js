@@ -125,6 +125,19 @@ const CardElement = (props) => {
     }
   };
   const like = async (id) => {
+    let a = jwt_decode(localStorage.getItem("jwt"));
+    if (a.Username == props.username) {
+      props.toast.warn("Не може да харесте място, което сте създали", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     setLiked(true);
     setLikedNumbers((prev) => prev + 1);
     axios
@@ -490,6 +503,21 @@ const CardElement = (props) => {
               {likedNumbers}
             </Typography>
           </Box>
+          <Box style={{ display: "flex" }}>
+            {props.avatar && (
+              <img
+                style={{
+                  borderRadius: "50%",
+                  width: "1rem",
+                  height: "1rem",
+                  marginRight: "0.2vmax",
+                  marginBottom: "0.4vmax",
+                }}
+                src={"http://localhost:5000/image/" + props.avatar}
+              />
+            )}{" "}
+            {props.username}
+          </Box>
           <Box>
             {props.saveButtonVisible && (
               <ToggleIcon
@@ -585,6 +613,37 @@ const CardElement = (props) => {
               )}
             </Box>
           )}
+          <center>
+            {" "}
+            <Box
+              style={{
+                display: "inline-flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                padding: "0.5vmax",
+                borderRadius: "1vmax",
+                marginTop: "2vmax",
+              }}
+              className="userProfileGradient"
+            >
+              <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
+                {" "}
+                {props.username}{" "}
+              </Typography>
+              {props.avatar && (
+                <img
+                  style={{
+                    borderRadius: "50%",
+                    width: "2rem",
+                    height: "2rem",
+                    marginRight: "0.2vmax",
+                    marginBottom: "0.4vmax",
+                  }}
+                  src={"http://localhost:5000/image/" + props.avatar}
+                />
+              )}
+            </Box>{" "}
+          </center>
           {!props.demo && (
             <Comments
               getComments={getComments}
@@ -623,6 +682,7 @@ const CardElement = (props) => {
                 : likedNumbers + " харесвания"}
             </Typography>
           </Box>
+
           <Box className="endButtons">
             {props.saveButtonVisible && (
               <ToggleIcon

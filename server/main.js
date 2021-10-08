@@ -47,7 +47,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileFilter: function (req, file, callback) {
-    var ext = path.extname(file.originalname);
+    let ext = path.extname(file.originalname);
     if (ext !== ".png" && ext !== ".jpg" && ext !== ".jpeg") {
       return callback(new Error("Only images are allowed"));
     }
@@ -326,14 +326,16 @@ server.post("/search", async (req, res) => {
     userFormat = "%s";
   }
   let sql = format(
-    `SELECT places.place_id,user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=` +
+    `SELECT places.place_id,user_id,username,avatar,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=` +
       userFormat +
       ` LIMIT  %s) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=` +
       userFormat +
       ` LIMIT %s ) THEN 'true' ELSE 'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
 FROM "favoritePlaces"
 WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID)
-FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT %s OFFSET %s) places LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) SIMILAR TO  LOWER(Concat('%',%L,'%'))  AND LOWER(placelocation) = LOWER(` +
+FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT %s OFFSET %s) places
+LEFT JOIN users ON users.id = places.user_id
+LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) SIMILAR TO  LOWER(Concat('%',%L,'%'))  AND LOWER(placelocation) = LOWER(` +
       placelocationFormat +
       ") AND category =" +
       categoryFormat +
@@ -751,9 +753,10 @@ server.get("/place/data/:id", (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT *,url
+    `SELECT *,url,username,avatar
 FROM places
 LEFT JOIN images on images.place_id = places.place_id
+LEFT JOIN users ON users.id = places.user_id
 WHERE places.PLACE_ID = $1 
 `,
     [Number(req.params.id)],
@@ -858,7 +861,7 @@ WHERE places.PLACE_ID = $1
 });
 server.get("/user/data", authorizeToken, async (req, res) => {
   let userPlaces = await pool.query(
-    `SELECT user_id,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url
+    `SELECT user_id,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
 FROM places
 LEFT JOIN images on images.place_id = places.place_id
 WHERE places.user_id = $1`,
@@ -1028,7 +1031,7 @@ server.get("/place/specific", async (req, res) => {
 	ACCESSIBILITY,
 	PLACES.DATE,
 	DANGEROUS,
-	URL,
+	URL, username,avatar,
 	IMAGE_ID,
 	(SELECT COUNT(*) AS LIKEDNUMBER
 		FROM "favoritePlaces"
@@ -1058,6 +1061,7 @@ FROM
 		FROM PLACES
 		ORDER BY LIKEDNUMBER DESC, PLACES.DATE DESC) PLACES
 LEFT JOIN IMAGES ON IMAGES.PLACE_ID = PLACES.PLACE_ID
+LEFT JOIN users ON users.id = places.user_id
 WHERE places.place_id=$1`,
     user_id,
     user_id
@@ -1083,7 +1087,7 @@ server.get("/userLikedPlaces", authorizeToken, (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT places.place_id, city,
+    `SELECT places.place_id, city,avatar,username,
        places.user_id,
        title, 
        description,
@@ -1109,6 +1113,7 @@ server.get("/userLikedPlaces", authorizeToken, (req, res) => {
  WHERE "favoritePlaces".place_id=places.place_id),
  (SELECT COUNT(user_id) FROM "favoritePlaces" WHERE places.user_id=128) FROM "favoritePlaces" 
  JOIN places ON places.place_id = "favoritePlaces".place_id LEFT JOIN images ON images.place_id = places.place_id
+ LEFT JOIN users ON users.id = places.user_id
  WHERE places.user_id =$1  ORDER BY "favoritePlaces".date DESC
   `,
     [req.user_id],
@@ -1144,7 +1149,7 @@ server.get("/userSavedPlaces", authorizeToken, (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT PLACES.PLACE_ID, city,
+    `SELECT PLACES.PLACE_ID, city,avatar,username,
 	places.user_id,
 	TITLE,
 	DESCRIPTION,
@@ -1163,7 +1168,7 @@ server.get("/userSavedPlaces", authorizeToken, (req, res) => {
 											(SELECT *
 												FROM "favoritePlaces"
 												WHERE "favoritePlaces".PLACE_ID = places.PLACE_ID
-													AND USER_ID = 128 ) THEN 'true'
+													AND USER_ID = $1 ) THEN 'true'
 					ELSE 'false'
 	END AS liked,
 	(SELECT COUNT(*) AS LIKEDNUMBER
@@ -1176,6 +1181,7 @@ server.get("/userSavedPlaces", authorizeToken, (req, res) => {
 FROM PLACES
 JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
 LEFT JOIN IMAGES ON IMAGES.PLACE_ID = PLACES.PLACE_ID
+LEFT JOIN users ON users.id = places.user_id
 WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
     [req.user_id],
     (err, data) => {
@@ -1208,7 +1214,7 @@ server.post("/userPlaces", authorizeToken, (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT places.place_id,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id='1' LIMIT  $2 OFFSET $3) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2 OFFSET $3 ) THEN 'true' ELSE 
+    `SELECT places.place_id,avatar,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2 OFFSET $3) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2 OFFSET $3 ) THEN 'true' ELSE 
     'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
     FROM "favoritePlaces"
     WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID)
@@ -1251,11 +1257,31 @@ server.post("/userPlaces", authorizeToken, (req, res) => {
 });
 
 server.post(
-  "/user/changeImage",
-  upload.single("avatar"),
+  "/user/avatar",
   authorizeToken,
-  (req, res) => {
-    console.log(req.files);
+  upload.array("images", 1),
+  async (req, res) => {
+    let imagesSrc = req.files.map((file) => file.filename);
+    if (!imagesSrc[0]) {
+      res.status(500).send("We couldn't save the avatar");
+      return false;
+    }
+    let previous = await pool.query("SELECT avatar FROM users WHERE id=$1", [
+      req.user_id,
+    ]);
+    fs.unlink("./uploads/" + previous.rows[0].avatar, () => {});
+    pool.query(
+      "UPDATE users SET avatar = $1 WHERE id=$2",
+      [imagesSrc[0], req.user_id],
+      (err) => {
+        if (err) {
+          console.log(err);
+          res.status(500).send("We couldn't save the avatar");
+          return false;
+        }
+        res.status(200).send("Everything went successfully");
+      }
+    );
   }
 );
 // Login/Register.Account endpoints
@@ -1743,7 +1769,7 @@ server.get("/comments", async (req, res) => {
   }
   let sql = format(
     `SELECT PLACE_ID,
-	"comments".USER_ID,
+	"comments".USER_ID, avatar,
 	users.username,
 	"comments".score AS "comment_score",
 	"comments"."content" AS "comment_content",

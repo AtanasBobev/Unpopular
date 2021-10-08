@@ -257,9 +257,28 @@ const Reply = (props) => {
         </Box>
         <Box className="buttonArray">
           <Typography
-            style={{ alignSelf: "flex-start", flex: 1, marginTop: "1.3vmax" }}
+            style={{
+              alignSelf: "flex-start",
+              flex: 1,
+              marginTop: "1.3vmax",
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            От: {props.author} | Дата: {moment(props.date).format("llll")}
+            От:{" "}
+            {props.avatar && (
+              <img
+                style={{
+                  borderRadius: "50%",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  marginLeft: "0.5vmax",
+                  marginBottom: "0.4vmax",
+                }}
+                src={"http://localhost:5000/image/" + props.avatar}
+              />
+            )}
+            {props.author} | Дата: {moment(props.date).format("llll")}
           </Typography>
           {verify() && ID() == props.user_id && (
             <Button
@@ -552,9 +571,28 @@ const Comment = (props) => {
         </Box>
         <Box className="buttonArray">
           <Typography
-            style={{ alignSelf: "flex-start", flex: 1, marginTop: "1.3vmax" }}
+            style={{
+              alignSelf: "flex-start",
+              flex: 1,
+              marginTop: "1.3vmax",
+              display: "flex",
+              alignItems: "center",
+            }}
           >
-            От: {props.author} | Дата: {moment(props.date).format("llll")}
+            От:{"  "}
+            {props.avatar && (
+              <img
+                style={{
+                  borderRadius: "50%",
+                  width: "1.5rem",
+                  height: "1.5rem",
+                  marginLeft: "0.5vmax",
+                  marginBottom: "0.4vmax",
+                }}
+                src={"http://localhost:5000/image/" + props.avatar}
+              />
+            )}
+            {props.author} | Дата: {moment(props.date).format("llll")}
             {" | "}
             {props.el[0].reply_content == null
               ? "Няма отговори"
@@ -614,6 +652,7 @@ const Comment = (props) => {
           props.el.map((el) => (
             <Reply
               key={Math.random()}
+              avatar={props.avatar}
               idData={el.replies_id}
               date={el.reply_date}
               author={el.username}
@@ -915,6 +954,7 @@ const Comments = (props) => {
           user_id={el[0].user_id}
           date={el[0].comment_date}
           comments_actions={el[0].comments_actions}
+          avatar={el[0].avatar}
           el={el}
           toast={props.toast}
         />

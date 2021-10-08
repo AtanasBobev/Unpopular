@@ -116,6 +116,8 @@ const Liked = (props) => {
                   saveButtonVisible={verify()}
                   adminRights={el[0].user_id == ID()}
                   city={el[0].city}
+                  username={el[0].username}
+                  avatar={el[0].avatar}
                 />
               );
             })
