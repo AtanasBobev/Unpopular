@@ -2058,13 +2058,18 @@ server.delete("/reply/delete", authorizeToken, (req, res) => {
 
 //Change user data endpoints
 
-server.put("/user/password", authorizeToken, (req, res) => {
+server.put("/user/password", authorizeToken, async (req, res) => {
   if (
     !req.body.password ||
     req.body.newPassword.length < 8 ||
     !req.body.newPassword
   ) {
     res.status(400).send("Not enough data was provided");
+    return false;
+  }
+  let previous = await Verification_Email(req.user_id);
+  if (!previous) {
+    res.status(405).send("Too many email requests");
     return false;
   }
   pool.query(
@@ -2166,6 +2171,11 @@ server.put("/user/email", authorizeToken, async (req, res) => {
     req.body.email.length < 5
   ) {
     res.status(400).send("Not enough data was provided.");
+    return false;
+  }
+  let previous = await Verification_Email(req.user_id);
+  if (!previous) {
+    res.status(405).send("Too many email requests");
     return false;
   }
   let temp = await isMailTemp(req.body.email);
@@ -2275,15 +2285,19 @@ server.put("/user/name", authorizeToken, async (req, res) => {
       );
     return false;
   }
+  let previous = await Verification_Email(req.user_id);
+  if (!previous) {
+    res.status(405).send("Too many email requests");
+    return false;
+  }
   let token = genToken(100);
   let count = await pool.query("SELECT count(*) FROM users WHERE username=$1", [
     req.body.name,
   ]);
-  if (Number(count.rows[0].count)) {
+  if (Number(count.rows[0].count) > 0) {
     res.status(409).send("Username is already in use");
     return false;
   }
-  console.log(count);
   await pool.query(
     "DELETE FROM verification_actions WHERE user_id=$1 AND type='name'",
     [req.user_id]
@@ -2348,3 +2362,17 @@ WHERE id=$2`,
 server.listen(5000, () => {
   console.log("The server is up!");
 });
+
+const Verification_Email = async (user_id) => {
+  let data = await pool.query(
+    "SELECT date from verification_actions WHERE user_id=$1 ORDER BY date DESC LIMIT 1",
+    [Number(user_id)]
+  );
+  let a = moment(new Date()); //now
+  let b = moment(data.rows[0].date); // past email sent
+  if (a.diff(b, "minutes") >= 3) {
+    return true;
+  } else {
+    return false;
+  }
+};

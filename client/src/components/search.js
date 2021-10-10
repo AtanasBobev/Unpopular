@@ -23,11 +23,52 @@ import Poems from "./poems";
 const axios = require("axios");
 
 const Search = (props) => {
+  const [location, setLocation] = React.useState();
   const [center, setCenter] = React.useState();
+  const [locationChecked, setLocationChecked] = React.useState(
+    location ? true : false
+  );
   const [available, setAvailable] = React.useState([]);
   const [availablePoem, setAvailablePoem] = React.useState([]);
   const [markersChecked, setMarkersChecked] = React.useState(true);
   const [placesChecked, setPlacesChecked] = React.useState(true);
+  React.useEffect(() => {
+    if (!locationChecked) {
+      return false;
+    }
+    console.log(locationChecked);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (e) => {
+          setLocation([e.coords.latitude, e.coords.longitude]);
+        },
+        (e) => {
+          props.toast.warn(
+            "Трябва да ни дадете достъп до Вашата геолокация, за да покажем маркера",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        }
+      );
+    } else {
+      props.toast.warn("Браузърът Ви не поддържа геолокация", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+    }
+  }, [locationChecked]);
 
   const search = (limitValue = 0) => {
     props.setQueryData([]);
@@ -153,7 +194,7 @@ const Search = (props) => {
   const markerColor = (e) => {
     switch (Number(e.category)) {
       case 1:
-        return "red";
+        return "purple";
 
       case 2:
         return "orange";
@@ -358,62 +399,69 @@ const Search = (props) => {
           >
             <div className="MapContainer">
               {props.queryData.length && (
-                <Map
-                  metaWheelZoom={true}
-                  metaWheelZoomWarning={
-                    "Използвайте ctrl+scroll, за да промените мащаба"
-                  }
-                  center={center}
-                  zoom={7}
-                  width={"70vw"}
-                  height={"60vh"}
-                >
-                  <ZoomControl />
-                  {markersChecked &&
-                    props.queryData.map((el) => (
-                      <Marker
-                        anchor={el[0].placelocation
-                          .replace(/\s+/g, "")
-                          .split(",")
-                          .map(Number)}
-                        color={markerColor(el[0])}
-                      />
-                    ))}
-                  {placesChecked &&
-                    props.queryData.map((el) => (
-                      <Overlay
-                        offset={[0, 50]}
-                        anchor={el[0].placelocation
-                          .replace(/\s+/g, "")
-                          .split(",")
-                          .map(Number)}
-                      >
-                        <Card
-                          inMap={true}
-                          toast={props.toast}
-                          key={Math.random()}
-                          idData={el[0].place_id}
-                          title={el[0].title}
-                          description={el[0].description}
-                          price={el[0].price}
-                          accessibility={el[0].accessibility}
-                          category={el[0].category}
-                          placelocation={el[0].placelocation}
-                          dangerous={el[0].dangerous}
-                          likeButtonVisible={verify()}
-                          reportButtonVisible={true}
-                          liked={el[0].liked == "true" ? true : false}
-                          saved={el[0].saved == "true" ? true : false}
-                          numbersLiked={Number(el[0].likednumber)}
-                          mainImg={el[0].url}
-                          city={el[0].city}
-                          images={el}
-                          saveButtonVisible={verify()}
-                          adminRights={el[0].user_id == ID()}
+                <center>
+                  {" "}
+                  <Map
+                    metaWheelZoom={true}
+                    metaWheelZoomWarning={
+                      "Използвайте ctrl+scroll, за да промените мащаба"
+                    }
+                    center={location ? location : center}
+                    zoom={7}
+                    width={"70vw"}
+                    height={"60vh"}
+                  >
+                    <ZoomControl />
+                    {locationChecked && location && (
+                      <Marker anchor={location} color={"red"} />
+                    )}
+                    {markersChecked &&
+                      location &&
+                      props.queryData.map((el) => (
+                        <Marker
+                          anchor={el[0].placelocation
+                            .replace(/\s+/g, "")
+                            .split(",")
+                            .map(Number)}
+                          color={markerColor(el[0])}
                         />
-                      </Overlay>
-                    ))}
-                </Map>
+                      ))}
+                    {placesChecked &&
+                      props.queryData.map((el) => (
+                        <Overlay
+                          offset={[0, 50]}
+                          anchor={el[0].placelocation
+                            .replace(/\s+/g, "")
+                            .split(",")
+                            .map(Number)}
+                        >
+                          <Card
+                            inMap={true}
+                            toast={props.toast}
+                            key={Math.random()}
+                            idData={el[0].place_id}
+                            title={el[0].title}
+                            description={el[0].description}
+                            price={el[0].price}
+                            accessibility={el[0].accessibility}
+                            category={el[0].category}
+                            placelocation={el[0].placelocation}
+                            dangerous={el[0].dangerous}
+                            likeButtonVisible={verify()}
+                            reportButtonVisible={true}
+                            liked={el[0].liked == "true" ? true : false}
+                            saved={el[0].saved == "true" ? true : false}
+                            numbersLiked={Number(el[0].likednumber)}
+                            mainImg={el[0].url}
+                            city={el[0].city}
+                            images={el}
+                            saveButtonVisible={verify()}
+                            adminRights={el[0].user_id == ID()}
+                          />
+                        </Overlay>
+                      ))}
+                  </Map>
+                </center>
               )}
               <Box
                 style={{
@@ -432,12 +480,27 @@ const Search = (props) => {
                     alignItems: "center",
                   }}
                 >
+                  {locationChecked && location && (
+                    <>
+                      <div
+                        style={{
+                          height: "1vmax",
+                          width: "1vmax",
+                          borderRadius: "50%",
+                          backgroundColor: "red",
+                          marginRight: "0.5vmax",
+                          marginLeft: "1vmax",
+                        }}
+                      ></div>
+                      <Typography>Моята локация</Typography>
+                    </>
+                  )}
                   <div
                     style={{
                       height: "1vmax",
                       width: "1vmax",
                       borderRadius: "50%",
-                      backgroundColor: "red",
+                      backgroundColor: "purple",
                       marginRight: "0.5vmax",
                       marginLeft: "1vmax",
                     }}
@@ -492,7 +555,7 @@ const Search = (props) => {
                       height: "1vmax",
                       width: "1vmax",
                       borderRadius: "50%",
-                      backgroundColor: "purple",
+                      backgroundColor: "black",
                       marginRight: "0.5vmax",
                       marginLeft: "1vmax",
                     }}
@@ -506,6 +569,11 @@ const Search = (props) => {
                     alignItems: "center",
                   }}
                 >
+                  <Checkbox
+                    checked={locationChecked && location}
+                    onChange={(e) => setLocationChecked(e.target.checked)}
+                  />
+                  <Typography>Моята локация</Typography>
                   <Checkbox
                     checked={markersChecked}
                     onChange={(e) => setMarkersChecked(e.target.checked)}
@@ -522,18 +590,15 @@ const Search = (props) => {
             {props.queryData.map((el) => {
               return (
                 <>
-                  {Number(el[0].place_id) % 5 == 0 &&
-                    (Math.random() > 0.5 ? (
-                      <Poems
-                        available={availablePoem}
-                        setAvailable={setAvailablePoem}
-                      />
-                    ) : (
-                      <Quotes
-                        available={available}
-                        setAvailable={setAvailable}
-                      />
-                    ))}
+                  {Number(el[0].place_id) % 5 == 0 && (
+                    <Poems
+                      available={availablePoem}
+                      setAvailable={setAvailablePoem}
+                    />
+                  )}
+                  {Number(el[0].place_id) % 7 == 0 && (
+                    <Quotes available={available} setAvailable={setAvailable} />
+                  )}
                   <Card
                     toast={props.toast}
                     key={Math.random()}

@@ -41,6 +41,8 @@ const Profile = (props) => {
   const [count, setUserCount] = React.useState("...");
   const [moreVisible, setMoreVisible] = React.useState(true);
   const [open, setOpen] = React.useState(false);
+  const [files, setFiles] = React.useState();
+  const [avatar, setAvatar] = React.useState();
 
   const handleImageChange = (err, response) => {
     console.log(err, response);
@@ -90,6 +92,7 @@ const Profile = (props) => {
         },
       })
       .then((data) => {
+        setAvatar(data.data[0][0].avatar);
         setUserData(data.data);
       })
       .catch((err) => {
@@ -241,7 +244,20 @@ const Profile = (props) => {
         <Typography align="center" variant="h3">
           {jwt_decode(localStorage.getItem("jwt")).Username}
         </Typography>
-        <center style={{ margin: "1vmax" }}></center>
+        <center style={{ margin: "1vmax" }}>
+          {" "}
+          {(avatar || files) && (
+            <img
+              style={{ borderRadius: "50%", width: "10vmax", height: "10vmax" }}
+              src={
+                files
+                  ? URL.createObjectURL(files[0])
+                  : "http://localhost:5000/image/" + avatar
+              }
+              alt={"Имаше проблем при зареждането на аватара"}
+            />
+          )}
+        </center>
         <center>
           <IconButton onClick={handleClickOpen} children={<Settings />} />
           <IconButton onClick={logOut} children={<LogoutIcon />} />
@@ -291,7 +307,12 @@ const Profile = (props) => {
                 return true;
               }}
             >
-              <Avatar toast={toast} setOpenAvatar={setOpenAvatar} />
+              <Avatar
+                files={files}
+                setFiles={setFiles}
+                toast={toast}
+                setOpenAvatar={setOpenAvatar}
+              />
             </PureModal>
             <PureModal
               header="Промени имейл"

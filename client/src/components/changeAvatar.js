@@ -4,18 +4,18 @@ import Button from "@material-ui/core/Button";
 import Divider from "@mui/material/Divider";
 const axios = require("axios");
 const Avatar = (props) => {
-  const [files, setFiles] = React.useState();
   const [newAvatar, setNewAvatar] = React.useState(false);
 
   const upload = () => {
     const data = new FormData();
-    data.append("images", files[0]);
-    console.log(files);
+    data.append("images", props.files[0]);
+    console.log(props.files);
     axios
       .post("http://localhost:5000/user/avatar", data, {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then(() => {
+        props.setOpenAvatar(false);
         props.toast.success("Качването е успешно", {
           position: "bottom-left",
           autoClose: 5000,
@@ -51,7 +51,7 @@ const Avatar = (props) => {
           multiple
           type="file"
           onChange={(e) => {
-            console.log();
+            console.log(e.target.files);
             if (e.target.files.length > 1) {
               props.toast.error(
                 "Не е позволено качването на повече от 1 снимки с размер до 3 МБ",
@@ -67,13 +67,13 @@ const Avatar = (props) => {
               );
               return false;
             }
-            if (e.target.files.length) {
+            if (e.target.files) {
               setNewAvatar(true);
-              setFiles(e.target.files);
+              props.setFiles(e.target.files);
             }
           }}
         />
-        {files && (
+        {props.files && (
           <>
             <img
               style={{
@@ -82,7 +82,7 @@ const Avatar = (props) => {
                 borderRadius: "50%",
                 userSelect: "none",
               }}
-              src={files[0] && URL.createObjectURL(files[0])}
+              src={props.files[0] && URL.createObjectURL(props.files[0])}
             />
           </>
         )}

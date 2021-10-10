@@ -39,7 +39,6 @@ const CardElement = (props) => {
         el = Math.round(Math.random() * poems.length);
       }
     }
-    console.log(poems);
     props.setAvailable((available) => [...available, el]);
     setText(poems[el].text);
     setAuthor(poems[el].author);

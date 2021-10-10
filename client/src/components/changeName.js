@@ -76,6 +76,19 @@ const Name = (props) => {
             draggable: true,
             progress: undefined,
           });
+        } else if (err.response.status == 405) {
+          props.toast.warn(
+            "Вече сте използвали системата за изпращане на имейли. Тъй като използваме имейл, който има ограничение, а системата е безплатна, трябва да се съобразяваме с днвена квота. Изчакайате поне 3 минути преди да си промените имейла, името или паролата.",
+            {
+              position: "bottom-left",
+              autoClose: 15000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
         } else {
           props.toast.error("Сървърна грешка", {
             position: "bottom-left",
