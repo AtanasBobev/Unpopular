@@ -315,7 +315,7 @@ const Profile = (props) => {
               />
             </PureModal>
             <PureModal
-              header="Промени имейл"
+              header="Промени парола"
               isOpen={openPassword}
               closeButton="X"
               closeButtonPosition="top"
