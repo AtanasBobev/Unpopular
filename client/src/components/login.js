@@ -56,7 +56,31 @@ const Login = (props) => {
             draggable: true,
             progress: undefined,
           });
+        } else if (e.response.status == 401) {
+          toast.warn("Грешна парола", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        } else if (e.response.status == 403) {
+          toast.warn(
+            "Над 5 опита за влизане са направени към този акаунт. Профилът е заключен, получили сте по имейл съобщение за отключването му. Проверете спам пощата Ви. Ако все пак не сте получили нищо, изкчакайте 10 минути и пробвайте да влезете отново, ще ви изпратим втори имейл.",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
         }
+        console.log(e.response.status);
       });
   };
   return (

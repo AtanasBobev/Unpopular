@@ -1625,10 +1625,12 @@ server.get("/newMail", authorizeToken, (req, res) => {
   );
 });
 server.post("/login", async (req, res) => {
+  //Validating request
   if (!(req.body.username && req.body.password)) {
     res.status(400).send("Invalid request");
     return false;
   }
+  //Checking if the user exists in the database
   pool.query(
     "SELECT hash FROM users WHERE username=$1",
     [req.body.username],
@@ -1642,6 +1644,21 @@ server.post("/login", async (req, res) => {
         res.status(409).send("No record associated with the email");
         return false;
       }
+      let unsuccessfulAttempt = await pool.query(
+        `SELECT COUNT(*) FROM login_attempts WHERE "user"=$1`,
+        [req.body.username]
+      );
+      if (Number(unsuccessfulAttempt.rows[0].count) > 5) {
+        res.status(403).send("Profile locked!");
+        await pool.query(
+          `UPDATE public.users
+        SET locked=$1
+        WHERE username=$2`,
+          [true, req.body.username]
+        );
+        return false;
+      }
+      //Comparing the provided password
       bcrypt.compare(
         req.body.password,
         data.rows[0].hash,
@@ -1651,12 +1668,19 @@ server.post("/login", async (req, res) => {
             res.status(500).send("Internal server error");
             return false;
           }
+          //Passwords do not match
           if (!result) {
+            pool.query(
+              `INSERT INTO public.login_attempts(
+              "user", ip, "time")
+              VALUES ($1, $2, $3)`,
+              [req.body.username, req.ip, new Date()]
+            );
             res.status(401).send("Wrong password");
             return false;
           }
           pool.query(
-            "SELECT verified,id,email FROM users where username=$1",
+            "SELECT verified,id,email FROM users where username=$1 AND locked=false",
             [req.body.username],
             async (err, data) => {
               if (err) {
