@@ -1644,17 +1644,49 @@ server.post("/login", async (req, res) => {
         res.status(409).send("No record associated with the email");
         return false;
       }
-      let unsuccessfulAttempt = await pool.query(
+      let unsuccessfulAttempts = await pool.query(
         `SELECT COUNT(*) FROM login_attempts WHERE "user"=$1`,
         [req.body.username]
       );
-      if (Number(unsuccessfulAttempt.rows[0].count) > 5) {
-        res.status(403).send("Profile locked!");
+      if (Number(unsuccessfulAttempts.rows[0].count) > 5) {
+        res.status(403).send("Profile locked");
         await pool.query(
           `UPDATE public.users
         SET locked=$1
         WHERE username=$2`,
           [true, req.body.username]
+        );
+        let IPs = await pool.query(
+          `SELECT ip FROM login_attempts WHERE "user"=$1`,
+          [req.body.username]
+        );
+        let ip = IPs.rows.map((el) => el.ip);
+        let email = await pool.query(
+          "SELECT email FROM users WHERE username=$1",
+          [req.body.username]
+        );
+        let token = genToken(100);
+        let user_id = await pool.query(
+          "SELECT id from users WHERE username=$1",
+          [req.body.username]
+        );
+        pool.query(
+          `INSERT INTO public.verification_actions(
+          user_id, type, url, date)
+          VALUES ($1, $2, $3, $4)`,
+          [Number(user_id.rows[0].id), "account-lock", token, new Date()],
+          (err) => {
+            if (err) {
+              console.log(err);
+              res.status(500).send("Internal server error");
+              return false;
+            }
+            sendMail(
+              `Профилът Ви беше заключен`,
+              `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: http://localhost:5000/user/unblock/${token} IP адресите, от е имало опити за влизане са ${ip}`,
+              email.rows[0].email
+            );
+          }
         );
         return false;
       }
@@ -2081,7 +2113,36 @@ server.delete("/reply/delete", authorizeToken, (req, res) => {
 });
 
 //Change user data endpoints
-
+server.get("/user/unblock/:id", async (req, res) => {
+  if (!req.params.id || req.params.id.length !== 200) {
+    res.status(400).send("Грешен код");
+    return false;
+  }
+  let data = await pool.query(
+    "SELECT user_id,username,email FROM verification_actions JOIN users on user_id=id WHERE url=$1",
+    [req.params.id]
+  );
+  if (Number(data.rowCount) > 0) {
+    pool.query("DELETE FROM verification_actions WHERE user_id=$1 AND url=$2", [
+      data.rows[0].user_id,
+      req.params.id,
+    ]);
+    pool.query("UPDATE users SET locked=false WHERE id=$1", [
+      data.rows[0].user_id,
+    ]);
+    pool.query(`DELETE FROM login_attempts WHERE "user"=$1`, [
+      data.rows[0].username,
+    ]);
+    sendMail(
+      `Отключване на профила`,
+      `Профилът Ви беше успешно отключен. Можете да влезете в него.`,
+      data.rows[0].email
+    );
+    res.status(200).send("Профилът е отключен");
+  } else {
+    res.status(401).send("Грешен код");
+  }
+});
 server.put("/user/password", authorizeToken, async (req, res) => {
   if (
     !req.body.password ||
