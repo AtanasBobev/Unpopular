@@ -16,6 +16,8 @@ const Login = (props) => {
   const [username, setUsername] = React.useState();
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
+  const [locked, setLocked] = React.useState(false);
+  const [wrongPassword, setWrongPassword] = React.useState(false);
 
   const login = (e) => {
     e.preventDefault();
@@ -57,7 +59,9 @@ const Login = (props) => {
             progress: undefined,
           });
         } else if (e.response.status == 401) {
-          toast.warn("Грешна парола", {
+          setWrongPassword(true);
+          setLocked(false);
+          toast.warn("Грешна парола!", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -66,9 +70,25 @@ const Login = (props) => {
             draggable: true,
             progress: undefined,
           });
-        } else if (e.response.status == 403) {
+        } else if (e.response.status == 425) {
+          setLocked(true);
           toast.warn(
-            "Над 5 опита за влизане са направени към този акаунт. Профилът е заключен, получили сте по имейл съобщение за отключването му. Проверете спам пощата Ви. Ако все пак не сте получили нищо, изкчакайте 10 минути и пробвайте да влезете отново, ще ви изпратим втори имейл.",
+            "Вече Ви беше изпратен имейл с данни за отключване на профила. Изчакайте няколко минути преди да поискате нов!",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        } else if (e.response.status == 403) {
+          setLocked(true);
+          setWrongPassword(false);
+          toast.warn(
+            "Профилът е заключен, получили сте по имейл съобщение за отключването му. Проверете спам пощата Ви. Ако все пак не сте получили нищо, изкчакайте 10 минути и пробвайте да влезете отново, ще ви изпратим втори имейл.",
             {
               position: "bottom-left",
               autoClose: 5000,
@@ -137,8 +157,19 @@ const Login = (props) => {
                     variant="contained"
                     color="primary"
                   >
-                    Потвърди
+                    {locked ? "Нов имейл/Влезни" : "Влезни"}
                   </Button>
+                  <Typography
+                    style={{
+                      color: "red",
+                      margin: "1vmax",
+                      fontSize: "0.9vmax",
+                    }}
+                  >
+                    {wrongPassword && "Грешна парола"}
+                    {locked &&
+                      "Профилът е заключен поради прекалено много опити за влизане. Проверете си имейла!"}
+                  </Typography>
                   <Box>
                     <Button
                       style={{ textTransform: "none" }}

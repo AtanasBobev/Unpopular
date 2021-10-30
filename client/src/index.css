@@ -137,11 +137,13 @@ header {
 
 .loginRegisterContainer {
   position: absolute;
+  align-items: center;
   transform: translate(-50%, -50%);
   right: -20vw;
-  width: 30vw;
+  width: 40vw;
   padding: 1.5vmax;
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  background-color: white;
 }
 
 .backgroundCard {

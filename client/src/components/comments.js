@@ -602,13 +602,15 @@ const Comment = (props) => {
               ? "2 отговора"
               : props.el.length + " отговори"}
           </Typography>
-          <Button
-            onClick={() => setReply(!reply)}
-            startIcon={<ReplyIcon />}
-            style={{ textTransform: "none" }}
-          >
-            Отговори
-          </Button>
+          {verify() && (
+            <Button
+              onClick={() => setReply(!reply)}
+              startIcon={<ReplyIcon />}
+              style={{ textTransform: "none" }}
+            >
+              Отговори
+            </Button>
+          )}
           {verify() && ID() == props.user_id && (
             <Button
               style={{ textTransform: "none" }}
@@ -633,12 +635,14 @@ const Comment = (props) => {
               Изтрий
             </Button>
           )}
-          <IconButton
-            style={{ marginRight: "0.5vmax" }}
-            aria-label="Съобщи за нередност"
-          >
-            <ReportOutlinedIcon />
-          </IconButton>
+          {verify() && (
+            <IconButton
+              style={{ marginRight: "0.5vmax" }}
+              aria-label="Съобщи за нередност"
+            >
+              <ReportOutlinedIcon />
+            </IconButton>
+          )}
         </Box>
         {reply && (
           <AddReply
@@ -906,6 +910,7 @@ const AddReply = (props) => {
         style={{ width: "80%" }}
         onChange={(e) => setContent(e.target.value)}
       />
+
       <Button
         size="large"
         className="postButton"

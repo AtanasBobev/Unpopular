@@ -50,7 +50,7 @@ const TopBar = (props) => {
                 startDelay={100}
                 cursorColor="#F8F8FF"
                 hideCursorAfterText="true"
-                multiText={["Unpopular", "Непопулярно"]}
+                multiText={["Unpopular", "Неизвестно"]}
                 multiTextDelay={1500}
                 typeSpeed={80}
               />

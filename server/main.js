@@ -1644,11 +1644,53 @@ server.post("/login", async (req, res) => {
         res.status(409).send("No record associated with the email");
         return false;
       }
+      //Yes, he does exist
       let unsuccessfulAttempts = await pool.query(
         `SELECT COUNT(*) FROM login_attempts WHERE "user"=$1`,
         [req.body.username]
       );
+      let isLocked = await pool.query(
+        `SELECT locked FROM users WHERE username=$1`,
+        [req.body.username]
+      );
+      //Is account already locked?
+      if (isLocked.rows[0].locked) {
+        //When was the verification email sent?
+        let date = await pool.query(
+          `SELECT verification_actions.date FROM verification_actions LEFT JOIN users on user_id=id WHERE username=$1 AND type='account-lock'`,
+          [req.body.username]
+        );
+        let a = moment(new Date()); //now
+        let b = moment(date.rows[date.rows.length - 1].date); // past email sent
+        if (a.diff(b, "minutes") < 3) {
+          res.status(425).send("Email has already been sent");
+          return false;
+        }
+        let IPs = await pool.query(
+          `SELECT ip FROM login_attempts WHERE "user"=$1`,
+          [req.body.username]
+        );
+        let ip = IPs.rows.map((el) => el.ip);
+        let url = await pool.query(
+          `SELECT verification_actions.url FROM verification_actions LEFT JOIN users on user_id=id WHERE username=$1 AND type='account-lock'`,
+          [req.body.username]
+        );
+        let email = await pool.query(
+          "SELECT email FROM users WHERE username=$1",
+          [req.body.username]
+        );
+        res.status(403).send("Profile locked");
+        sendMail(
+          `Профилът Ви беше заключен`,
+          `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: http://localhost:5000/user/unblock/${
+            url.rows[data.rows.length - 1].url
+          } IP адресите, от е имало опити за влизане са ${ip}`,
+          email.rows[0].email
+        );
+        return false;
+      }
       if (Number(unsuccessfulAttempts.rows[0].count) > 5) {
+        //Account is locked
         res.status(403).send("Profile locked");
         await pool.query(
           `UPDATE public.users
@@ -1694,7 +1736,7 @@ server.post("/login", async (req, res) => {
       bcrypt.compare(
         req.body.password,
         data.rows[0].hash,
-        function (err, result) {
+        async function (err, result) {
           if (err) {
             console.log(err);
             res.status(500).send("Internal server error");
@@ -1711,6 +1753,14 @@ server.post("/login", async (req, res) => {
             res.status(401).send("Wrong password");
             return false;
           }
+          let user_id = await pool.query(
+            "SELECT id from users WHERE username=$1",
+            [req.body.username]
+          );
+          pool.query(
+            "DELETE FROM verification_actions WHERE user_id=$1 AND type='account-lock'",
+            [user_id.rows[0].id]
+          );
           pool.query(
             "SELECT verified,id,email FROM users where username=$1 AND locked=false",
             [req.body.username],
