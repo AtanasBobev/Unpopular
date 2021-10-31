@@ -44,9 +44,6 @@ const Profile = (props) => {
   const [files, setFiles] = React.useState();
   const [avatar, setAvatar] = React.useState();
 
-  const handleImageChange = (err, response) => {
-    console.log(err, response);
-  };
   const handleClickOpen = () => {
     setOpen(true);
   };

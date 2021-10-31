@@ -469,7 +469,6 @@ header {
 .panel-heading {
   background: white !important;
   text-align: center;
-  border-bottom: 0.5px solid rgb(192, 192, 192);
   border-top-right-radius: 0.5em;
   border-top-left-radius: 0.5em;
 }
@@ -490,6 +489,11 @@ header {
 .pure-modal .panel-footer,
 .pure-modal .panel-title {
   word-break: normal !important;
+}
+
+.pure-modal {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 0.2vmax;
 }
 
 .close {
@@ -722,4 +726,21 @@ header {
   100% {
     background-position: 0% 28%
   }
+}
+
+.resetPassword {
+  display: flex;
+  width: 30vw;
+  flex-wrap: wrap;
+  background-color: white;
+  padding: 1vmax;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.resetPassword>* {
+  width: 100%;
 }

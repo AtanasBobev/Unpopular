@@ -7,13 +7,15 @@ import Typography from "@material-ui/core/Typography";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useHistory } from "react-router-dom";
+import ForgottenPassword from "./forgottenPassword";
 import Tilty from "react-tilty";
-
+import PureModal from "react-pure-modal";
 const axios = require("axios");
 
 const Login = (props) => {
   const history = useHistory();
   const [username, setUsername] = React.useState();
+  const [openPassword, setOpenPassword] = React.useState();
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
   const [locked, setLocked] = React.useState(false);
@@ -138,6 +140,7 @@ const Login = (props) => {
                     label="Потребителско име"
                     className="inputField"
                     margin="normal"
+                    inputProps={{ maxLength: 100 }}
                     required
                   />
                   <TextField
@@ -147,6 +150,7 @@ const Login = (props) => {
                     type="password"
                     className="inputField"
                     margin="normal"
+                    inputProps={{ maxLength: 100 }}
                     required
                   />
                 </Box>
@@ -176,6 +180,17 @@ const Login = (props) => {
                       variant="text"
                       color="primary"
                       onClick={() => {
+                        setOpenPassword(true);
+                      }}
+                    >
+                      Забравена парола
+                    </Button>
+
+                    <Button
+                      style={{ textTransform: "none" }}
+                      variant="text"
+                      color="primary"
+                      onClick={() => {
                         history.push("/register");
                       }}
                     >
@@ -186,6 +201,19 @@ const Login = (props) => {
               </Box>
             </Tilty>
           </form>
+          <PureModal
+            header="Забравена парола"
+            isOpen={openPassword}
+            onClose={() => {
+              setOpenPassword(!openPassword);
+              return true;
+            }}
+          >
+            <ForgottenPassword
+              toast={toast}
+              setOpenPassword={setOpenPassword}
+            />
+          </PureModal>
         </div>
       </Container>
     </div>

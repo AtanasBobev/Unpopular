@@ -11,6 +11,7 @@ import Saved from "./components/saved";
 import Place from "./components/place";
 import jwt_decode from "jwt-decode";
 import Verify from "./components/verifyEmail";
+import ResetPassword from "./components/resetPassword";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { Switch, Route, Link, Redirect } from "react-router-dom";
@@ -182,6 +183,10 @@ function App() {
           }
         />
         <Route path="/place/:id" component={() => <Place toast={toast} />} />
+        <Route
+          path="/reset/:id"
+          component={() => <ResetPassword toast={toast} />}
+        />
 
         <Redirect from="/" to="/search" />
       </Switch>

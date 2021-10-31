@@ -7,6 +7,8 @@ import Typography from "@material-ui/core/Typography";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Tilty from "react-tilty";
+import ForgottenPassword from "./forgottenPassword";
+import PureModal from "react-pure-modal";
 import { useHistory } from "react-router-dom";
 const passwordValidator = require("password-validator");
 let schema = new passwordValidator();
@@ -47,6 +49,7 @@ const Register = (props) => {
   const [username, setUsername] = React.useState();
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
+  const [openPassword, setOpenPassword] = React.useState();
 
   const register = (e) => {
     e.preventDefault();
@@ -245,6 +248,16 @@ const Register = (props) => {
                       variant="text"
                       color="primary"
                       onClick={() => {
+                        setOpenPassword(true);
+                      }}
+                    >
+                      Имам ли акаунт?
+                    </Button>
+                    <Button
+                      style={{ textTransform: "none" }}
+                      variant="text"
+                      color="primary"
+                      onClick={() => {
                         history.push("/login");
                       }}
                     >
@@ -255,6 +268,19 @@ const Register = (props) => {
               </Box>
             </Tilty>
           </form>
+          <PureModal
+            header="Забравена парола"
+            isOpen={openPassword}
+            onClose={() => {
+              setOpenPassword(!openPassword);
+              return true;
+            }}
+          >
+            <ForgottenPassword
+              toast={toast}
+              setOpenPassword={setOpenPassword}
+            />
+          </PureModal>
         </div>
       </Container>
     </div>

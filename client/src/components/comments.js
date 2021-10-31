@@ -939,7 +939,7 @@ const Comments = (props) => {
   };
   return (
     <Box>
-      {verify() && (
+      {verify() ? (
         <AddComment
           data={data}
           setData={setData}
@@ -947,6 +947,10 @@ const Comments = (props) => {
           place_id={props.place_id}
           getComments={props.getComments}
         />
+      ) : (
+        <center style={{ margin: "1vmax" }}>
+          Регистрирайте се, за да пишете коментари
+        </center>
       )}
       {data.map((el) => (
         <Comment

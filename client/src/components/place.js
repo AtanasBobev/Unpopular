@@ -1,5 +1,5 @@
 import React from "react";
-import { useHistory, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Card from "./card";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Box";

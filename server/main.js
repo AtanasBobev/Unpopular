@@ -1684,7 +1684,9 @@ server.post("/login", async (req, res) => {
           `Профилът Ви беше заключен`,
           `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: http://localhost:5000/user/unblock/${
             url.rows[data.rows.length - 1].url
-          } IP адресите, от е имало опити за влизане са ${ip}`,
+          } IP адресите, от е имало опити за влизане са ${ip.filter(
+            onlyUnique
+          )}`,
           email.rows[0].email
         );
         return false;
@@ -2163,6 +2165,109 @@ server.delete("/reply/delete", authorizeToken, (req, res) => {
 });
 
 //Change user data endpoints
+server.put("/user/password/forgotten", (req, res) => {
+  console.log(req.body.cred);
+  if (req.body.cred.length > 100 || req.body.cred.length == 0) {
+    res.status(400).send("Data sent invalid!");
+    return false;
+  }
+  pool.query(
+    "SELECT email from users WHERE email=$1 OR username=$1",
+    [req.body.cred],
+    async (err, data) => {
+      if (!data.rows.length) {
+        res.status(200).send("All actions done");
+        return false;
+      }
+      let date = await pool.query(
+        "SELECT verification_actions.date FROM verification_actions JOIN users on user_id=id WHERE type='password-reset' AND username=$1 OR email = $1",
+        [req.body.cred]
+      );
+      let a = moment(new Date()); //now
+      let b = moment(date.rows.length && date.rows[date.rows.length - 1].date); // past email sent
+      if (a.diff(b, "minutes") >= 10 || !date.rows.length) {
+        let user_id = await pool.query(
+          "SELECT id,email from users WHERE email=$1 OR username=$1",
+          [req.body.cred]
+        );
+        let token = await genToken(100);
+        await pool.query(
+          `DELETE FROM public.verification_actions
+        WHERE user_id=$1 AND type=$2`,
+          [user_id.rows[0].id, "password-reset"]
+        );
+        await pool.query(
+          `INSERT INTO public.verification_actions(
+          user_id, type, url, date)
+          VALUES ($1, 'password-reset', $2, $3)`,
+          [user_id.rows[0].id, token, new Date()]
+        );
+        sendMail(
+          `Възстановяване на паролата`,
+          `Поискали сте възстановяване на паролата. Натиснете следния линк: http://localhost:3000/reset/${token}`,
+          data.rows[0].email
+        );
+      }
+      res.status(200).send("All actions done");
+    }
+  );
+});
+server.put("/user/password/code", (req, res) => {
+  if (!req.body.code || req.body.code.length !== 200) {
+    res.status(401).send("Code is invalid");
+    return false;
+  }
+  pool.query(
+    "SELECT COUNT(*) FROM verification_actions WHERE url=$1",
+    [req.body.code],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      if (Number(data.rows[0].count) !== 0) {
+        res.status(200).send("Code is valid");
+      } else {
+        res.status(401).send("Code is invalid");
+      }
+    }
+  );
+});
+server.put("/user/password/reset", (req, res) => {
+  if (
+    !req.body.password ||
+    req.body.password.length < 8 ||
+    req.body.password.length > 100
+  ) {
+    res.status(401).send("Password invalid");
+    return false;
+  }
+  pool.query(
+    "SELECT (SELECT COUNT(*) FROM verification_actions WHERE url=$1), user_id FROM verification_actions WHERE url=$1",
+    [req.body.code],
+    async (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      if (!data.rows.length) {
+        return false;
+      }
+      await pool.query("DELETE FROM verification_actions WHERE url=$1", [
+        req.body.code,
+      ]);
+      encrypt(req.body.password).then(async (hash) => {
+        await pool.query(
+          `UPDATE public.users
+        SET hash=$1
+        WHERE id=$2`,
+          [hash, data.rows[0].user_id]
+        );
+        res.status(200).send("Password changed");
+      });
+    }
+  );
+});
 server.get("/user/unblock/:id", async (req, res) => {
   if (!req.params.id || req.params.id.length !== 200) {
     res.status(400).send("Грешен код");
@@ -2510,4 +2615,7 @@ const Verification_Email = async (user_id) => {
   } else {
     return false;
   }
+};
+const onlyUnique = (value, index, self) => {
+  return self.indexOf(value) === index;
 };
