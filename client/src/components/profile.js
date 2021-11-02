@@ -89,10 +89,13 @@ const Profile = (props) => {
         },
       })
       .then((data) => {
-        setAvatar(data.data[0][0].avatar);
-        setUserData(data.data);
+        if (data.data.length) {
+          setAvatar(data.data[0][0].avatar);
+          setUserData(data.data);
+        }
       })
       .catch((err) => {
+        console.log(err);
         toast.error("Не успяхме да получим данните от сървъра", {
           position: "bottom-left",
           autoClose: 5000,
@@ -109,9 +112,14 @@ const Profile = (props) => {
       headers: { jwt: localStorage.getItem("jwt") },
     })
     .then((data) => {
-      setUserCount(data.data);
+      if (data.data.length) {
+        setUserCount(data.data);
+      } else {
+        setUserCount(0);
+      }
     })
     .catch((err) => {
+      console.log(err);
       toast.error("Не успяхме да получим данните от сървъра", {
         position: "bottom-left",
         autoClose: 5000,

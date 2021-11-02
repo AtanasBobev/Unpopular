@@ -10,7 +10,6 @@ const Weather = (props) => {
     let timestr = date.toLocaleTimeString();
     return moment(timestr, ["h:mm:ss A"]).format("HH:mm");
   };
-  console.log(props);
   return (
     <Box className="weatherWrapper">
       <center>

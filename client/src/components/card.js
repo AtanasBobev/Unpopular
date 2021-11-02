@@ -34,6 +34,7 @@ import Report from "./report";
 import jwt_decode from "jwt-decode";
 import Share from "./share";
 import Edit from "./edit";
+import moment from "moment";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -414,7 +415,6 @@ const CardElement = (props) => {
       getComments();
     }
   }, [open]);
-
   return (
     <div
       style={{
@@ -614,35 +614,74 @@ const CardElement = (props) => {
             </Box>
           )}
           <center>
-            {" "}
-            <Box
-              style={{
-                display: "inline-flex",
-                justifyContent: "flex-end",
-                alignItems: "center",
-                padding: "0.5vmax",
-                borderRadius: "1vmax",
-                marginTop: "2vmax",
-              }}
-              className="userProfileGradient"
-            >
-              <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
-                {" "}
-                {props.username}{" "}
-              </Typography>
-              {props.avatar && (
-                <img
-                  style={{
-                    borderRadius: "50%",
-                    width: "2rem",
-                    height: "2rem",
-                    marginRight: "0.2vmax",
-                    marginBottom: "0.4vmax",
-                  }}
-                  src={"http://localhost:5000/image/" + props.avatar}
-                />
-              )}
-            </Box>{" "}
+            {props.username && (
+              <Box
+                style={{
+                  display: "inline-flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  padding: "0.5vmax",
+                  borderRadius: "1vmax",
+                  margin: "2vmax",
+                }}
+                className="userProfileGradient"
+              >
+                <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
+                  {"Публикувано от " + props.username}
+                </Typography>
+                {props.avatar && (
+                  <img
+                    style={{
+                      borderRadius: "50%",
+                      width: "2rem",
+                      height: "2rem",
+                      marginRight: "0.2vmax",
+                      marginBottom: "0.4vmax",
+                    }}
+                    src={"http://localhost:5000/image/" + props.avatar}
+                  />
+                )}
+              </Box>
+            )}
+            {props.date && (
+              <Box
+                style={{
+                  display: "inline-flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  padding: "1vmax",
+                  borderRadius: "1vmax",
+                  margin: "2vmax",
+                }}
+                className="userProfileGradient"
+              >
+                <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
+                  {"Датата на публикация е " +
+                    moment(props.date).locale("bg").format("LL")}
+                </Typography>
+              </Box>
+            )}
+            {props.distance && (
+              <Box
+                style={{
+                  display: "inline-flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  padding: "1vmax",
+                  borderRadius: "1vmax",
+                  margin: "2vmax",
+                }}
+                className="userProfileGradient"
+              >
+                <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
+                  {props.distance < 1000
+                    ? "Мястото е на " + props.distance + " метра"
+                    : "Мястото е на " +
+                      (props.distance / 1000).toFixed(1) +
+                      " км"}
+                </Typography>
+              </Box>
+            )}
           </center>
           {!props.demo && (
             <Comments

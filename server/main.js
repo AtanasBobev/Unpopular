@@ -1086,40 +1086,45 @@ server.get("/userLikedPlaces", authorizeToken, (req, res) => {
     res.status(400).send("Invalid LIMIT sent");
     return false;
   }
+  console.log(req.user_id);
   pool.query(
-    `SELECT places.place_id, city,avatar,username,
-       places.user_id,
-       title, 
-       description,
-       visible,
-       score,
-       placelocation,
-       category,
-       price,
-       accessibility,
-       places.date,
-       dangerous,
-       url,
-       image_id,CASE
-					WHEN EXISTS
-											(SELECT *
-												FROM "savedPlaces"
-												WHERE "savedPlaces".PLACE_ID = "favoritePlaces".PLACE_ID
-													AND places.USER_ID = $1 ) THEN 'true'
-					ELSE 'false'
-	END AS SAVED,
- (SELECT COUNT(*) AS likednumber
- FROM "favoritePlaces"
- WHERE "favoritePlaces".place_id=places.place_id),
- (SELECT COUNT(user_id) FROM "favoritePlaces" WHERE places.user_id=128) FROM "favoritePlaces" 
- JOIN places ON places.place_id = "favoritePlaces".place_id LEFT JOIN images ON images.place_id = places.place_id
- LEFT JOIN users ON users.id = places.user_id
- WHERE places.user_id =$1  ORDER BY "favoritePlaces".date DESC
+    `SELECT PLACES.PLACE_ID, city,avatar,username,
+    places.user_id,
+    TITLE,
+    DESCRIPTION,
+    VISIBLE,
+    SCORE,
+    PLACELOCATION,
+    CATEGORY,
+    PRICE,
+    ACCESSIBILITY,
+    PLACES.DATE,
+    DANGEROUS,
+    URL,
+    IMAGE_ID,
+    CASE
+            WHEN EXISTS
+                        (SELECT *
+                          FROM "savedPlaces"
+                          WHERE "savedPlaces".PLACE_ID = places.PLACE_ID
+                            AND USER_ID = $1 ) THEN 'true'
+            ELSE 'false'
+    END AS saved,
+    (SELECT COUNT(*) AS LIKEDNUMBER
+      FROM "favoritePlaces"
+      WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID ),
+    (SELECT COUNT(USER_ID)
+      FROM "savedPlaces"
+       WHERE "savedPlaces".PLACE_ID = PLACES.PLACE_ID)
+  FROM PLACES
+  JOIN "favoritePlaces" ON PLACES.PLACE_ID = "favoritePlaces".PLACE_ID
+  LEFT JOIN IMAGES ON IMAGES.PLACE_ID = PLACES.PLACE_ID
+  LEFT JOIN users ON users.id = places.user_id
+  WHERE "favoritePlaces".USER_ID = $1  ORDER BY "favoritePlaces".date DESC
   `,
     [req.user_id],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }

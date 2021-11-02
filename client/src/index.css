@@ -744,3 +744,8 @@ header {
 .resetPassword>* {
   width: 100%;
 }
+
+#root>div>div:nth-child(4)>div.CardContainer>div:nth-child(1)>div>center>div,
+.MapContainer>center>div:nth-child(1) {
+  width: 100% !important;
+}
