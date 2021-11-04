@@ -197,16 +197,20 @@ const Liked = (props) => {
           )}
         </Box>
       </center>
+      {likedQueryData.length == 0 && likedLoading == 3 && (
+        <img
+          src={require("../images/liked.svg").default}
+          className="noResultsBanner"
+        />
+      )}
       <Box maxWidth="sm">
-        {likedQueryData.length == 0 && likedLoading == 3 && (
-          <img
-            src={require("../images/liked.svg").default}
-            className="noResultsBanner"
-          />
-        )}
-        <FadeIn transitionDuration={600} delay={100} className="CardContainer">
-          <div className="MapContainer">
-            {likedQueryData && (
+        {likedQueryData.length && (
+          <FadeIn
+            transitionDuration={600}
+            delay={100}
+            className="CardContainer"
+          >
+            <div className="MapContainer">
               <center>
                 <Map
                   metaWheelZoom={true}
@@ -313,215 +317,216 @@ const Liked = (props) => {
                         }))}
                 </Map>
               </center>
-            )}
-            <Box
-              style={{
-                display: "flex",
-                flexWrap: "wrap",
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingTop: "0.5vmax",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "red",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Моята локация</Typography>
 
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "purple",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Заведение</Typography>
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "orange",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Нощно заведение</Typography>
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "RoyalBlue",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Магазин</Typography>
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "green",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Пътека</Typography>
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "pink",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Място</Typography>
-                <div
-                  style={{
-                    height: "1vmax",
-                    width: "1vmax",
-                    borderRadius: "50%",
-                    backgroundColor: "black",
-                    marginRight: "0.5vmax",
-                    marginLeft: "1vmax",
-                  }}
-                ></div>
-                <Typography>Друго</Typography>
-              </div>
-              <div
+              <Box
                 style={{
                   display: "flex",
                   flexWrap: "wrap",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
                   alignItems: "center",
+                  paddingTop: "0.5vmax",
                 }}
               >
-                <Switch
-                  checked={locationChecked && location}
-                  onChange={(e) => setLocationChecked(e.target.checked)}
-                />
-                <Typography>Сортирай по близост</Typography>
-                <Checkbox
-                  trackColor={{ true: "red", false: "grey" }}
-                  checked={markersChecked}
-                  onChange={(e) => setMarkersChecked(e.target.checked)}
-                />
-                <Typography>Маркери</Typography>
-                <Checkbox
-                  checked={placesChecked}
-                  onChange={(e) => setPlacesChecked(e.target.checked)}
-                />
-                <Typography>Места</Typography>
-              </div>
-            </Box>
-          </div>
-          {likedLoading == 3 || likedLoading == 1 ? (
-            places.length && locationChecked ? (
-              places.map((el) => {
-                return (
-                  <>
-                    <Card
-                      toast={props.toast}
-                      key={Math.random()}
-                      date={el[1][0].date}
-                      idData={el[1][0].place_id}
-                      title={el[1][0].title}
-                      description={el[1][0].description}
-                      price={el[1][0].price}
-                      accessibility={el[1][0].accessibility}
-                      category={el[1][0].category}
-                      placelocation={el[1][0].placelocation}
-                      dangerous={el[1][0].dangerous}
-                      username={el[1][0].username}
-                      avatar={el[1][0].avatar}
-                      likeButtonVisible={verify()}
-                      reportButtonVisible={true}
-                      liked={el[1][0].liked == "true" ? true : false}
-                      saved={el[1][0].saved == "true" ? true : false}
-                      numbersLiked={Number(el[1][0].likednumber)}
-                      mainImg={el[1][0].url}
-                      city={el[1][0].city}
-                      images={el}
-                      saveButtonVisible={verify()}
-                      adminRights={el[1][0].user_id == ID()}
-                      distance={el[0]}
-                      date={el[1][0].date}
-                    />
-                  </>
-                );
-              })
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "red",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Моята локация</Typography>
+
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "purple",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Заведение</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "orange",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Нощно заведение</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "RoyalBlue",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Магазин</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "green",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Пътека</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "pink",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Място</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "black",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Друго</Typography>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <Switch
+                    checked={locationChecked && location}
+                    onChange={(e) => setLocationChecked(e.target.checked)}
+                  />
+                  <Typography>Сортирай по близост</Typography>
+                  <Checkbox
+                    trackColor={{ true: "red", false: "grey" }}
+                    checked={markersChecked}
+                    onChange={(e) => setMarkersChecked(e.target.checked)}
+                  />
+                  <Typography>Маркери</Typography>
+                  <Checkbox
+                    checked={placesChecked}
+                    onChange={(e) => setPlacesChecked(e.target.checked)}
+                  />
+                  <Typography>Места</Typography>
+                </div>
+              </Box>
+            </div>
+            {likedLoading == 3 || likedLoading == 1 ? (
+              places.length && locationChecked ? (
+                places.map((el) => {
+                  return (
+                    <>
+                      <Card
+                        toast={props.toast}
+                        key={Math.random()}
+                        date={el[1][0].date}
+                        idData={el[1][0].place_id}
+                        title={el[1][0].title}
+                        description={el[1][0].description}
+                        price={el[1][0].price}
+                        accessibility={el[1][0].accessibility}
+                        category={el[1][0].category}
+                        placelocation={el[1][0].placelocation}
+                        dangerous={el[1][0].dangerous}
+                        username={el[1][0].username}
+                        avatar={el[1][0].avatar}
+                        likeButtonVisible={verify()}
+                        reportButtonVisible={true}
+                        liked={el[1][0].liked == "true" ? true : false}
+                        saved={el[1][0].saved == "true" ? true : false}
+                        numbersLiked={Number(el[1][0].likednumber)}
+                        mainImg={el[1][0].url}
+                        city={el[1][0].city}
+                        images={el}
+                        saveButtonVisible={verify()}
+                        adminRights={el[1][0].user_id == ID()}
+                        distance={el[0]}
+                        date={el[1][0].date}
+                      />
+                    </>
+                  );
+                })
+              ) : (
+                likedQueryData.map((el) => {
+                  return (
+                    <>
+                      <Card
+                        date={el[0].date}
+                        toast={props.toast}
+                        key={Math.random()}
+                        idData={el[0].place_id}
+                        title={el[0].title}
+                        description={el[0].description}
+                        price={el[0].price}
+                        accessibility={el[0].accessibility}
+                        category={el[0].category}
+                        placelocation={el[0].placelocation}
+                        dangerous={el[0].dangerous}
+                        likeButtonVisible={verify()}
+                        reportButtonVisible={true}
+                        liked={el[0].liked == "true" ? true : false}
+                        saved={el[0].saved == "true" ? true : false}
+                        numbersLiked={Number(el[0].likednumber)}
+                        mainImg={el[0].url}
+                        city={el[0].city}
+                        username={el[0].username}
+                        avatar={el[0].avatar}
+                        images={el}
+                        saveButtonVisible={verify()}
+                        adminRights={el[0].user_id == ID()}
+                      />
+                    </>
+                  );
+                })
+              )
             ) : (
-              likedQueryData.map((el) => {
-                return (
-                  <>
-                    <Card
-                      date={el[0].date}
-                      toast={props.toast}
-                      key={Math.random()}
-                      idData={el[0].place_id}
-                      title={el[0].title}
-                      description={el[0].description}
-                      price={el[0].price}
-                      accessibility={el[0].accessibility}
-                      category={el[0].category}
-                      placelocation={el[0].placelocation}
-                      dangerous={el[0].dangerous}
-                      likeButtonVisible={verify()}
-                      reportButtonVisible={true}
-                      liked={el[0].liked == "true" ? true : false}
-                      saved={el[0].saved == "true" ? true : false}
-                      numbersLiked={Number(el[0].likednumber)}
-                      mainImg={el[0].url}
-                      city={el[0].city}
-                      username={el[0].username}
-                      avatar={el[0].avatar}
-                      images={el}
-                      saveButtonVisible={verify()}
-                      adminRights={el[0].user_id == ID()}
-                    />
-                  </>
-                );
-              })
-            )
-          ) : (
-            <ContentLoader
-              width={800}
-              height={575}
-              viewBox="0 0 800 575"
-              backgroundColor="#f3f3f3"
-              foregroundColor="#ecebeb"
-              {...props}
-            >
-              <rect x="12" y="58" rx="2" ry="2" width="211" height="211" />
-              <rect x="240" y="57" rx="2" ry="2" width="211" height="211" />
-              <rect x="467" y="56" rx="2" ry="2" width="211" height="211" />
-              <rect x="12" y="283" rx="2" ry="2" width="211" height="211" />
-              <rect x="240" y="281" rx="2" ry="2" width="211" height="211" />
-              <rect x="468" y="279" rx="2" ry="2" width="211" height="211" />
-            </ContentLoader>
-          )}
-        </FadeIn>
+              <ContentLoader
+                width={800}
+                height={575}
+                viewBox="0 0 800 575"
+                backgroundColor="#f3f3f3"
+                foregroundColor="#ecebeb"
+                {...props}
+              >
+                <rect x="12" y="58" rx="2" ry="2" width="211" height="211" />
+                <rect x="240" y="57" rx="2" ry="2" width="211" height="211" />
+                <rect x="467" y="56" rx="2" ry="2" width="211" height="211" />
+                <rect x="12" y="283" rx="2" ry="2" width="211" height="211" />
+                <rect x="240" y="281" rx="2" ry="2" width="211" height="211" />
+                <rect x="468" y="279" rx="2" ry="2" width="211" height="211" />
+              </ContentLoader>
+            )}
+          </FadeIn>
+        )}
         {likedLoading == 3 &&
           likedQueryData.length &&
           Number(likedQueryData[0][0]["count"]) !== 0 &&

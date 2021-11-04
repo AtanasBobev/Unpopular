@@ -1102,14 +1102,10 @@ server.get("/userLikedPlaces", authorizeToken, (req, res) => {
     DANGEROUS,
     URL,
     IMAGE_ID,
-    CASE
-            WHEN EXISTS
-                        (SELECT *
-                          FROM "savedPlaces"
-                          WHERE "savedPlaces".PLACE_ID = places.PLACE_ID
-                            AND USER_ID = $1 ) THEN 'true'
-            ELSE 'false'
-    END AS saved,
+   CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1)
+THEN 'true' ELSE 'false' END AS liked,
+CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1) THEN 'true' 
+ELSE 'false' END as saved,
     (SELECT COUNT(*) AS LIKEDNUMBER
       FROM "favoritePlaces"
       WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID ),
@@ -1168,14 +1164,10 @@ server.get("/userSavedPlaces", authorizeToken, (req, res) => {
 	DANGEROUS,
 	URL,
 	IMAGE_ID,
-	CASE
-					WHEN EXISTS
-											(SELECT *
-												FROM "favoritePlaces"
-												WHERE "favoritePlaces".PLACE_ID = places.PLACE_ID
-													AND USER_ID = $1 ) THEN 'true'
-					ELSE 'false'
-	END AS liked,
+  CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1)
+THEN 'true' ELSE 'false' END AS liked,
+CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1) THEN 'true' 
+ELSE 'false' END as saved,
 	(SELECT COUNT(*) AS LIKEDNUMBER
 		FROM "favoritePlaces"
 		WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID ),
