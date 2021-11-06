@@ -859,11 +859,13 @@ WHERE places.PLACE_ID = $1
     }
   );
 });
+
 server.get("/user/data", authorizeToken, async (req, res) => {
   let userPlaces = await pool.query(
     `SELECT user_id,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
 FROM places
 LEFT JOIN images on images.place_id = places.place_id
+RIGHT JOIN users on id=places.user_id
 WHERE places.user_id = $1`,
     [req.user_id]
   );
@@ -983,7 +985,7 @@ WHERE places.user_id = $1`,
   await res.status(200).sendFile(`${__dirname}/${name}`);
   await sendMail(
     "Вашите данни",
-    "Здравейте, по-долу съм прикачил Вашите данни. Поздрави, Атанас",
+    "Здравейте, по-долу са прикачени Вашите данни. ",
     "a.bobev23@acsbg.org",
     [
       {
@@ -1000,6 +1002,26 @@ WHERE places.user_id = $1`,
       }
     });
   }, 20000);
+});
+
+server.get("/user/preview", (req, res) => {
+  if (!req.query.username) {
+    res.status(400).send("Invalid data");
+    return false;
+  }
+  pool.query(
+    `SELECT COUNT(*) FROM places
+  LEFT JOIN users on users.id=places.user_id
+  WHERE username=$1`,
+    [req.query.username],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0].count);
+    }
+  );
 });
 
 server.get("/place/specific", async (req, res) => {

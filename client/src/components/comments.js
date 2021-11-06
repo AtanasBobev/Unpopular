@@ -12,7 +12,10 @@ import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
+import TooltipImage from "./tooltipImage";
+
 import jwt_decode from "jwt-decode";
+
 const axios = require("axios");
 const moment = require("moment");
 moment.locale("bg");
@@ -579,20 +582,9 @@ const Comment = (props) => {
               alignItems: "center",
             }}
           >
-            От:{"  "}
-            {props.avatar && (
-              <img
-                style={{
-                  borderRadius: "50%",
-                  width: "1.5rem",
-                  height: "1.5rem",
-                  marginLeft: "0.5vmax",
-                  marginBottom: "0.4vmax",
-                }}
-                src={"http://localhost:5000/image/" + props.avatar}
-              />
-            )}
-            {props.author} | Дата: {moment(props.date).format("llll")}
+            {" "}
+            <TooltipImage author={props.author} avatar={props.avatar} />| Дата:{" "}
+            {moment(props.date).format("llll")}
             {" | "}
             {props.el[0].reply_content == null
               ? "Няма отговори"
@@ -602,6 +594,7 @@ const Comment = (props) => {
               ? "2 отговора"
               : props.el.length + " отговори"}
           </Typography>
+
           {verify() && (
             <Button
               onClick={() => setReply(!reply)}

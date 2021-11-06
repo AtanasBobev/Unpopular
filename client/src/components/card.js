@@ -748,8 +748,6 @@ const CardElement = (props) => {
             <PureModal
               header="Редактирай"
               isOpen={openEdit}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setEditOpen(false);
                 return true;
@@ -773,8 +771,6 @@ const CardElement = (props) => {
             <PureModal
               header="Сподели"
               isOpen={openShare}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setShareOpen(false);
                 return true;
@@ -795,8 +791,6 @@ const CardElement = (props) => {
             <PureModal
               header="Съобщи за нередност"
               isOpen={openReport}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setReportOpen(false);
                 return true;

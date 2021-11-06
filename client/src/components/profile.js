@@ -217,7 +217,7 @@ const Profile = (props) => {
         );
       })
       .catch((err) => {
-        props.toast(
+        props.error(
           "Имаше грешка при изтеглянето. Пробвайте отново по-късно ",
           {
             position: "bottom-left",
@@ -305,8 +305,6 @@ const Profile = (props) => {
             <PureModal
               header="Промени аватар"
               isOpen={openAvatar}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setOpenAvatar(!openAvatar);
                 return true;
@@ -322,8 +320,6 @@ const Profile = (props) => {
             <PureModal
               header="Промени парола"
               isOpen={openPassword}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setOpenPassword(!openPassword);
                 return true;
@@ -348,8 +344,6 @@ const Profile = (props) => {
             <PureModal
               header="Промени имейл"
               isOpen={openEmail}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setOpenEmail(!openEmail);
                 return true;
@@ -367,8 +361,6 @@ const Profile = (props) => {
             <PureModal
               header="Промени име"
               isOpen={openName}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setOpenName(!openName);
                 return true;
@@ -408,8 +400,6 @@ const Profile = (props) => {
             <PureModal
               header="Изтрий профил"
               isOpen={openDelete}
-              closeButton="X"
-              closeButtonPosition="top"
               onClose={() => {
                 setDelete(!openDelete);
                 return true;

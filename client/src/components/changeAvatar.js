@@ -99,7 +99,6 @@ const Avatar = (props) => {
           </center>
           {newAvatar && (
             <>
-              <Divider />
               <Button
                 style={{ textTransform: "none", margin: "1vmax" }}
                 variant="outlined"
