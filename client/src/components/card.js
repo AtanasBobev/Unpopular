@@ -35,6 +35,7 @@ import jwt_decode from "jwt-decode";
 import Share from "./share";
 import Edit from "./edit";
 import moment from "moment";
+import TooltipImage from "./tooltipImage";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -504,19 +505,7 @@ const CardElement = (props) => {
             </Typography>
           </Box>
           <Box style={{ display: "flex" }}>
-            {props.avatar && (
-              <img
-                style={{
-                  borderRadius: "50%",
-                  width: "1rem",
-                  height: "1rem",
-                  marginRight: "0.2vmax",
-                  marginBottom: "0.4vmax",
-                }}
-                src={"http://localhost:5000/image/" + props.avatar}
-              />
-            )}{" "}
-            {props.username}
+            <TooltipImage author={props.username} avatar={props.avatar} />
           </Box>
           <Box>
             {props.saveButtonVisible && (
@@ -613,7 +602,7 @@ const CardElement = (props) => {
               )}
             </Box>
           )}
-          <center>
+          <center className="userCards">
             {props.username && (
               <Box
                 style={{
@@ -626,21 +615,7 @@ const CardElement = (props) => {
                 }}
                 className="userProfileGradient"
               >
-                <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
-                  {"Публикувано от " + props.username}
-                </Typography>
-                {props.avatar && (
-                  <img
-                    style={{
-                      borderRadius: "50%",
-                      width: "2rem",
-                      height: "2rem",
-                      marginRight: "0.2vmax",
-                      marginBottom: "0.4vmax",
-                    }}
-                    src={"http://localhost:5000/image/" + props.avatar}
-                  />
-                )}
+                <TooltipImage author={props.username} avatar={props.avatar} />
               </Box>
             )}
             {props.date && (

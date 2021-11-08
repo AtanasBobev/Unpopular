@@ -672,6 +672,7 @@ header {
   -moz-animation: UserBackground 30s ease infinite;
   -o-animation: UserBackground 30s ease infinite;
   animation: UserBackground 30s ease infinite;
+  color: white
 }
 
 @-webkit-keyframes UserBackground {
@@ -757,4 +758,16 @@ header {
   display: flex;
   cursor: pointer;
   padding: 0.5vmax;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.userCards {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-content: center;
+  align-items: center;
 }

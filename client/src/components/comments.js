@@ -268,20 +268,8 @@ const Reply = (props) => {
               alignItems: "center",
             }}
           >
-            От:{" "}
-            {props.avatar && (
-              <img
-                style={{
-                  borderRadius: "50%",
-                  width: "1.5rem",
-                  height: "1.5rem",
-                  marginLeft: "0.5vmax",
-                  marginBottom: "0.4vmax",
-                }}
-                src={"http://localhost:5000/image/" + props.avatar}
-              />
-            )}
-            {props.author} | Дата: {moment(props.date).format("llll")}
+            <TooltipImage author={props.author} avatar={props.avatar} /> | Дата:{" "}
+            {moment(props.date).format("llll")}
           </Typography>
           {verify() && ID() == props.user_id && (
             <Button
