@@ -21,6 +21,7 @@ const styles = {
   },
   appbar: {
     alignItems: "center",
+    zIndex: "10000",
   },
   center: {
     width: "100%",
@@ -41,8 +42,8 @@ const TopBar = (props) => {
     setAnchorEl(null);
   };
   return (
-    <div>
-      <div className={styles.root}>
+    <div className="indexed">
+      <div className="indexed" className={styles.root}>
         <AppBar color="default">
           <Toolbar styles={styles.center}>
             <Typography className="title flex" align="center" variant="h4">

@@ -14,7 +14,8 @@ import Verify from "./components/verifyEmail";
 import ResetPassword from "./components/resetPassword";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { Switch, Route, Link, Redirect } from "react-router-dom";
+
+import { Switch, Route, Redirect } from "react-router-dom";
 function App() {
   //Search component
   const [center, setCenter] = React.useState();
@@ -61,7 +62,7 @@ function App() {
   };
 
   return (
-    <div styles={{ backgroundColor: "white" }} className="App">
+    <div styles={{ backgroundColor: "#232526" }} className="App">
       <ToastContainer
         position="bottom-left"
         autoClose={5000}

@@ -1,5 +1,6 @@
 import React from "react";
 import TextField from "@material-ui/core/TextField";
+import Box from "@material-ui/core/Box";
 import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
 import FormControl from "@material-ui/core/FormControl";
@@ -14,6 +15,8 @@ import "react-toastify/dist/ReactToastify.css";
 import isValidCoords from "is-valid-coords";
 import Card from "./card";
 import { useHistory } from "react-router-dom";
+import isPointInBulgaria from "./isPointInBulgaria";
+import { Map, Marker, ZoomControl } from "pigeon-maps";
 
 const axios = require("axios");
 
@@ -32,7 +35,7 @@ const Upload = (props) => {
   const Upload = (e) => {
     e.preventDefault();
     if (!location || !isValidCoords(location.replace(/\s+/g, "").split(","))) {
-      toast.error(
+      toast.warn(
         "Невалидни координати! Пример за валидни координати е 47.1231231, 179.99999999",
         {
           position: "bottom-left",
@@ -45,6 +48,95 @@ const Upload = (props) => {
         }
       );
     } else {
+      if (
+        !isPointInBulgaria(
+          location.replace(/\s+/g, "").split(",")[0],
+          location.replace(/\s+/g, "").split(",")[1]
+        )
+      ) {
+        toast.warn("Координатите не са в България", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (name.length > 50) {
+        toast.warn("Не може името да е над 50 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (name.length < 5) {
+        toast.warn("Не може името да е под 5 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (description.length > 5000) {
+        toast.warn("Не може описанието да е над 5000 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (description.length < 10) {
+        toast.warn("Не може описанието да е под 10 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (location.length < 1) {
+        toast.warn("Невалидни координати", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (location.length > 50) {
+        toast.warn("Не може координатите да са над 50 симолва", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
       const data = new FormData();
       data.append("name", name);
       data.append("description", description);
@@ -112,6 +204,12 @@ const Upload = (props) => {
         });
     }
   };
+  React.useEffect(() => {
+    console.log([
+      location.replace(/\s+/g, "").split(",")[0],
+      location.replace(/\s+/g, "").split(",")[1],
+    ]);
+  }, [location]);
   return (
     <Container maxWidth="sm">
       <ToastContainer
@@ -135,18 +233,20 @@ const Upload = (props) => {
           Качи място
         </Typography>
         <TextField
-          onChange={(e) => setName(e.target.value)}
+          onBlur={(e) => setName(e.target.value)}
           variant="outlined"
           placeholder="Име на мястото (Бар Кула)"
+          inputProps={{ maxLength: 50 }}
           required
         />
         <TextField
-          onChange={(e) => setDescription(e.target.value)}
+          onBlur={(e) => setDescription(e.target.value)}
           className="UploadMain"
           variant="outlined"
           multiline
           rows={10}
           placeholder="Описание (Как изглежда мястото; как се стига до там; какво може да се види...)"
+          inputProps={{ maxLength: 5000 }}
           required
         />
         <TextField
@@ -155,10 +255,49 @@ const Upload = (props) => {
           variant="outlined"
           multiline
           rows={1}
+          inputProps={{ maxLength: 100 }}
           placeholder="Координати (52.0003,63.0005)"
         />
-        <Divider style={{ flexShrink: "unset" }} />
+        <Typography>
+          Координатите трябва да е във формат "52.0003,63.0005". Отидете в
+          Google Maps. Натиснете с десен бутон върху мястото, за което искате да
+          копирате координатите. Натиснете с ляв бутон върху първата опция,
+          която са координатите. Поставете ги в полето отгоре. Ако координатите
+          са валидни, ще се появи карта и червен маркер на нея. Задължително
+          координатите трябва да са в България.
+        </Typography>
+        <Box>
+          <Divider style={{ flexShrink: "unset" }} />
 
+          {isValidCoords(location.replace(/\s+/g, "").split(",")) &&
+            isPointInBulgaria(
+              Number(location.replace(/\s+/g, "").split(",")[0]),
+              Number(location.replace(/\s+/g, "").split(",")[1])
+            ) && (
+              <Map
+                metaWheelZoom={true}
+                metaWheelZoomWarning={
+                  "Използвайте ctrl+scroll, за да промените мащаба"
+                }
+                center={[
+                  Number(location.replace(/\s+/g, "").split(",")[0]),
+                  Number(location.replace(/\s+/g, "").split(",")[1]),
+                ]}
+                zoom={5}
+                height={"60vh"}
+              >
+                <Marker
+                  width={50}
+                  anchor={[
+                    Number(location.replace(/\s+/g, "").split(",")[0]),
+                    Number(location.replace(/\s+/g, "").split(",")[1]),
+                  ]}
+                  color="red"
+                />
+              </Map>
+            )}
+          <Divider style={{ flexShrink: "unset" }} />
+        </Box>
         <TextField
           className="UploadMain"
           variant="outlined"
@@ -166,14 +305,15 @@ const Upload = (props) => {
           inputStyle={{ fontSize: "15px" }}
           margin="normal"
           helperText="Град/Район (Район Средец)"
-          onChange={(e) => setCity(e.target.value)}
+          onBlur={(e) => setCity(e.target.value)}
           placeholder="София"
           className="filter"
+          inputProps={{ maxLength: 20 }}
           required
         />
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setCategory(e.target.value)}
+            onBlur={(e) => setCategory(e.target.value)}
             placeholder="Без значение"
             labelId="category-label"
             id="category"
@@ -190,7 +330,7 @@ const Upload = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setPrice(e.target.value)}
+            onBlur={(e) => setPrice(e.target.value)}
             labelId="price-label"
             id="price"
             required
@@ -206,7 +346,7 @@ const Upload = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setDangerous(e.target.value)}
+            onBlur={(e) => setDangerous(e.target.value)}
             labelId="dangerous-label"
             id="price"
             required
@@ -219,7 +359,7 @@ const Upload = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setAccessibility(e.target.value)}
+            onBlur={(e) => setAccessibility(e.target.value)}
             labelId="accessibility-label"
             id="accessibility"
             required

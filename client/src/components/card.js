@@ -771,7 +771,12 @@ const CardElement = (props) => {
                 return true;
               }}
             >
-              <Report toast={props.toast} item_id={props.idData} type="place" />
+              <Report
+                toast={props.toast}
+                setReportOpen={setReportOpen}
+                item_id={props.idData}
+                type="place"
+              />
             </PureModal>
             {props.adminRights && (
               <DeleteOutlineOutlinedIcon

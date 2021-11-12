@@ -25,6 +25,8 @@ const sanitizer = require("express-html-sanitizer");
 const fs = require("fs");
 const archive = require("simple-archiver").archive;
 const sendMail = require("./src/email");
+const isPointInBulgaria = require("./src/isPointInBulgaria");
+const passwordValidator = require("password-validator");
 config = {
   allowedTags: ["b", "i", "em", "strong", "a"],
   allowedAttributes: { a: ["href"] },
@@ -32,7 +34,37 @@ config = {
 };
 const sanitizeReqBody = sanitizer(config);
 server.use(sanitizeReqBody);
-
+let schema = new passwordValidator();
+schema
+  .is()
+  .min(8)
+  .is()
+  .max(100)
+  .has()
+  .uppercase()
+  .has()
+  .lowercase()
+  .digits(2)
+  .has()
+  .not()
+  .spaces()
+  .is()
+  .not()
+  .oneOf([
+    "12345678",
+    "123456789",
+    "1234567890",
+    "password",
+    "qwerty123",
+    "1234567890",
+    "11111111",
+    "iloveyou",
+    "987654321",
+    "superman",
+    "iloveyou1",
+    "Bulgaria",
+    "bulgaria",
+  ]);
 const storage = multer.diskStorage({
   destination: "./uploads/",
   filename: function (req, file, cb) {
@@ -535,6 +567,15 @@ server.post("/place", authorizeToken, upload.array("images", 3), (req, res) => {
     res.status(401).send("Account not authorized");
     return false;
   }
+  if (
+    !isPointInBulgaria(
+      req.body.location.replace(/\s+/g, "").split(",")[0],
+      req.body.location.replace(/\s+/g, "").split(",")[1]
+    )
+  ) {
+    res.status(400).send("Place is not in Bulgaria!");
+    return false;
+  }
   pool.query(
     "INSERT INTO places (user_id, title, description, visible, score, placelocation, category, price, accessibility, date, dangerous,city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
     [
@@ -716,36 +757,39 @@ server.delete("/place", authorizeToken, async (req, res) => {
     [req.body.place_id]
   );
   //Delete these comments if there are any
-  if (comments_ids.rows.length) {
+  if (comments_ids.rows.length !== 0) {
     comments_ids.rows.forEach(async (el) => {
       //Delete the actions for the comments
       await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
         el.id,
       ]);
-      await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
+      await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
         el.id,
       ]);
-      await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
+      await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
         el.id,
       ]);
     });
   }
-
-  await pool.query("DELETE FROM comments WHERE place_id=$1", [
-    req.body.place_id,
-  ]);
-  await pool.query(`DELETE FROM "savedPlaces" WHERE place_id=$1`, [
-    req.body.place_id,
-  ]);
-  await pool.query(`DELETE FROM "favoritePlaces" WHERE place_id=$1`, [
-    req.body.place_id,
-  ]);
-  await pool.query(
-    "DELETE FROM reported_items WHERE item_id=$1 AND type='place'",
-    [req.body.place_id]
-  );
-  await pool.query("DELETE FROM places WHERE place_id=$1", [req.body.place_id]);
-  res.status(200).send("Place deleted");
+  setTimeout(async () => {
+    await pool.query("DELETE FROM comments WHERE place_id=$1", [
+      req.body.place_id,
+    ]);
+    await pool.query(`DELETE FROM "savedPlaces" WHERE place_id=$1`, [
+      req.body.place_id,
+    ]);
+    await pool.query(`DELETE FROM "favoritePlaces" WHERE place_id=$1`, [
+      req.body.place_id,
+    ]);
+    await pool.query(
+      "DELETE FROM reported_items WHERE item_id=$1 AND type='place'",
+      [req.body.place_id]
+    );
+    await pool.query("DELETE FROM places WHERE place_id=$1", [
+      req.body.place_id,
+    ]);
+    res.status(200).send("Place deleted");
+  }, 2000);
 });
 server.get("/place/data/:id", (req, res) => {
   if (!Number(req.params.id)) {
@@ -862,13 +906,14 @@ WHERE places.PLACE_ID = $1
 
 server.get("/user/data", authorizeToken, async (req, res) => {
   let userPlaces = await pool.query(
-    `SELECT user_id,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
+    `SELECT user_id,email,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
 FROM places
 LEFT JOIN images on images.place_id = places.place_id
 RIGHT JOIN users on id=places.user_id
 WHERE places.user_id = $1`,
     [req.user_id]
   );
+  console.log(userPlaces.rows);
   let data = groupBy(userPlaces.rows, "place_id");
   data = Object.keys(data).map((key) => data[key]);
   if (!data.length) {
@@ -986,7 +1031,7 @@ WHERE places.user_id = $1`,
   await sendMail(
     "Вашите данни",
     "Здравейте, по-долу са прикачени Вашите данни. ",
-    "a.bobev23@acsbg.org",
+    userPlaces.rows[0].email,
     [
       {
         filename: name,
@@ -1479,7 +1524,8 @@ server.post("/register", async (req, res) => {
       req.body.password &&
       req.body.email &&
       req.body.username.length <= 20 &&
-      req.body.username.length >= 5
+      req.body.username.length >= 5 &&
+      schema.validate(req.body.password)
     )
   ) {
     res.status(400).send("Missing or invalid data sent");
@@ -1531,8 +1577,8 @@ server.post("/register", async (req, res) => {
                 req.body.email
               );
               sendEmail(
-                "Verify your account",
-                `Click the link to verify your account http://localhost:5000/verify/${token}`,
+                "Потвърдете вашия акаунт",
+                `Натиснете линка, за да потвърдите акаунта си: http://localhost:5000/verify/${token}`,
                 req.body.email
               );
               res.status(200).send({ jwt: jwtToken });
@@ -1915,7 +1961,7 @@ LEFT JOIN COMMENTS_REPLIES ON COMMENTS_REPLIES.RELATING = "comments".ID
 LEFT JOIN users ON users.id = "comments".user_id
 LEFT JOIN replies_actions on replies_actions.user_id=${userFormat} AND replies_actions."reply_id"=comments_replies."id"
 LEFT JOIN comments_actions on comments_actions.user_id=${userFormat} AND comments_actions.comment_id="comments"."id"
-WHERE "comments".place_id = $1 AND ("comments".visible=true OR comments_replies.visible=true) ORDER BY "comments".score DESC, comments_replies.date DESC`,
+WHERE "comments".place_id = $1 AND ("comments".visible=true OR comments_replies.visible=true) ORDER BY "comments".score `,
     user_id1,
     user_id2
   );
@@ -2254,9 +2300,12 @@ server.put("/user/password/code", (req, res) => {
 });
 server.put("/user/password/reset", (req, res) => {
   if (
-    !req.body.password ||
-    req.body.password.length < 8 ||
-    req.body.password.length > 100
+    !(
+      req.body.password &&
+      req.body.password.length < 8 &&
+      req.body.password.length > 100 &&
+      schema.validate(req.body.password)
+    )
   ) {
     res.status(401).send("Password invalid");
     return false;
@@ -2321,7 +2370,8 @@ server.put("/user/password", authorizeToken, async (req, res) => {
   if (
     !req.body.password ||
     req.body.newPassword.length < 8 ||
-    !req.body.newPassword
+    !req.body.newPassword ||
+    !schema.validate(req.body.newPassword)
   ) {
     res.status(400).send("Not enough data was provided");
     return false;

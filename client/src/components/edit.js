@@ -2,6 +2,7 @@ import React from "react";
 import TextField from "@material-ui/core/TextField";
 import Container from "@material-ui/core/Container";
 import Typography from "@material-ui/core/Typography";
+import Box from "@material-ui/core/Box";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
 import MenuItem from "@material-ui/core/MenuItem";
@@ -14,6 +15,8 @@ import "react-toastify/dist/ReactToastify.css";
 import isValidCoords from "is-valid-coords";
 import Card from "./card";
 import { useHistory } from "react-router-dom";
+import isPointInBulgaria from "./isPointInBulgaria";
+import { Map, Marker, ZoomControl } from "pigeon-maps";
 
 const axios = require("axios");
 
@@ -45,6 +48,95 @@ const Edit = (props) => {
         }
       );
     } else {
+      if (
+        !isPointInBulgaria(
+          location.replace(/\s+/g, "").split(",")[0],
+          location.replace(/\s+/g, "").split(",")[1]
+        )
+      ) {
+        toast.warn("Координатите не са в България", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (name.length > 50) {
+        toast.warn("Не може името да е над 50 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (name.length < 5) {
+        toast.warn("Не може името да е под 5 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (description.length > 5000) {
+        toast.warn("Не може описанието да е над 5000 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (description.length < 10) {
+        toast.warn("Не може описанието да е под 10 символа", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (location.length < 1) {
+        toast.warn("Невалидни координати", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (location.length > 50) {
+        toast.warn("Не може координатите да са над 50 симолва", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
       if (
         props.name == name &&
         props.dangerous == dangerous &&
@@ -148,20 +240,22 @@ const Edit = (props) => {
         className="UploadForm"
       >
         <TextField
-          onChange={(e) => setName(e.target.value)}
+          onBlur={(e) => setName(e.target.value)}
           variant="outlined"
           placeholder="Име на мястото (Бар Кула)"
           defaultValue={props.name}
+          inputProps={{ maxLength: 50 }}
           required
         />
         <TextField
-          onChange={(e) => setDescription(e.target.value)}
+          onBlur={(e) => setDescription(e.target.value)}
           className="UploadMain"
           defaultValue={props.description}
           variant="outlined"
           multiline
           rows={10}
           placeholder="Описание (Как изглежда мястото; как се стига до там; какво може да се види...)"
+          inputProps={{ maxLength: 5000 }}
           required
         />
         <TextField
@@ -172,9 +266,48 @@ const Edit = (props) => {
           multiline
           rows={1}
           placeholder="Координати (52.0003,63.0005)"
+          inputProps={{ maxLength: 100 }}
         />
-        <Divider style={{ flexShrink: "unset" }} />
+        <Typography>
+          Координатите трябва да е във формат "52.0003,63.0005". Отидете в
+          Google Maps. Натиснете с десен бутон върху мястото, за което искате да
+          копирате координатите. Натиснете с ляв бутон върху първата опция,
+          която са координатите. Поставете ги в полето отгоре. Ако координатите
+          са валидни, ще се появи карта и червен маркер на нея. Задължително
+          координатите трябва да са в България.
+        </Typography>
+        <Box>
+          <Divider style={{ flexShrink: "unset" }} />
 
+          {isValidCoords(location.replace(/\s+/g, "").split(",")) &&
+            isPointInBulgaria(
+              Number(location.replace(/\s+/g, "").split(",")[0]),
+              Number(location.replace(/\s+/g, "").split(",")[1])
+            ) && (
+              <Map
+                metaWheelZoom={true}
+                metaWheelZoomWarning={
+                  "Използвайте ctrl+scroll, за да промените мащаба"
+                }
+                center={[
+                  Number(location.replace(/\s+/g, "").split(",")[0]),
+                  Number(location.replace(/\s+/g, "").split(",")[1]),
+                ]}
+                zoom={5}
+                height={"60vh"}
+              >
+                <Marker
+                  width={50}
+                  anchor={[
+                    Number(location.replace(/\s+/g, "").split(",")[0]),
+                    Number(location.replace(/\s+/g, "").split(",")[1]),
+                  ]}
+                  color="red"
+                />
+              </Map>
+            )}
+          <Divider style={{ flexShrink: "unset" }} />
+        </Box>
         <TextField
           className="UploadMain"
           variant="outlined"
@@ -182,7 +315,7 @@ const Edit = (props) => {
           inputStyle={{ fontSize: "15px" }}
           margin="normal"
           helperText="Град/Район (Район Средец)"
-          onChange={(e) => setCity(e.target.value)}
+          onBlur={(e) => setCity(e.target.value)}
           placeholder="София"
           className="filter"
           defaultValue={props.city}
@@ -190,7 +323,7 @@ const Edit = (props) => {
         />
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setCategory(e.target.value)}
+            onBlur={(e) => setCategory(e.target.value)}
             placeholder="Без значение"
             labelId="category-label"
             id="category"
@@ -208,7 +341,7 @@ const Edit = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setPrice(e.target.value)}
+            onBlur={(e) => setPrice(e.target.value)}
             labelId="price-label"
             id="price"
             defaultValue={props.price}
@@ -225,7 +358,7 @@ const Edit = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setDangerous(e.target.value)}
+            onBlur={(e) => setDangerous(e.target.value)}
             labelId="dangerous-label"
             defaultValue={props.dangerous}
             id="price"
@@ -239,7 +372,7 @@ const Edit = (props) => {
         </FormControl>
         <FormControl variant="outlined">
           <Select
-            onChange={(e) => setAccessibility(e.target.value)}
+            onBlur={(e) => setAccessibility(e.target.value)}
             labelId="accessibility-label"
             id="accessibility"
             defaultValue={props.accessibility}

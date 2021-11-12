@@ -13,13 +13,20 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import TooltipImage from "./tooltipImage";
-
+import PureModal from "react-pure-modal";
 import jwt_decode from "jwt-decode";
+import Report from "./report";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import FormControl from "@material-ui/core/FormControl";
+import FormHelperText from "@material-ui/core/FormHelperText";
 
 const axios = require("axios");
 const moment = require("moment");
 moment.locale("bg");
 const Reply = (props) => {
+  const [openReport, setReportOpen] = React.useState(false);
+
   const [score, setScore] = React.useState(Number(props.score));
   const deleteRelply = () => {
     axios
@@ -153,7 +160,7 @@ const Reply = (props) => {
             }
           );
         } else if (err.response.status == 409) {
-          props.toast.error("Отговорът вече съществува", {
+          props.toast.warn("Отговорът вече съществува", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -295,18 +302,37 @@ const Reply = (props) => {
               Изтрий
             </Button>
           )}
-          <IconButton
-            style={{ marginRight: "0.5vmax" }}
-            aria-label="Съобщи за нередност"
+          {verify() && (
+            <Button
+              onClick={() => setReportOpen(!openReport)}
+              style={{ textTransform: "none" }}
+              startIcon={<ReportOutlinedIcon />}
+            >
+              Нередност
+            </Button>
+          )}
+          <PureModal
+            header="Съобщи за нередност"
+            isOpen={openReport}
+            onClose={() => {
+              setReportOpen(false);
+              return true;
+            }}
           >
-            <ReportOutlinedIcon />
-          </IconButton>
+            <Report
+              toast={props.toast}
+              item_id={props.idData}
+              setReportOpen={setReportOpen}
+              type="reply"
+            />
+          </PureModal>
         </Box>
       </Box>
     </Box>
   );
 };
 const Comment = (props) => {
+  const [openReport, setReportOpen] = React.useState(false);
   const [score, setScore] = React.useState(Number(props.score));
   const [reply, setReply] = React.useState(false);
   React.useLayoutEffect(() => {
@@ -587,7 +613,10 @@ const Comment = (props) => {
             <Button
               onClick={() => setReply(!reply)}
               startIcon={<ReplyIcon />}
-              style={{ textTransform: "none" }}
+              style={{
+                textTransform: "none",
+                border: reply && "2px solid gold",
+              }}
             >
               Отговори
             </Button>
@@ -617,12 +646,30 @@ const Comment = (props) => {
             </Button>
           )}
           {verify() && (
-            <IconButton
-              style={{ marginRight: "0.5vmax" }}
-              aria-label="Съобщи за нередност"
-            >
-              <ReportOutlinedIcon />
-            </IconButton>
+            <>
+              <Button
+                onClick={() => setReportOpen(!openReport)}
+                style={{ textTransform: "none" }}
+                startIcon={<ReportOutlinedIcon />}
+              >
+                Нередност
+              </Button>
+              <PureModal
+                header="Съобщи за нередност"
+                isOpen={openReport}
+                onClose={() => {
+                  setReportOpen(false);
+                  return true;
+                }}
+              >
+                <Report
+                  toast={props.toast}
+                  item_id={props.idData}
+                  setReportOpen={setReportOpen}
+                  type="comment"
+                />
+              </PureModal>
+            </>
           )}
         </Box>
         {reply && (
@@ -666,7 +713,7 @@ const AddComment = (props) => {
   };
   const add = () => {
     if (!content.length) {
-      props.toast.error("Не може да публикувате празен коментар", {
+      props.toast.warn("Не може да публикувате празен коментар", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -678,7 +725,7 @@ const AddComment = (props) => {
       return false;
     }
     if (content.length > 500) {
-      props.toast.error(
+      props.toast.warn(
         "Не може да публикувате коментар по-дълъг от 500 символа",
         {
           position: "bottom-left",
@@ -731,7 +778,7 @@ const AddComment = (props) => {
             }
           );
         } else if (err.response.status == 409) {
-          props.toast.warn("Отговорът вече съществува", {
+          props.toast.warn("Коментарът вече съществува", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -757,24 +804,57 @@ const AddComment = (props) => {
       });
   };
   return (
-    <Box className="mainSend">
-      <TextField
-        id="outlined-textarea"
-        label="Напиши коментар"
-        multiline
-        variant="outlined"
-        style={{ width: "80%" }}
-        onChange={(e) => setContent(e.target.value)}
-      />
-      <Button
-        size="large"
-        className="postButton"
-        variant="contained"
-        endIcon={<SendIcon />}
-        onClick={() => add()}
-      >
-        Постни
-      </Button>
+    <Box>
+      <Box className="mainSend">
+        <TextField
+          id="outlined-textarea"
+          label="Напиши коментар"
+          multiline
+          variant="outlined"
+          style={{ width: "80%" }}
+          inputProps={{ maxLength: 500 }}
+          onChange={(e) => setContent(e.target.value)}
+        />
+        <Button
+          size="large"
+          className="postButton"
+          variant="contained"
+          endIcon={<SendIcon />}
+          onClick={() => add()}
+        >
+          Постни
+        </Button>
+      </Box>
+      <Box style={{ display: "flex", justifyContent: "space-between" }}>
+        {content ? (
+          <Typography style={{ color: content.length > 500 && "red" }}>
+            {content.length}/500 символа
+          </Typography>
+        ) : (
+          ""
+        )}
+        {props.data.length ? (
+          <FormControl variant="outlined">
+            <Select
+              onChange={(e) => {
+                props.setSort(e.target.value);
+              }}
+              defaultValue={0}
+              labelId="category-label"
+              id="category"
+            >
+              <MenuItem value={0}>По подразбиране</MenuItem>
+              <MenuItem value={1}>Харесвание възходящ ред</MenuItem>
+              <MenuItem value={2}>Харесване низходящ ред</MenuItem>
+              <MenuItem value={3}>Дата скорошни</MenuItem>
+              <MenuItem value={4}>Дата отдавнашни</MenuItem>
+            </Select>
+            <FormHelperText>Сортиране</FormHelperText>
+          </FormControl>
+        ) : (
+          ""
+        )}
+      </Box>
     </Box>
   );
 };
@@ -790,7 +870,7 @@ const AddReply = (props) => {
   };
   const add = () => {
     if (!content.length) {
-      props.toast.error("Не може да публикувате празен отговор", {
+      props.toast.warn("Не може да публикувате празен отговор", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -802,7 +882,7 @@ const AddReply = (props) => {
       return false;
     }
     if (content.length > 500) {
-      props.toast.error(
+      props.toast.warn(
         "Не може да публикувате отговор по-дълъг от 500 символа",
         {
           position: "bottom-left",
@@ -882,32 +962,113 @@ const AddReply = (props) => {
       });
   };
   return (
-    <Box className="mainSend">
-      <TextField
-        id="outlined-textarea"
-        label="Напиши отговор"
-        multiline
-        variant="outlined"
-        style={{ width: "80%" }}
-        onChange={(e) => setContent(e.target.value)}
-      />
+    <Box>
+      <Box className="mainSend">
+        <TextField
+          id="outlined-textarea"
+          label="Напиши отговор"
+          multiline
+          variant="outlined"
+          style={{ width: "80%" }}
+          inputProps={{ maxLength: 500 }}
+          onChange={(e) => setContent(e.target.value)}
+        />
 
-      <Button
-        size="large"
-        className="postButton"
-        variant="contained"
-        endIcon={<SendIcon />}
-        onClick={() => add()}
-        style={{ marginLeft: "1vmax" }}
-      >
-        Постни
-      </Button>
+        <Button
+          size="large"
+          className="postButton"
+          variant="contained"
+          endIcon={<SendIcon />}
+          onClick={() => add()}
+          style={{ marginLeft: "1vmax" }}
+        >
+          Постни
+        </Button>
+      </Box>
+      {content && (
+        <Typography style={{ color: content.length > 500 && "red" }}>
+          {content.length}/500 символа
+        </Typography>
+      )}
     </Box>
   );
 };
 const Comments = (props) => {
   let [data, setData] = React.useState(props.data);
-  React.useEffect(() => {
+  let [sortFunc, setSort] = React.useState(1);
+  React.useLayoutEffect(() => {
+    if (data.length) {
+      setData(
+        [...data].forEach((el) => {
+          if (el.length > 1) {
+            el.sort((a, b) => {
+              if (new Date(a.reply_date) > new Date(b.reply_date)) {
+                return 1;
+              } else if (new Date(b.reply_date) > new Date(a.reply_date)) {
+                return -1;
+              } else {
+                return 0;
+              }
+            });
+          }
+        })
+      );
+      if (sortFunc == 2) {
+        setData(
+          [...data].sort((a, b) => {
+            if (a[0].comment_score > b[0].comment_score) {
+              return -1;
+            } else if (b[0].comment_score > a[0].comment_score) {
+              return 1;
+            } else {
+              return 0;
+            }
+          })
+        );
+      } else if (sortFunc == 1) {
+        setData(
+          [...data].sort((a, b) => {
+            if (a[0].comment_score > b[0].comment_score) {
+              return 1;
+            } else if (b[0].comment_score > a[0].comment_score) {
+              return -1;
+            } else {
+              return 0;
+            }
+          })
+        );
+      } else if (sortFunc == 3) {
+        setData(
+          [...data].sort((a, b) => {
+            if (new Date(a[0].comment_date) > new Date(b[0].comment_date)) {
+              return -1;
+            } else if (
+              new Date(b[0].comment_date) > new Date(a[0].comment_date)
+            ) {
+              return 1;
+            } else {
+              return 0;
+            }
+          })
+        );
+      } else {
+        setData(
+          [...data].sort((a, b) => {
+            if (new Date(a[0].comment_date) > new Date(b[0].comment_date)) {
+              return 1;
+            } else if (
+              new Date(b[0].comment_date) > new Date(a[0].comment_date)
+            ) {
+              return -1;
+            } else {
+              return 0;
+            }
+          })
+        );
+      }
+    }
+  }, [sortFunc, props.data]);
+  React.useLayoutEffect(() => {
     setData(props.data);
   }, [props.data]);
   const verify = () => {
@@ -927,28 +1088,30 @@ const Comments = (props) => {
           toast={props.toast}
           place_id={props.place_id}
           getComments={props.getComments}
+          setSort={setSort}
         />
       ) : (
         <center style={{ margin: "1vmax" }}>
           Регистрирайте се, за да пишете коментари
         </center>
       )}
-      {data.map((el) => (
-        <Comment
-          key={Math.random}
-          getComments={props.getComments}
-          idData={el[0].comments_id}
-          score={el[0].comment_score}
-          content={el[0].comment_content}
-          author={el[0].username}
-          user_id={el[0].user_id}
-          date={el[0].comment_date}
-          comments_actions={el[0].comments_actions}
-          avatar={el[0].avatar}
-          el={el}
-          toast={props.toast}
-        />
-      ))}
+      {data.length &&
+        data.map((el) => (
+          <Comment
+            key={Math.random()}
+            getComments={props.getComments}
+            idData={el[0].comments_id}
+            score={el[0].comment_score}
+            content={el[0].comment_content}
+            author={el[0].username}
+            user_id={el[0].user_id}
+            date={el[0].comment_date}
+            comments_actions={el[0].comments_actions}
+            avatar={el[0].avatar}
+            el={el}
+            toast={props.toast}
+          />
+        ))}
     </Box>
   );
 };

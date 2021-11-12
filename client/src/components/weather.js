@@ -73,10 +73,10 @@ const Weather = (props) => {
                   .format("LL")}
               </Typography>
               <Typography>Ден: {Math.round(el.temp.day)} °C</Typography>
-              <Typography>Нощ: {Math.round(el.temp.night)} °C</Typography>
               <Typography>
                 Усеща се ден: {Math.round(el.feels_like.day)} °C
               </Typography>
+              <Typography>Нощ: {Math.round(el.temp.night)} °C</Typography>
               <Typography>
                 Усеща се нощ: {Math.round(el.feels_like.night)} °C
               </Typography>

@@ -9,7 +9,7 @@ const Report = (props) => {
   const submit = () => {
     if (Number(text.length) < 20) {
       props.toast.error(
-        "За да изпратите репорт трябва да напишете поне 20 символа",
+        "За да изпратите доклад трябва да напишете поне 20 символа",
         {
           position: "bottom-left",
           autoClose: 5000,
@@ -44,7 +44,8 @@ const Report = (props) => {
         },
         { headers: { jwt: localStorage.getItem("jwt") } }
       )
-      .then((data) => {
+      .then(() => {
+        props.setReportOpen(false);
         props.toast("Докладът е изпратен усешно", {
           position: "bottom-left",
           autoClose: 5000,
