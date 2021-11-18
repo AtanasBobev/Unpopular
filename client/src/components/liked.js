@@ -188,7 +188,9 @@ const Liked = (props) => {
         </Typography>
         <Box className="oneLiner">
           <Typography gutterBottom variant="h5">
-            {Number(likedQueryData.length) + " резултати"}
+            {Number(likedQueryData.length) == 0
+              ? "Няма резултати"
+              : Number(likedQueryData.length) + " резултати"}
           </Typography>
           {likedLoading !== 2 && (
             <IconButton onClick={() => fetchLiked()}>
@@ -197,14 +199,16 @@ const Liked = (props) => {
           )}
         </Box>
       </center>
-      {likedQueryData.length == 0 && likedLoading == 3 && (
+      {likedQueryData.length == 0 && likedLoading == 3 ? (
         <img
           src={require("../images/liked.svg").default}
           className="noResultsBanner"
         />
+      ) : (
+        ""
       )}
       <Box maxWidth="sm">
-        {likedQueryData.length && (
+        {likedQueryData.length ? (
           <FadeIn
             transitionDuration={600}
             delay={100}
@@ -526,29 +530,33 @@ const Liked = (props) => {
               </ContentLoader>
             )}
           </FadeIn>
+        ) : (
+          ""
         )}
         {likedLoading == 3 &&
-          likedQueryData.length &&
-          Number(likedQueryData[0][0]["count"]) !== 0 &&
-          Number(likedQueryData[0][0]["count"]) > likedQueryLimit && (
-            <Box
-              style={{
-                width: "100vw",
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "2vmax",
+        likedQueryData.length &&
+        Number(likedQueryData[0][0]["count"]) !== 0 &&
+        Number(likedQueryData[0][0]["count"]) > likedQueryLimit ? (
+          <Box
+            style={{
+              width: "100vw",
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "2vmax",
+            }}
+          >
+            <Button
+              onClick={() => {
+                setLikedQueryLimit((prev) => prev + 10);
               }}
+              startIcon={<AddIcon />}
             >
-              <Button
-                onClick={() => {
-                  setLikedQueryLimit((prev) => prev + 10);
-                }}
-                startIcon={<AddIcon />}
-              >
-                Зареди още
-              </Button>
-            </Box>
-          )}
+              Зареди още
+            </Button>
+          </Box>
+        ) : (
+          ""
+        )}
       </Box>
     </Box>
   );

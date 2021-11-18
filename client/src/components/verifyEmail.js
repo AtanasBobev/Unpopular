@@ -18,7 +18,7 @@ const Verify = (props) => {
       .then((data) => {
         history.push("/profile");
         localStorage.setItem("jwt", data.data.jwt);
-        props.toast("Имейла е потвърден!", {
+        props.toast("Имейлът е потвърден!", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,

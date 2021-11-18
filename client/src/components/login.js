@@ -11,6 +11,7 @@ import ForgottenPassword from "./forgottenPassword";
 import Tilty from "react-tilty";
 import PureModal from "react-pure-modal";
 import Particles from "react-tsparticles";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 
@@ -21,14 +22,31 @@ const Login = (props) => {
   const [password, setPassword] = React.useState();
   const [locked, setLocked] = React.useState(false);
   const [wrongPassword, setWrongPassword] = React.useState(false);
-
+  const [token, setToken] = React.useState();
   const login = (e) => {
     e.preventDefault();
+
+    if (!token) {
+      toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     axios
-      .post("http://localhost:5000/login", {
-        username: username,
-        password: password,
-      })
+      .post(
+        "http://localhost:5000/login",
+        {
+          username: username,
+          password: password,
+        },
+        { headers: { token: token } }
+      )
       .then((e) => {
         localStorage.setItem("jwt", e.data.jwt);
         if (props.lsA()) {
@@ -778,6 +796,39 @@ const Login = (props) => {
                     required
                   />
                 </Box>
+                <HCaptcha
+                  sitekey="10000000-ffff-ffff-ffff-000000000001"
+                  size="normal"
+                  languageOverride="bg"
+                  onVerify={(token) => {
+                    setToken(token);
+                  }}
+                  onError={() => {
+                    toast.warn(
+                      "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                      {
+                        position: "bottom-left",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                      }
+                    );
+                  }}
+                  onExpire={() => {
+                    toast.warn("Потвърдете отново, че не сте робот", {
+                      position: "bottom-left",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                    });
+                  }}
+                />
                 <Box className="buttonHolder">
                   <Button
                     type="submit"

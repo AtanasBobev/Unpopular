@@ -11,6 +11,8 @@ import ForgottenPassword from "./forgottenPassword";
 import PureModal from "react-pure-modal";
 import { useHistory } from "react-router-dom";
 import Particles from "react-tsparticles";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+
 const passwordValidator = require("password-validator");
 
 let schema = new passwordValidator();
@@ -52,9 +54,22 @@ const Register = (props) => {
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
   const [openPassword, setOpenPassword] = React.useState();
+  const [token, setToken] = React.useState();
 
   const register = (e) => {
     e.preventDefault();
+    if (!token) {
+      toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (username.length > 20) {
       toast.warn("Не може потребителското име да е над 20 символа", {
         position: "bottom-left",
@@ -119,11 +134,15 @@ const Register = (props) => {
       return false;
     }
     axios
-      .post("http://localhost:5000/register", {
-        username: username,
-        email: email,
-        password: password,
-      })
+      .post(
+        "http://localhost:5000/register",
+        {
+          username: username,
+          email: email,
+          password: password,
+        },
+        { headers: { token: token } }
+      )
       .then((e) => {
         localStorage.setItem("jwt", e.data.jwt);
         if (e.status == 200) {
@@ -743,6 +762,39 @@ const Register = (props) => {
                     className="inputField"
                     margin="normal"
                     required
+                  />
+                  <HCaptcha
+                    sitekey="10000000-ffff-ffff-ffff-000000000001"
+                    size="normal"
+                    languageOverride="bg"
+                    onVerify={(token) => {
+                      setToken(token);
+                    }}
+                    onError={() => {
+                      toast.warn(
+                        "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                        {
+                          position: "bottom-left",
+                          autoClose: 5000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                        }
+                      );
+                    }}
+                    onExpire={() => {
+                      toast.warn("Потвърдете отново, че не сте робот", {
+                        position: "bottom-left",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                      });
+                    }}
                   />
                 </Box>
                 <Box className="buttonHolder">

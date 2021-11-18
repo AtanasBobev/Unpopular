@@ -38,7 +38,7 @@ const Profile = (props) => {
   const [openName, setOpenName] = React.useState(false);
   const [userData, setUserData] = React.useState([]);
   const [viewcount, setViewCount] = React.useState(10);
-  const [count, setUserCount] = React.useState("...");
+  const [count, setUserCount] = React.useState();
   const [moreVisible, setMoreVisible] = React.useState(true);
   const [open, setOpen] = React.useState(false);
   const [files, setFiles] = React.useState();
@@ -66,6 +66,31 @@ const Profile = (props) => {
       return false;
     }
   };
+  React.useLayoutEffect(() => {
+    axios
+      .get("http://localhost:5000/count", {
+        headers: { jwt: localStorage.getItem("jwt") },
+      })
+      .then((data) => {
+        if (data.data) {
+          setUserCount(Number(data.data));
+        } else {
+          setUserCount(0);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error("Не успяхме да получим данните от сървъра", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+  }, []);
   React.useEffect(() => {
     getUserCards();
   }, []);
@@ -95,7 +120,6 @@ const Profile = (props) => {
         }
       })
       .catch((err) => {
-        console.log(err);
         toast.error("Не успяхме да получим данните от сървъра", {
           position: "bottom-left",
           autoClose: 5000,
@@ -107,29 +131,7 @@ const Profile = (props) => {
         });
       });
   };
-  axios
-    .get("http://localhost:5000/count", {
-      headers: { jwt: localStorage.getItem("jwt") },
-    })
-    .then((data) => {
-      if (data.data.length) {
-        setUserCount(data.data);
-      } else {
-        setUserCount(0);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      toast.error("Не успяхме да получим данните от сървъра", {
-        position: "bottom-left",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-    });
+
   const logOut = () => {
     try {
       localStorage.removeItem("jwt");
@@ -414,25 +416,28 @@ const Profile = (props) => {
         </Typography>
         <Divider />
       </Container>
-      <center>
-        <FormControl style={{ margin: "1vmax" }} variant="outlined">
-          <Select
-            defaultValue={10}
-            labelId="accessibility-label"
-            id="accessibility"
-            onChange={(e) => {
-              setViewCount(e.target.value);
-            }}
-          >
-            <MenuItem value={10}>10</MenuItem>
-            <MenuItem value={25}>25</MenuItem>
-            <MenuItem value={50}>50</MenuItem>
-            <MenuItem value={100}>100</MenuItem>
-            <MenuItem value={999}>Всички</MenuItem>
-          </Select>
-          <FormHelperText>Брой постове на дисплей</FormHelperText>
-        </FormControl>
-      </center>
+      {count && (
+        <center>
+          <FormControl style={{ margin: "1vmax" }} variant="outlined">
+            <Select
+              defaultValue={10}
+              labelId="accessibility-label"
+              id="accessibility"
+              onChange={(e) => {
+                setViewCount(e.target.value);
+              }}
+            >
+              <MenuItem value={10}>10</MenuItem>
+              <MenuItem value={25}>25</MenuItem>
+              <MenuItem value={50}>50</MenuItem>
+              <MenuItem value={100}>100</MenuItem>
+              <MenuItem value={999}>Всички</MenuItem>
+            </Select>
+            <FormHelperText>Брой постове на дисплей</FormHelperText>
+          </FormControl>
+        </center>
+      )}
+
       <Box className="CardContainer">
         {userData !== [] ? (
           userData.map((el) => {

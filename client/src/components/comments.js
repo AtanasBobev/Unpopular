@@ -20,13 +20,14 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 const moment = require("moment");
 moment.locale("bg");
 const Reply = (props) => {
   const [openReport, setReportOpen] = React.useState(false);
-
+  const [token, setToken] = React.useState();
   const [score, setScore] = React.useState(Number(props.score));
   const deleteRelply = () => {
     axios
@@ -703,6 +704,8 @@ const Comment = (props) => {
 };
 const AddComment = (props) => {
   const [content, setContent] = React.useState("");
+  const [token, setToken] = React.useState();
+
   const verify = () => {
     try {
       let a = jwt_decode(localStorage.getItem("jwt"));
@@ -739,12 +742,25 @@ const AddComment = (props) => {
       );
       return false;
     }
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     axios
       .request({
         method: "POST",
         url: `http://localhost:5000/comment`,
         headers: {
           jwt: localStorage.getItem("jwt"),
+          token: token,
         },
         data: {
           place_id: props.place_id,
@@ -808,7 +824,14 @@ const AddComment = (props) => {
       <Box className="mainSend">
         <TextField
           id="outlined-textarea"
-          label="Напиши коментар"
+          label={
+            verify()
+              ? "Напиши коментар"
+              : localStorage.getItem("jwt")
+              ? "Потвърдете си профила, за да пишете коментари"
+              : "Регистрирайте се, за да пишете коментари"
+          }
+          disabled={!verify()}
           multiline
           variant="outlined"
           style={{ width: "80%" }}
@@ -817,6 +840,7 @@ const AddComment = (props) => {
         />
         <Button
           size="large"
+          disabled={!verify()}
           className="postButton"
           variant="contained"
           endIcon={<SendIcon />}
@@ -825,6 +849,7 @@ const AddComment = (props) => {
           Постни
         </Button>
       </Box>
+
       <Box style={{ display: "flex", justifyContent: "space-between" }}>
         {content ? (
           <Typography style={{ color: content.length > 500 && "red" }}>
@@ -833,7 +858,8 @@ const AddComment = (props) => {
         ) : (
           ""
         )}
-        {props.data.length ? (
+
+        {props.data ? (
           <FormControl variant="outlined">
             <Select
               onChange={(e) => {
@@ -854,11 +880,47 @@ const AddComment = (props) => {
         ) : (
           ""
         )}
+        {verify() && (
+          <HCaptcha
+            sitekey="10000000-ffff-ffff-ffff-000000000001"
+            size="normal"
+            languageOverride="bg"
+            onVerify={(token) => {
+              setToken(token);
+            }}
+            onError={() => {
+              props.toast.warn(
+                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                {
+                  position: "bottom-left",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            }}
+            onExpire={() => {
+              props.toast.warn("Потвърдете отново, че не сте робот", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }}
+          />
+        )}
       </Box>
     </Box>
   );
 };
 const AddReply = (props) => {
+  const [token, setToken] = React.useState();
   const [content, setContent] = React.useState("");
   const verify = () => {
     try {
@@ -896,12 +958,25 @@ const AddReply = (props) => {
       );
       return false;
     }
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     axios
       .request({
         method: "POST",
         url: `http://localhost:5000/reply`,
         headers: {
           jwt: localStorage.getItem("jwt"),
+          token: token,
         },
         data: {
           relating: props.relating,
@@ -985,11 +1060,48 @@ const AddReply = (props) => {
           Постни
         </Button>
       </Box>
-      {content && (
-        <Typography style={{ color: content.length > 500 && "red" }}>
-          {content.length}/500 символа
-        </Typography>
-      )}
+      <Box style={{ display: "flex", justifyContent: "space-between" }}>
+        {content && (
+          <Typography style={{ color: content.length > 500 && "red" }}>
+            {content.length}/500 символа
+          </Typography>
+        )}
+        {verify() && (
+          <HCaptcha
+            sitekey="10000000-ffff-ffff-ffff-000000000001"
+            size="normal"
+            languageOverride="bg"
+            onVerify={(token) => {
+              setToken(token);
+            }}
+            onError={() => {
+              props.toast.warn(
+                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                {
+                  position: "bottom-left",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            }}
+            onExpire={() => {
+              props.toast.warn("Потвърдете отново, че не сте робот", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }}
+          />
+        )}
+      </Box>
     </Box>
   );
 };
@@ -1081,21 +1193,16 @@ const Comments = (props) => {
   };
   return (
     <Box>
-      {verify() ? (
-        <AddComment
-          data={data}
-          setData={setData}
-          toast={props.toast}
-          place_id={props.place_id}
-          getComments={props.getComments}
-          setSort={setSort}
-        />
-      ) : (
-        <center style={{ margin: "1vmax" }}>
-          Регистрирайте се, за да пишете коментари
-        </center>
-      )}
-      {data.length &&
+      <AddComment
+        data={data}
+        setData={setData}
+        toast={props.toast}
+        place_id={props.place_id}
+        getComments={props.getComments}
+        setSort={setSort}
+      />
+
+      {data &&
         data.map((el) => (
           <Comment
             key={Math.random()}

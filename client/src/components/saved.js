@@ -216,14 +216,16 @@ const Saved = (props) => {
           </Box>
         </center>
         <Box maxWidth="sm">
-          {!savedQueryData.length && savedLoading == 3 && (
+          {!savedQueryData.length && savedLoading == 3 ? (
             <img
               src={require("../images/saved.svg").default}
               className="noResultsBanner"
             />
+          ) : (
+            ""
           )}
 
-          {savedQueryData.length && (
+          {savedQueryData.length ? (
             <FadeIn
               transitionDuration={600}
               delay={100}
@@ -559,29 +561,33 @@ const Saved = (props) => {
                 </ContentLoader>
               )}
             </FadeIn>
+          ) : (
+            ""
           )}
           {savedLoading == 3 &&
-            savedQueryData.length &&
-            Number(savedQueryData[0][0]["count"]) !== 0 &&
-            Number(savedQueryData[0][0]["count"]) > savedQueryLimit && (
-              <Box
-                style={{
-                  width: "100vw",
-                  display: "flex",
-                  justifyContent: "center",
-                  marginTop: "2vmax",
+          savedQueryData.length &&
+          Number(savedQueryData[0][0]["count"]) !== 0 &&
+          Number(savedQueryData[0][0]["count"]) > savedQueryLimit ? (
+            <Box
+              style={{
+                width: "100vw",
+                display: "flex",
+                justifyContent: "center",
+                marginTop: "2vmax",
+              }}
+            >
+              <Button
+                onClick={() => {
+                  setSavedQueryLimit((prev) => prev + 10);
                 }}
+                startIcon={<AddIcon />}
               >
-                <Button
-                  onClick={() => {
-                    setSavedQueryLimit((prev) => prev + 10);
-                  }}
-                  startIcon={<AddIcon />}
-                >
-                  Зареди още
-                </Button>
-              </Box>
-            )}
+                Зареди още
+              </Button>
+            </Box>
+          ) : (
+            ""
+          )}
         </Box>
       </Box>
     </ThemeProvider>

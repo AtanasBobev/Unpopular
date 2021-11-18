@@ -27,6 +27,9 @@ const archive = require("simple-archiver").archive;
 const sendMail = require("./src/email");
 const isPointInBulgaria = require("./src/isPointInBulgaria");
 const passwordValidator = require("password-validator");
+const { verify } = require("hcaptcha");
+const secret = "0x0000000000000000000000000000000000000000";
+
 config = {
   allowedTags: ["b", "i", "em", "strong", "a"],
   allowedAttributes: { a: ["href"] },
@@ -92,6 +95,26 @@ server.use(cors());
 server.use(cookieParser("MySecret"));
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json({ limit: "10kb" }));
+
+const hcverify = (req, res, next) => {
+  if (!req.headers.token) {
+    res.status(401).send("No or wrong captcha provided");
+    return false;
+  }
+  verify(secret, req.headers.token)
+    .then((data) => {
+      if (data.success === true) {
+        next();
+      } else {
+        res.status(401).send("No or wrong captcha provided");
+        return false;
+      }
+    })
+    .catch(() => {
+      res.status(401).send("No or wrong captcha provided");
+      return false;
+    });
+};
 
 //Grouping function to be used by endpoints sending places. It groups similar objects based on a provided identical key
 const groupBy = function (xs, key) {
@@ -526,7 +549,7 @@ server.post("/searchCount", async (req, res) => {
 
 server.get("/count", authorizeToken, (req, res) => {
   pool.query(
-    "SELECT COUNT(place_id) FROM places WHERE user_id=$1",
+    "SELECT COUNT(*) FROM places WHERE user_id=$1",
     [req.user_id],
     (err, data) => {
       if (err) {
@@ -546,86 +569,92 @@ server.get("/image/:image", (req, res) => {
   res.sendFile("/uploads/" + req.params.image, { root: __dirname }, () => {});
 });
 
-server.post("/place", authorizeToken, upload.array("images", 3), (req, res) => {
-  let imagesSrc = req.files.map((file) => file.filename);
-  if (
-    !(
-      req.body.name &&
-      req.body.description &&
-      req.body.city &&
-      req.body.category &&
-      req.body.price &&
-      req.body.accessibility &&
-      req.body.dangerous &&
-      req.body.location
-    )
-  ) {
-    res.status(400).send("Incomplete data sent!");
-    return false;
-  }
-  if (req.verified !== true) {
-    res.status(401).send("Account not authorized");
-    return false;
-  }
-  if (
-    !isPointInBulgaria(
-      req.body.location.replace(/\s+/g, "").split(",")[0],
-      req.body.location.replace(/\s+/g, "").split(",")[1]
-    )
-  ) {
-    res.status(400).send("Place is not in Bulgaria!");
-    return false;
-  }
-  pool.query(
-    "INSERT INTO places (user_id, title, description, visible, score, placelocation, category, price, accessibility, date, dangerous,city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
-    [
-      req.user_id,
-      req.body.name,
-      req.body.description,
-      true,
-      0,
-      req.body.location,
-      req.body.category,
-      req.body.price,
-      req.body.accessibility,
-      new Date(),
-      req.body.dangerous,
-      req.body.city,
-    ],
-    (err) => {
-      if (err) {
-        if (err.code == 23505) {
-          res.status(409).send("Place already exists");
-          return false;
-        }
-        console.log(err);
-        res.status(500).send("Internal server error");
-        return false;
-      }
-      res.status(200).send("Place inserted successfully!");
-      pool.query(
-        "SELECT place_id FROM places WHERE title=$1",
-        [req.body.name],
-        (err, data) => {
-          if (err) {
+server.post(
+  "/place",
+  hcverify,
+  authorizeToken,
+  upload.array("images", 3),
+  (req, res) => {
+    let imagesSrc = req.files.map((file) => file.filename);
+    if (
+      !(
+        req.body.name &&
+        req.body.description &&
+        req.body.city &&
+        req.body.category &&
+        req.body.price &&
+        req.body.accessibility &&
+        req.body.dangerous &&
+        req.body.location
+      )
+    ) {
+      res.status(400).send("Incomplete data sent!");
+      return false;
+    }
+    if (req.verified !== true) {
+      res.status(401).send("Account not authorized");
+      return false;
+    }
+    if (
+      !isPointInBulgaria(
+        req.body.location.replace(/\s+/g, "").split(",")[0],
+        req.body.location.replace(/\s+/g, "").split(",")[1]
+      )
+    ) {
+      res.status(400).send("Place is not in Bulgaria!");
+      return false;
+    }
+    pool.query(
+      "INSERT INTO places (user_id, title, description, visible, score, placelocation, category, price, accessibility, date, dangerous,city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+      [
+        req.user_id,
+        req.body.name,
+        req.body.description,
+        true,
+        0,
+        req.body.location,
+        req.body.category,
+        req.body.price,
+        req.body.accessibility,
+        new Date(),
+        req.body.dangerous,
+        req.body.city,
+      ],
+      (err) => {
+        if (err) {
+          if (err.code == 23505) {
+            res.status(409).send("Place already exists");
             return false;
           }
-          imagesSrc.forEach((el) => {
-            pool.query(
-              "INSERT INTO images (place_id,url,date) VALUES ($1,$2,$3)",
-              [data.rows[0].place_id, el, new Date()],
-              (err) => {
-                if (err) {
-                  return false;
-                }
-              }
-            );
-          });
+          console.log(err);
+          res.status(500).send("Internal server error");
+          return false;
         }
-      );
-    }
-  );
-});
+        res.status(200).send("Place inserted successfully!");
+        pool.query(
+          "SELECT place_id FROM places WHERE title=$1",
+          [req.body.name],
+          (err, data) => {
+            if (err) {
+              return false;
+            }
+            imagesSrc.forEach((el) => {
+              pool.query(
+                "INSERT INTO images (place_id,url,date) VALUES ($1,$2,$3)",
+                [data.rows[0].place_id, el, new Date()],
+                (err) => {
+                  if (err) {
+                    return false;
+                  }
+                }
+              );
+            });
+          }
+        );
+      }
+    );
+  }
+);
 
 server.put(
   "/place",
@@ -1517,7 +1546,7 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
   );
 });
 
-server.post("/register", async (req, res) => {
+server.post("/register", hcverify, async (req, res) => {
   if (
     !(
       req.body.username &&
@@ -1603,7 +1632,7 @@ server.get("/verify/:id", (req, res) => {
       if (data.rowCount == 0) {
         res.status(401).send("Линка е грешен");
       } else {
-        res.status(401).send("Акаунта е потвърден");
+        res.status(401).send("Акаунтът е потвърден");
       }
     }
   );
@@ -1689,7 +1718,7 @@ server.get("/newMail", authorizeToken, (req, res) => {
     }
   );
 });
-server.post("/login", async (req, res) => {
+server.post("/login", hcverify, async (req, res) => {
   //Validating request
   if (!(req.body.username && req.body.password)) {
     res.status(400).send("Invalid request");
@@ -1867,9 +1896,13 @@ server.post("/login", async (req, res) => {
 
 // Comments/Replies endpoints
 
-server.post("/comment", authorizeToken, (req, res) => {
+server.post("/comment", hcverify, authorizeToken, (req, res) => {
   if (!req.body.comment && req.body.place_id) {
     res.status(400).send("Not enough data was provided!");
+    return false;
+  }
+  if (!req.headers.token) {
+    res.status(401).send("No token was provided!");
     return false;
   }
   pool.query(
@@ -1895,9 +1928,13 @@ server.post("/comment", authorizeToken, (req, res) => {
     }
   );
 });
-server.post("/reply", authorizeToken, (req, res) => {
+server.post("/reply", hcverify, authorizeToken, (req, res) => {
   if (!(req.body.comment && req.body.relating)) {
     res.status(400).send("Not enough data was provided!");
+    return false;
+  }
+  if (!req.headers.token) {
+    res.status(401).send("Token is required");
     return false;
   }
   pool.query(

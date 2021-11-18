@@ -16,7 +16,8 @@ import isValidCoords from "is-valid-coords";
 import Card from "./card";
 import { useHistory } from "react-router-dom";
 import isPointInBulgaria from "./isPointInBulgaria";
-import { Map, Marker, ZoomControl } from "pigeon-maps";
+import { Map, Marker } from "pigeon-maps";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 
@@ -31,7 +32,7 @@ const Upload = (props) => {
   const [accessibility, setAccessibility] = React.useState("");
   const [files, setFiles] = React.useState({});
   const [location, setLocation] = React.useState("");
-
+  const [token, setToken] = React.useState();
   const Upload = (e) => {
     e.preventDefault();
     if (!location || !isValidCoords(location.replace(/\s+/g, "").split(","))) {
@@ -137,6 +138,18 @@ const Upload = (props) => {
         });
         return false;
       }
+      if (!token) {
+        toast.warn("Не сте потвърдили, че не сте робот", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
       const data = new FormData();
       data.append("name", name);
       data.append("description", description);
@@ -152,7 +165,7 @@ const Upload = (props) => {
       });
       axios
         .post("http://localhost:5000/place", data, {
-          headers: { jwt: localStorage.getItem("jwt") },
+          headers: { jwt: localStorage.getItem("jwt"), token: token },
         })
         .then((res) => {
           history.push("/profile");
@@ -191,15 +204,18 @@ const Upload = (props) => {
               }
             );
           } else if (err.response.status == 401) {
-            toast.error("Не сте си потвърдили имейла!", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
+            toast.error(
+              "Не сте си потвърдили имейла или не сте потвърдили, че не сте робот!",
+              {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              }
+            );
           }
         });
     }
@@ -304,7 +320,7 @@ const Upload = (props) => {
           inputProps={{ style: { fontSize: 15 } }}
           inputStyle={{ fontSize: "15px" }}
           margin="normal"
-          helperText="Град/Район (Район Средец)"
+          helperText="Град"
           onBlur={(e) => setCity(e.target.value)}
           placeholder="София"
           className="filter"
@@ -408,6 +424,41 @@ const Upload = (props) => {
             Качи снимки
           </Button>
         </label>
+        <center>
+          <HCaptcha
+            sitekey="10000000-ffff-ffff-ffff-000000000001"
+            size="normal"
+            languageOverride="bg"
+            onVerify={(token) => {
+              setToken(token);
+            }}
+            onError={() => {
+              toast.warn(
+                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                {
+                  position: "bottom-left",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            }}
+            onExpire={() => {
+              toast.warn("Потвърдете отново, че не сте робот", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }}
+          />
+        </center>
         <ul>
           {Array.from(files).map((image) => {
             return (

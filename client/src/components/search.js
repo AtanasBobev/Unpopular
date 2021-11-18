@@ -26,10 +26,10 @@ const axios = require("axios");
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: "#000000",
+      main: "#FFD700",
     },
     secondary: {
-      main: "#000000",
+      main: "#FFD700",
     },
   },
 });
@@ -670,13 +670,13 @@ const Search = (props) => {
                 ? places.map((el) => {
                     return (
                       <>
-                        {Number(el[1][0].place_id) % 15 == 0 && (
+                        {Number(el[1][0].place_id) % 4 == 0 && (
                           <Poems
                             available={availablePoem}
                             setAvailable={setAvailablePoem}
                           />
                         )}
-                        {Number(el[1][0].place_id) % 10 == 0 && (
+                        {Number(el[1][0].place_id) % 2 == 0 && (
                           <Quotes
                             available={available}
                             setAvailable={setAvailable}
@@ -715,13 +715,13 @@ const Search = (props) => {
                 : props.queryData.map((el) => {
                     return (
                       <>
-                        {Number(el[0].place_id) % 15 == 0 && (
+                        {Number(el[0].place_id) % 4 == 0 && (
                           <Poems
                             available={availablePoem}
                             setAvailable={setAvailablePoem}
                           />
                         )}
-                        {Number(el[0].place_id) % 10 == 0 && (
+                        {Number(el[0].place_id) % 5 == 0 && (
                           <Quotes
                             available={available}
                             setAvailable={setAvailable}
