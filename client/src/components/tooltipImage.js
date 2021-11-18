@@ -1,5 +1,4 @@
 import React from "react";
-import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
@@ -17,19 +16,19 @@ const HtmlTooltip = styled(({ className, ...props }) => (
 }));
 const ImageTooltip = (props) => {
   const [posts, setPosts] = React.useState();
-  React.useEffect(() => {
-    axios
-      .get(`http://localhost:5000/user/preview`, {
-        params: {
-          username: props.author,
-        },
-      })
-      .then((data) => {
-        setPosts(Number(data.data));
-      });
-  }, []);
   return (
     <HtmlTooltip
+      onMouseEnter={() => {
+        axios
+          .get(`http://localhost:5000/user/preview`, {
+            params: {
+              username: props.author,
+            },
+          })
+          .then((data) => {
+            setPosts(Number(data.data));
+          });
+      }}
       title={
         <React.Fragment>
           <center>
