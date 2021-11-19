@@ -273,7 +273,7 @@ const Liked = (props) => {
                               numbersLiked={Number(el[1][0].likednumber)}
                               mainImg={el[1][0].url}
                               city={el[1][0].city}
-                              images={el}
+                              images={el[1]}
                               saveButtonVisible={verify()}
                               adminRights={el[1][0].user_id == ID()}
                               distance={el[0]}
@@ -470,7 +470,7 @@ const Liked = (props) => {
                         numbersLiked={Number(el[1][0].likednumber)}
                         mainImg={el[1][0].url}
                         city={el[1][0].city}
-                        images={el}
+                        images={el[1]}
                         saveButtonVisible={verify()}
                         adminRights={el[1][0].user_id == ID()}
                         distance={el[0]}

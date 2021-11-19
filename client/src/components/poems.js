@@ -34,18 +34,29 @@ const CardElement = (props) => {
     if (props.available.length >= poems.length) {
       await props.setAvailable([]);
     } else {
-      console.log("props not restarted");
       while (props.available.includes(el)) {
         el = Math.round(Math.random() * poems.length);
       }
     }
     props.setAvailable((available) => [...available, el]);
-    setText(poems[el].text);
-    setAuthor(poems[el].author);
-    setAuthorData(poems[el].authorData);
-    setCoverText(poems[el].coverText);
-    setTitle(poems[el].title);
-    setImage(poems[el].authorImage);
+    if (poems[el].hasOwnProperty("text")) {
+      setText(poems[el].text);
+    }
+    if (poems[el].hasOwnProperty("author")) {
+      setAuthor(poems[el].author);
+    }
+    if (poems[el].hasOwnProperty("authorData")) {
+      setAuthorData(poems[el].authorData);
+    }
+    if (poems[el].hasOwnProperty("coverText")) {
+      setCoverText(poems[el].coverText);
+    }
+    if (poems[el].hasOwnProperty("title")) {
+      setTitle(poems[el].title);
+    }
+    if (poems[el].hasOwnProperty("authorImage")) {
+      setImage(poems[el].authorImage);
+    }
   }, []);
   return (
     <div>

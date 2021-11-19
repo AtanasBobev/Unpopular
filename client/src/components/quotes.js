@@ -20,14 +20,17 @@ const Quotes = (props) => {
       }
     }
     props.setAvailable((available) => [...available, el]);
-    console.log(el);
-    setText(quotes[el].quote);
-    setAuthor(quotes[el].author);
-    setSource(quotes[el].source);
+    if (quotes[el].hasOwnProperty("quote")) {
+      setText(quotes[el].quote);
+    }
+    if (quotes[el].hasOwnProperty("author")) {
+      setAuthor(quotes[el].author);
+    }
+    if (quotes[el].hasOwnProperty("source")) {
+      setSource(quotes[el].source);
+    }
   }, []);
-  React.useState(() => {
-    console.log(props.available);
-  }, [props.available]);
+
   return (
     <Box style={{ display: !text && "none" }} className="quoteBox">
       <Typography

@@ -1726,7 +1726,7 @@ server.post("/login", hcverify, async (req, res) => {
   }
   //Checking if the user exists in the database
   pool.query(
-    "SELECT hash FROM users WHERE username=$1",
+    "SELECT hash FROM users WHERE username=$1 OR email=$1",
     [req.body.username],
     async (err, data) => {
       if (err) {
@@ -1744,7 +1744,7 @@ server.post("/login", hcverify, async (req, res) => {
         [req.body.username]
       );
       let isLocked = await pool.query(
-        `SELECT locked FROM users WHERE username=$1`,
+        `SELECT locked FROM users WHERE username=$1 OR email=$1`,
         [req.body.username]
       );
       //Is account already locked?
@@ -1800,12 +1800,12 @@ server.post("/login", hcverify, async (req, res) => {
         );
         let ip = IPs.rows.map((el) => el.ip);
         let email = await pool.query(
-          "SELECT email FROM users WHERE username=$1",
+          "SELECT email FROM users WHERE username=$1 OR email=$1",
           [req.body.username]
         );
         let token = genToken(100);
         let user_id = await pool.query(
-          "SELECT id from users WHERE username=$1",
+          "SELECT id from users WHERE username=$1 OR email=$1",
           [req.body.username]
         );
         pool.query(
@@ -1850,7 +1850,7 @@ server.post("/login", hcverify, async (req, res) => {
             return false;
           }
           let user_id = await pool.query(
-            "SELECT id from users WHERE username=$1",
+            "SELECT id from users WHERE username=$1 OR email=$1",
             [req.body.username]
           );
           pool.query(
@@ -1858,7 +1858,7 @@ server.post("/login", hcverify, async (req, res) => {
             [user_id.rows[0].id]
           );
           pool.query(
-            "SELECT verified,id,email FROM users where username=$1 AND locked=false",
+            "SELECT verified,id,email FROM users where username=$1 OR email=$1 AND locked=false",
             [req.body.username],
             async (err, data) => {
               if (err) {
@@ -1893,7 +1893,34 @@ server.post("/login", hcverify, async (req, res) => {
     }
   );
 });
-
+server.get("/avatar", authorizeToken, (req, res) => {
+  pool.query(
+    "SELECT avatar FROM users WHERE username=$1",
+    [req.user],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0].avatar);
+    }
+  );
+});
+server.delete("/avatar/delete", authorizeToken, (req, res) => {
+  pool.query(
+    "UPDATE users SET avatar='' WHERE username=$1",
+    [req.user],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send("Avatar deleted");
+    }
+  );
+});
 // Comments/Replies endpoints
 
 server.post("/comment", hcverify, authorizeToken, (req, res) => {

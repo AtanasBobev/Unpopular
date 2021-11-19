@@ -855,3 +855,7 @@ header {
 .MuiAppBar-root {
   z-index: 2 !important;
 }
+
+.day {
+  cursor: default
+}

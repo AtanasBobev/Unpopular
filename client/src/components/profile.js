@@ -41,7 +41,7 @@ const Profile = (props) => {
   const [count, setUserCount] = React.useState();
   const [moreVisible, setMoreVisible] = React.useState(true);
   const [open, setOpen] = React.useState(false);
-  const [files, setFiles] = React.useState();
+  const [files, setFiles] = React.useState([]);
   const [avatar, setAvatar] = React.useState();
 
   const handleClickOpen = () => {
@@ -79,7 +79,6 @@ const Profile = (props) => {
         }
       })
       .catch((err) => {
-        console.log(err);
         toast.error("Не успяхме да получим данните от сървъра", {
           position: "bottom-left",
           autoClose: 5000,
@@ -91,15 +90,30 @@ const Profile = (props) => {
         });
       });
   }, []);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     getUserCards();
   }, []);
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     getUserCards(viewcount + 1, 0);
     if (viewcount < count) {
       setMoreVisible(true);
     }
   }, [viewcount]);
+  React.useLayoutEffect(() => {
+    axios
+      .request({
+        method: "GET",
+        url: `http://localhost:5000/avatar`,
+        headers: {
+          jwt: localStorage.getItem("jwt"),
+        },
+      })
+      .then((data) => {
+        if (data.data.length) {
+          setAvatar(data.data);
+        }
+      });
+  }, []);
   const getUserCards = (limit = 10, offset = 0) => {
     axios
       .request({
@@ -252,17 +266,19 @@ const Profile = (props) => {
           {jwt_decode(localStorage.getItem("jwt")).Username}
         </Typography>
         <center style={{ margin: "1vmax" }}>
-          {" "}
-          {(avatar || files) && (
+          {avatar || files[0] !== undefined ? (
             <img
+              draggable="false"
               style={{ borderRadius: "50%", width: "10vmax", height: "10vmax" }}
               src={
-                files
+                files[0] !== undefined
                   ? URL.createObjectURL(files[0])
                   : "http://localhost:5000/image/" + avatar
               }
               alt={"Имаше проблем при зареждането на аватара"}
             />
+          ) : (
+            <i> Не искаш ли да си сложиш аватор? Посети настройки!</i>
           )}
         </center>
         <center>
@@ -315,7 +331,9 @@ const Profile = (props) => {
               <Avatar
                 files={files}
                 setFiles={setFiles}
+                setAvatar={setAvatar}
                 toast={toast}
+                avatar={avatar}
                 setOpenAvatar={setOpenAvatar}
               />
             </PureModal>
@@ -416,7 +434,7 @@ const Profile = (props) => {
         </Typography>
         <Divider />
       </Container>
-      {count && (
+      {count ? (
         <center>
           <FormControl style={{ margin: "1vmax" }} variant="outlined">
             <Select
@@ -436,6 +454,8 @@ const Profile = (props) => {
             <FormHelperText>Брой постове на дисплей</FormHelperText>
           </FormControl>
         </center>
+      ) : (
+        ""
       )}
 
       <Box className="CardContainer">

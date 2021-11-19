@@ -73,9 +73,10 @@ const Avatar = (props) => {
             }
           }}
         />
-        {props.files && (
+        {props.files.length ? (
           <>
             <img
+              draggable="false"
               style={{
                 height: "20vh",
                 width: "20vh",
@@ -85,9 +86,54 @@ const Avatar = (props) => {
               src={props.files[0] && URL.createObjectURL(props.files[0])}
             />
           </>
+        ) : (
+          props.avatar && (
+            <>
+              <img
+                draggable="false"
+                style={{
+                  height: "20vh",
+                  width: "20vh",
+                  borderRadius: "50%",
+                  userSelect: "none",
+                }}
+                src={"http://localhost:5000/image/" + props.avatar}
+              />
+            </>
+          )
         )}
 
         <label htmlFor="raised-button-file">
+          <center></center>
+          {newAvatar ||
+            (props.avatar && (
+              <Button
+                style={{ textTransform: "none", margin: "1vmax" }}
+                variant="outlined"
+                onClick={() => {
+                  axios
+                    .delete("http://localhost:5000/avatar/delete", {
+                      headers: { jwt: localStorage.getItem("jwt") },
+                    })
+                    .then(() => {
+                      props.setOpenAvatar(false);
+                      props.setFiles([]);
+                      props.setAvatar("");
+                      props.toast("Аватарът е изтрит", {
+                        position: "bottom-left",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                        progress: undefined,
+                      });
+                    });
+                }}
+              >
+                Премахни аватар
+              </Button>
+            ))}
           <center>
             <Button
               style={{ textTransform: "none", margin: "1vmax" }}
