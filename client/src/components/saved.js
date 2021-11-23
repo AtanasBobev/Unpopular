@@ -32,7 +32,7 @@ const Saved = (props) => {
   const [locationChecked, setLocationChecked] = React.useState(
     location ? true : false
   );
-
+  const [numberPlaces, setNumberPlaces] = React.useState(0);
   const [markersChecked, setMarkersChecked] = React.useState(true);
   const [placesChecked, setPlacesChecked] = React.useState(true);
   const [places, setPlaces] = React.useState([]);
@@ -191,6 +191,26 @@ const Saved = (props) => {
   React.useLayoutEffect(() => {
     fetchSaved();
   }, []);
+  const fetchNumberSaved = () => {
+    axios
+      .get("http://localhost:5000/user/count/savedPlaces", {
+        headers: { jwt: localStorage.getItem("jwt") },
+      })
+      .then((data) => {
+        setNumberPlaces(Number(data.data));
+      })
+      .catch((err) => {
+        props.toast.error("Имаше проблем със сървъра при запитването.", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+  };
   return (
     <ThemeProvider theme={theme}>
       <Box>
@@ -269,6 +289,7 @@ const Saved = (props) => {
                                 .map(Number)}
                             >
                               <Card
+                                inSearch={true}
                                 inMap={true}
                                 toast={props.toast}
                                 key={Math.random()}
@@ -308,6 +329,7 @@ const Saved = (props) => {
                                   .map(Number)}
                               >
                                 <Card
+                                  inSearch={true}
                                   inMap={true}
                                   date={el[0].date}
                                   toast={props.toast}
@@ -467,6 +489,7 @@ const Saved = (props) => {
                     return (
                       <>
                         <Card
+                          inSearch={true}
                           toast={props.toast}
                           key={Math.random()}
                           date={el[1][0].date}
@@ -501,6 +524,7 @@ const Saved = (props) => {
                     return (
                       <>
                         <Card
+                          inSearch={true}
                           date={el[0].date}
                           toast={props.toast}
                           key={Math.random()}
@@ -564,10 +588,8 @@ const Saved = (props) => {
           ) : (
             ""
           )}
-          {savedLoading == 3 &&
-          savedQueryData.length &&
-          Number(savedQueryData[0][0]["count"]) !== 0 &&
-          Number(savedQueryData[0][0]["count"]) > savedQueryLimit ? (
+          {(savedLoading == 3 || savedLoading == 1) &&
+          Number(savedQueryLimit) < Number(numberPlaces) ? (
             <Box
               style={{
                 width: "100vw",

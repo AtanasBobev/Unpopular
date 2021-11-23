@@ -55,8 +55,8 @@ const Login = (props) => {
           history.push("/verify");
         }
       })
-      .catch((e) => {
-        if (e.response.status == 500) {
+      .catch((err) => {
+        if (err.response.status == 500) {
           toast.error(
             "Имаше проблем със сървъра при запитването. Пробвайте отново по-късно!",
             {
@@ -69,7 +69,7 @@ const Login = (props) => {
               progress: undefined,
             }
           );
-        } else if (e.response.status == 409) {
+        } else if (err.response.status == 409) {
           toast.warn("Профил с тези данни не съществува!", {
             position: "bottom-left",
             autoClose: 5000,
@@ -79,7 +79,7 @@ const Login = (props) => {
             draggable: true,
             progress: undefined,
           });
-        } else if (e.response.status == 401) {
+        } else if (err.response.status == 401) {
           setWrongPassword(true);
           setLocked(false);
           toast.warn("Грешна парола!", {
@@ -91,7 +91,7 @@ const Login = (props) => {
             draggable: true,
             progress: undefined,
           });
-        } else if (e.response.status == 425) {
+        } else if (rre.response.status == 425) {
           setLocked(true);
           toast.warn(
             "Вече Ви беше изпратен имейл с данни за отключване на профила. Изчакайте няколко минути преди да поискате нов!",
@@ -105,7 +105,7 @@ const Login = (props) => {
               progress: undefined,
             }
           );
-        } else if (e.response.status == 403) {
+        } else if (err.response.status == 403) {
           setLocked(true);
           setWrongPassword(false);
           toast.warn(

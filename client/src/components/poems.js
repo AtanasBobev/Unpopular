@@ -27,10 +27,8 @@ const CardElement = (props) => {
   const handleClose = () => {
     setOpen(false);
   };
-  console.log("Poems");
   React.useEffect(async () => {
     let el = Math.floor(Math.random() * poems.length);
-    console.log(poems[el], el);
     if (props.available.length >= poems.length) {
       await props.setAvailable([]);
     } else {
@@ -39,23 +37,28 @@ const CardElement = (props) => {
       }
     }
     props.setAvailable((available) => [...available, el]);
-    if (poems[el].hasOwnProperty("text")) {
-      setText(poems[el].text);
-    }
-    if (poems[el].hasOwnProperty("author")) {
-      setAuthor(poems[el].author);
-    }
-    if (poems[el].hasOwnProperty("authorData")) {
-      setAuthorData(poems[el].authorData);
-    }
-    if (poems[el].hasOwnProperty("coverText")) {
-      setCoverText(poems[el].coverText);
-    }
-    if (poems[el].hasOwnProperty("title")) {
-      setTitle(poems[el].title);
-    }
-    if (poems[el].hasOwnProperty("authorImage")) {
-      setImage(poems[el].authorImage);
+    try {
+      if (poems[el].hasOwnProperty("text")) {
+        setText(poems[el].text);
+      }
+      if (poems[el].hasOwnProperty("author")) {
+        setAuthor(poems[el].author);
+      }
+      if (poems[el].hasOwnProperty("authorData")) {
+        setAuthorData(poems[el].authorData);
+      }
+      if (poems[el].hasOwnProperty("coverText")) {
+        setCoverText(poems[el].coverText);
+      }
+      if (poems[el].hasOwnProperty("title")) {
+        setTitle(poems[el].title);
+      }
+      if (poems[el].hasOwnProperty("authorImage")) {
+        setImage(poems[el].authorImage);
+      }
+    } catch (err) {
+      alert(el);
+      console.log(err, el);
     }
   }, []);
   return (

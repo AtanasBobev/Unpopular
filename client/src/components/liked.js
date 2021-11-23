@@ -21,13 +21,13 @@ const Liked = (props) => {
   const [locationChecked, setLocationChecked] = React.useState(
     location ? true : false
   );
-
+  const [likedQueryOffset, setLikedQueryOffset] = React.useState(10);
   const [markersChecked, setMarkersChecked] = React.useState(true);
   const [placesChecked, setPlacesChecked] = React.useState(true);
   const [places, setPlaces] = React.useState([]);
+  const [numberPlaces, setNumberPlaces] = React.useState(0);
   const [likedLoading, setLikedLoading] = React.useState(1);
   const [likedQueryData, setLikedQueryData] = React.useState([]);
-  const [likedQueryLimit, setLikedQueryLimit] = React.useState(10);
   const getCenterCoordinates = () => {
     if (likedQueryData.length) {
       let locationsArray = likedQueryData.map((el) => {
@@ -93,18 +93,39 @@ const Liked = (props) => {
       return false;
     }
   };
+
   const fetchLiked = () => {
     setLikedLoading(2);
     axios
       .get("http://localhost:5000/userLikedPlaces", {
         headers: { jwt: localStorage.getItem("jwt") },
-        params: { limit: likedQueryLimit },
+        params: { limit: likedQueryOffset },
       })
       .then((data) => {
-        setLikedQueryData(data.data);
+        //  setLikedQueryData(data.data);
         setLikedLoading(3);
+        if (!data.data.length) {
+          setLikedQueryData([]);
+          setLikedQueryOffset(0);
+          return false;
+        }
+        if (!likedQueryData.length) {
+          setLikedQueryData(data.data);
+        } else {
+          function uniqBy(a, key) {
+            var seen = {};
+            return a.filter(function (item) {
+              var k = key(item);
+              return seen.hasOwnProperty(k) ? false : (seen[k] = true);
+            });
+          }
+          setLikedQueryData(
+            uniqBy([...likedQueryData, ...data.data], JSON.stringify)
+          );
+        }
       })
       .catch((err) => {
+        console.log(err);
         setLikedLoading(1);
         props.toast.error(
           "Имаше проблем със сървъра при запитването. Пробвайте отново по-късно!",
@@ -120,14 +141,17 @@ const Liked = (props) => {
         );
       });
   };
+  React.useLayoutEffect(() => {
+    fetchLiked();
+  }, [likedQueryOffset]);
   React.useEffect(() => {
     fetchLiked();
+    fetchNumberLiked();
   }, []);
   React.useEffect(() => {
     if (!likedQueryData || !location) {
       return false;
     }
-    console.log(likedQueryData);
     let myQueryData = [];
     likedQueryData.forEach((el) => {
       let distance = getPreciseDistance(
@@ -180,6 +204,26 @@ const Liked = (props) => {
       });
     }
   }, [locationChecked]);
+  const fetchNumberLiked = () => {
+    axios
+      .get("http://localhost:5000/user/count/likedPlaces", {
+        headers: { jwt: localStorage.getItem("jwt") },
+      })
+      .then((data) => {
+        setNumberPlaces(Number(data.data));
+      })
+      .catch((err) => {
+        props.toast.error("Имаше проблем със сървъра при запитването.", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+  };
   return (
     <Box>
       <center>
@@ -188,9 +232,7 @@ const Liked = (props) => {
         </Typography>
         <Box className="oneLiner">
           <Typography gutterBottom variant="h5">
-            {Number(likedQueryData.length) == 0
-              ? "Няма резултати"
-              : Number(likedQueryData.length) + " резултати"}
+            {numberPlaces == 0 ? "Няма резултати" : numberPlaces + " резултати"}
           </Typography>
           {likedLoading !== 2 && (
             <IconButton onClick={() => fetchLiked()}>
@@ -252,6 +294,7 @@ const Liked = (props) => {
                               .map(Number)}
                           >
                             <Card
+                              inSearch={true}
                               inMap={true}
                               toast={props.toast}
                               key={Math.random()}
@@ -291,6 +334,7 @@ const Liked = (props) => {
                                 .map(Number)}
                             >
                               <Card
+                                inSearch={true}
                                 inMap={true}
                                 date={el[0].date}
                                 toast={props.toast}
@@ -450,6 +494,7 @@ const Liked = (props) => {
                   return (
                     <>
                       <Card
+                        inSearch={true}
                         toast={props.toast}
                         key={Math.random()}
                         date={el[1][0].date}
@@ -484,6 +529,7 @@ const Liked = (props) => {
                   return (
                     <>
                       <Card
+                        inSearch={true}
                         date={el[0].date}
                         toast={props.toast}
                         key={Math.random()}
@@ -536,7 +582,7 @@ const Liked = (props) => {
         {likedLoading == 3 &&
         likedQueryData.length &&
         Number(likedQueryData[0][0]["count"]) !== 0 &&
-        Number(likedQueryData[0][0]["count"]) > likedQueryLimit ? (
+        Number(likedQueryData[0][0]["count"]) > likedQueryOffset ? (
           <Box
             style={{
               width: "100vw",
@@ -544,19 +590,26 @@ const Liked = (props) => {
               justifyContent: "center",
               marginTop: "2vmax",
             }}
-          >
+          ></Box>
+        ) : (
+          ""
+        )}
+        <center>
+          {(likedLoading == 3 || likedLoading == 1) &&
+          Number(likedQueryOffset) < Number(numberPlaces) ? (
             <Button
+              style={{ marginTop: "2vmax" }}
               onClick={() => {
-                setLikedQueryLimit((prev) => prev + 10);
+                setLikedQueryOffset((prev) => prev + 10);
               }}
               startIcon={<AddIcon />}
             >
               Зареди още
             </Button>
-          </Box>
-        ) : (
-          ""
-        )}
+          ) : (
+            ""
+          )}
+        </center>
       </Box>
     </Box>
   );

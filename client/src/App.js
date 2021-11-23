@@ -23,7 +23,7 @@ function App() {
   const [view, setView] = React.useState(1);
   const [searchQueryLength, setSearchQueryLength] = React.useState(0);
   const [queryData, setQueryData] = React.useState([]);
-  const [searchQueryLimit, setSearchQueryLimit] = React.useState(10);
+  const [searchQueryLimit, setSearchQueryLimit] = React.useState(0);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [prevSearchQuery, setPrevSearchQuery] = React.useState("");
   const [searchCity, setSearchCity] = React.useState("");

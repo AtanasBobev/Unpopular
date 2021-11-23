@@ -325,6 +325,15 @@ server.post("/search", async (req, res) => {
     res.status(400).send("Not enough data was provided.");
     return false;
   }
+  if (
+    req.body.limit < 0 ||
+    req.body.limit > 1000000 ||
+    req.body.offset < 0 ||
+    req.body.offset > 1000000
+  ) {
+    res.status(400).send("Invalid data");
+    return false;
+  }
   let placelocation,
     placelocationFormat = "%s",
     category,
@@ -1178,11 +1187,10 @@ WHERE places.place_id=$1`,
 });
 
 server.get("/userLikedPlaces", authorizeToken, (req, res) => {
-  if (!Number(req.query.limit)) {
+  if (Number(req.query.limit) < 0 || Number(req.query.limit) > 1000000) {
     res.status(400).send("Invalid LIMIT sent");
     return false;
   }
-  console.log(req.user_id);
   pool.query(
     `SELECT PLACES.PLACE_ID, city,avatar,username,
     places.user_id,
@@ -1239,7 +1247,32 @@ ELSE 'false' END as saved,
     }
   );
 });
-
+server.get("/user/count/likedPlaces", authorizeToken, (req, res) => {
+  pool.query(
+    `SELECT COUNT(*) FROM "favoritePlaces" WHERE user_id=$1`,
+    [req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0].count);
+    }
+  );
+});
+server.get("/user/count/savedPlaces", authorizeToken, (req, res) => {
+  pool.query(
+    `SELECT COUNT(*) FROM "savedPlaces" WHERE user_id=$1`,
+    [req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0].count);
+    }
+  );
+});
 server.get("/userSavedPlaces", authorizeToken, (req, res) => {
   if (!Number(req.query.limit)) {
     res.status(400).send("Invalid LIMIT sent");
@@ -1301,22 +1334,22 @@ WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
   );
 });
 
-server.post("/userPlaces", authorizeToken, (req, res) => {
-  if (!(req.body.limit !== undefined && req.body.offset !== undefined)) {
+server.post("/user/places", authorizeToken, (req, res) => {
+  if (Number(req.body.limit) < 0 || Number(req.body.limit) > 1000000) {
     res.status(400).send("Invalid data sent");
     return false;
   }
   pool.query(
-    `SELECT places.place_id,avatar,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2 OFFSET $3) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2 OFFSET $3 ) THEN 'true' ELSE 
+    `SELECT places.place_id,avatar,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2) THEN 'true' ELSE 
     'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
     FROM "favoritePlaces"
     WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID)
-    FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT $2 OFFSET $3) places 
+    FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT $2) places 
     LEFT JOIN images ON images.place_id = places.place_id 
     LEFT JOIN users ON places.user_id = users.id
     WHERE users.id=$1
     ORDER BY likednumber DESC`,
-    [req.user_id, req.body.limit, req.body.offset],
+    [req.user_id, req.body.limit],
     (err, data) => {
       if (err) {
         console.log(err);
@@ -1570,17 +1603,7 @@ server.post("/register", hcverify, async (req, res) => {
   encrypt(req.body.password).then((hash) => {
     pool.query(
       "INSERT INTO users (username, email, date, hash, verified, emailsent) VALUES ($1, $2, $3, $4, $5, $6)",
-      [
-        req.body.username,
-        req.body.email,
-        new Date(),
-        hash,
-        token,
-        new Date(Date.now() + 1000 * 60 * -new Date().getTimezoneOffset())
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", ""),
-      ],
+      [req.body.username, req.body.email, new Date(), hash, token, new Date()],
       async (err) => {
         if (err) {
           if (err.code == 23505) {
@@ -1671,12 +1694,14 @@ server.get("/verified", (req, res) => {
     }
   );
 });
-server.get("/newMail", authorizeToken, (req, res) => {
+server.get("/newMail", async (req, res) => {
+  let user = await authorizeTokenFunc(req.headers.jwt);
   pool.query(
-    "SELECT email,emailsent,verified FROM users where username=$1",
-    [req.user],
+    "SELECT email,emailsent,verified FROM users where id=$1",
+    [user.user_id],
     (err, data) => {
       if (err) {
+        // console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -1692,16 +1717,17 @@ server.get("/newMail", authorizeToken, (req, res) => {
       let b = moment(data.rows[0].emailsent); // past email sent
       if (a.diff(b, "minutes") >= 2) {
         sendEmail(
-          "Verify your account",
-          `Click the link to verify your account http://localhost:5000/verify/` +
+          "Потвърдете вашия акаунт",
+          `Натиснете линка, за да потвърдите акаунта си http://localhost:5000/verify/` +
             data.rows[0].verified,
           data.rows[0].email
         );
         pool.query(
-          "UPDATE users SET emailsent=$1 WHERE username=$2",
-          [a, req.user],
+          "UPDATE users SET emailsent=$1 WHERE id=$2",
+          [a, user.user_id],
           (err) => {
             if (err) {
+              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
@@ -1754,8 +1780,9 @@ server.post("/login", hcverify, async (req, res) => {
           `SELECT verification_actions.date FROM verification_actions LEFT JOIN users on user_id=id WHERE username=$1 AND type='account-lock'`,
           [req.body.username]
         );
+        console.log(date.rows);
         let a = moment(new Date()); //now
-        let b = moment(date.rows[date.rows.length - 1].date); // past email sent
+        let b = moment(date.rows[0].date); // past email sent
         if (a.diff(b, "minutes") < 3) {
           res.status(425).send("Email has already been sent");
           return false;
@@ -1899,11 +1926,14 @@ server.get("/avatar", authorizeToken, (req, res) => {
     [req.user],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
-      res.status(200).send(data.rows[0].avatar);
+      if (data.rows.length) {
+        res.status(200).send(data.rows[0].avatar);
+      } else {
+        res.status(200).send();
+      }
     }
   );
 });
@@ -2364,12 +2394,10 @@ server.put("/user/password/code", (req, res) => {
 });
 server.put("/user/password/reset", (req, res) => {
   if (
-    !(
-      req.body.password &&
-      req.body.password.length < 8 &&
-      req.body.password.length > 100 &&
-      schema.validate(req.body.password)
-    )
+    !req.body.password &&
+    req.body.password.length < 8 &&
+    req.body.password.length > 100 &&
+    !schema.validate(req.body.password)
   ) {
     res.status(401).send("Password invalid");
     return false;

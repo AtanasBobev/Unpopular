@@ -153,6 +153,27 @@ const CardElement = (props) => {
           place_id: id,
         },
       })
+      .then(() => {
+        if (!props.inSearch) {
+          setTimeout(() => {
+            props.setPlaces(async (prev) => {
+              let dataCopy = props.places;
+              await Promise.all([
+                dataCopy.forEach((el) => {
+                  if (el[0].place_id == id) {
+                    el.forEach((a) => {
+                      a.liked = "true";
+                      a.likednumber = Number(a.likednumber) + 1;
+                    });
+                  }
+                }),
+              ]).then(() => {
+                return dataCopy;
+              });
+            });
+          }, 0);
+        }
+      })
       .catch(async (err) => {
         setLiked(false);
         setLikedNumbers((prev) => prev - 1);
@@ -202,6 +223,19 @@ const CardElement = (props) => {
         }
       });
   };
+  Array.prototype.unique = function () {
+    var a = this.concat();
+    for (var i = 0; i < a.length; ++i) {
+      for (var j = i + 1; j < a.length; ++j) {
+        if (a[i] === a[j]) a.splice(j--, 1);
+      }
+    }
+
+    return a;
+  };
+  React.useEffect(() => {
+    console.log(props.places);
+  }, [props.places]);
   const unlike = async (id) => {
     setLiked(false);
     setLikedNumbers((prev) => prev - 1);
@@ -215,6 +249,27 @@ const CardElement = (props) => {
         data: {
           place_id: id,
         },
+      })
+      .then(() => {
+        if (!props.inSearch) {
+          setTimeout(() => {
+            props.setPlaces(async (prev) => {
+              let dataCopy = props.places;
+              await Promise.all([
+                dataCopy.forEach((el) => {
+                  if (el[0].place_id == id) {
+                    el.forEach((a) => {
+                      a.liked = "false";
+                      a.likednumber = Number(a.likednumber) - 1;
+                    });
+                  }
+                }),
+              ]).then(() => {
+                return dataCopy;
+              });
+            });
+          }, 0);
+        }
       })
       .catch(async (err) => {
         setLiked(true);
@@ -252,6 +307,26 @@ const CardElement = (props) => {
           place_id: id,
         },
       })
+      .then(() => {
+        if (!props.inSearch) {
+          setTimeout(() => {
+            props.setPlaces(async (prev) => {
+              let dataCopy = props.places;
+              await Promise.all([
+                dataCopy.forEach((el) => {
+                  if (el[0].place_id == id) {
+                    el.forEach((a) => {
+                      a.saved = "true";
+                    });
+                  }
+                }),
+              ]).then(() => {
+                return dataCopy;
+              });
+            });
+          }, 0);
+        }
+      })
       .catch((err) => {
         setSaved(false);
         if (err.response.status == 406) {
@@ -286,6 +361,26 @@ const CardElement = (props) => {
         data: {
           place_id: id,
         },
+      })
+      .then(() => {
+        if (!props.inSearch) {
+          setTimeout(() => {
+            props.setPlaces(async (prev) => {
+              let dataCopy = props.places;
+              await Promise.all([
+                dataCopy.forEach((el) => {
+                  if (el[0].place_id == id) {
+                    el.forEach((a) => {
+                      a.saved = "false";
+                    });
+                  }
+                }),
+              ]).then(() => {
+                return dataCopy;
+              });
+            });
+          }, 0);
+        }
       })
       .catch((err) => {
         setLiked(true);

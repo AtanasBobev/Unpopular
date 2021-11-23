@@ -39,7 +39,6 @@ const Profile = (props) => {
   const [userData, setUserData] = React.useState([]);
   const [viewcount, setViewCount] = React.useState(10);
   const [count, setUserCount] = React.useState();
-  const [moreVisible, setMoreVisible] = React.useState(true);
   const [open, setOpen] = React.useState(false);
   const [files, setFiles] = React.useState([]);
   const [avatar, setAvatar] = React.useState();
@@ -114,17 +113,16 @@ const Profile = (props) => {
         }
       });
   }, []);
-  const getUserCards = (limit = 10, offset = 0) => {
+  const getUserCards = () => {
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/userPlaces`,
+        url: `http://localhost:5000/user/places`,
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
         data: {
-          limit: limit,
-          offset: offset,
+          limit: viewcount,
         },
       })
       .then((data) => {
@@ -492,7 +490,7 @@ const Profile = (props) => {
           <Typography variant="h1">Зареждане на данни</Typography>
         )}
       </Box>
-      {userData !== [] && moreVisible && userData.length !== 1 ? (
+      {userData !== [] && count > viewcount ? (
         <Container
           style={{
             display: "flex",
@@ -504,12 +502,7 @@ const Profile = (props) => {
         >
           <Button
             onClick={() => {
-              if (count - viewcount < 10) {
-                setViewCount(viewcount + (count - viewcount));
-                setMoreVisible(false);
-              } else {
-                setViewCount(viewcount + 10);
-              }
+              setViewCount(viewcount + 10);
             }}
             variant="outlined"
           >

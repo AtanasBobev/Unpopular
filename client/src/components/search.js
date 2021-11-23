@@ -101,8 +101,13 @@ const Search = (props) => {
       });
     }
   }, [locationChecked]);
-
-  const search = (limitValue = 0) => {
+  const RemoveDuplicates = (array, key) => {
+    return array.reduce((arr, item) => {
+      const removed = arr.filter((i) => i[0][key] !== item[0][key]);
+      return [...removed, item];
+    }, []);
+  };
+  const search = () => {
     props.setQueryData([]);
     props.setSearchLoading(2);
     setAvailable([]);
@@ -152,15 +157,24 @@ const Search = (props) => {
           dangerous: props.searchDangerous,
           accessibility: props.searchAccessibility,
           query: props.searchQuery,
-          limit: props.searchQueryLimit,
-          offset: 0,
+          limit: 10,
+          offset: props.searchQueryLimit,
         },
       })
       .then((data) => {
         props.setSearchLoading(3);
-        props.setQueryData(data.data);
-        // props.setsearchQueryDataLength(Number(data.data["length"]));
         props.setPrevSearchQuery(props.searchQuery);
+        if (!data.data.length) {
+          props.setQueryData([]);
+          props.setSearchQueryLimit(0);
+          return false;
+        }
+        if (!props.queryData.length) {
+          props.setQueryData(data.data);
+        } else {
+          let temp = data.data.concat(props.queryData);
+          props.setQueryData(RemoveDuplicates(temp, "place_id"));
+        }
       })
       .catch((err) => {
         props.toast.error(
@@ -279,8 +293,11 @@ const Search = (props) => {
             size="large"
             variant="outlined"
             onClick={async () => {
-              await props.setSearchQueryLimit(10);
-              search();
+              if (props.searchQueryLimit !== 0) {
+                props.setSearchQueryLimit(0);
+              } else {
+                search();
+              }
             }}
           >
             Търсене
@@ -469,6 +486,9 @@ const Search = (props) => {
                                   .map(Number)}
                               >
                                 <Card
+                                  places={props.queryData}
+                                  setPlaces={setPlaces}
+                                  places={places}
                                   inMap={true}
                                   toast={props.toast}
                                   key={Math.random()}
@@ -512,6 +532,8 @@ const Search = (props) => {
                                     .map(Number)}
                                 >
                                   <Card
+                                    places={places}
+                                    setPlaces={setPlaces}
                                     inMap={true}
                                     date={el[0].date}
                                     toast={props.toast}
@@ -683,6 +705,8 @@ const Search = (props) => {
                           />
                         )}
                         <Card
+                          places={places}
+                          setPlaces={setPlaces}
                           toast={props.toast}
                           key={Math.random()}
                           date={el[1][0].date}
@@ -728,6 +752,8 @@ const Search = (props) => {
                           />
                         )}
                         <Card
+                          places={props.queryData}
+                          setPlaces={setPlaces}
                           date={el[0].date}
                           toast={props.toast}
                           key={Math.random()}
@@ -770,7 +796,7 @@ const Search = (props) => {
             >
               <Button
                 onClick={() => {
-                  props.setSearchQueryLimit((prev) => prev + 10);
+                  props.setSearchQueryLimit(props.searchQueryLimit + 10);
                 }}
                 startIcon={<AddIcon />}
               >
