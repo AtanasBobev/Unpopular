@@ -216,8 +216,7 @@ const Register = (props) => {
             color: {
               value: "#FFFFFF",
             },
-            image:
-              "url('http://vincentgarreau.com/particles.js/assets/img/kbLd9vb_new.gif')",
+            image: "url('http://localhost:5000/image/nyan_cat.gif')",
             position: "-90% 50%",
             repeat: "no-repeat",
             size: "60%",

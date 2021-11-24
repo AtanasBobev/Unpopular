@@ -578,6 +578,32 @@ server.get("/image/:image", (req, res) => {
   res.sendFile("/uploads/" + req.params.image, { root: __dirname }, () => {});
 });
 
+server.get("/places/liked/saved", authorizeToken, (req, res) => {
+  if (!req.query.place_id) {
+    res.status(400).send("Invalid data");
+    return false;
+  }
+  pool.query(
+    `SELECT CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = $2 AND user_id=$1)
+  THEN 'true' ELSE 'false' END AS liked,
+  CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = $2 AND user_id=$1)
+  THEN 'true' 
+  ELSE 'false' END as saved
+  FROM PLACES
+  JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
+  LEFT JOIN users ON users.id = places.user_id
+  WHERE "savedPlaces".USER_ID = 40  ORDER BY "savedPlaces".date DESC`,
+    [req.user_id, req.query.place_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows ? data.rows[0] : "");
+    }
+  );
+});
+
 server.post(
   "/place",
   hcverify,

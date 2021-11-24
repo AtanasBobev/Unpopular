@@ -22,6 +22,7 @@ import Switch from "@material-ui/core/Switch";
 import Quotes from "./quotes";
 import Poems from "./poems";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core";
+import { ToastContainer } from "react-toastify";
 const axios = require("axios");
 const theme = createMuiTheme({
   palette: {
@@ -44,13 +45,13 @@ const Search = (props) => {
   const [markersChecked, setMarkersChecked] = React.useState(true);
   const [placesChecked, setPlacesChecked] = React.useState(true);
   const [places, setPlaces] = React.useState([]);
-
-  React.useEffect(() => {
+  const [change, setChange] = React.useState([]);
+  const toSort = (arr = props.queryData) => {
     if (!props.queryData || !location) {
       return false;
     }
     let myQueryData = [];
-    props.queryData.forEach((el) => {
+    arr.forEach((el) => {
       let distance = getPreciseDistance(
         { latitude: location[0], longitude: location[1] },
         {
@@ -67,6 +68,9 @@ const Search = (props) => {
       myQueryData.push([distance, el]);
       setPlaces(myQueryData.sort((a, b) => a[0] - b[0]));
     });
+  };
+  React.useEffect(() => {
+    toSort();
   }, [location, props.queryData]);
   React.useEffect(() => {
     if (!locationChecked) {
@@ -108,6 +112,7 @@ const Search = (props) => {
     }, []);
   };
   const search = () => {
+    setChange([]);
     props.setQueryData([]);
     props.setSearchLoading(2);
     setAvailable([]);
@@ -261,6 +266,7 @@ const Search = (props) => {
         return "black";
     }
   };
+
   return (
     <ThemeProvider theme={theme}>
       <div>
@@ -486,9 +492,11 @@ const Search = (props) => {
                                   .map(Number)}
                               >
                                 <Card
-                                  places={props.queryData}
-                                  setPlaces={setPlaces}
+                                  setChange={setChange}
+                                  change={change}
+                                  inSearch={true}
                                   places={places}
+                                  setPlaces={setPlaces}
                                   inMap={true}
                                   toast={props.toast}
                                   key={Math.random()}
@@ -532,7 +540,10 @@ const Search = (props) => {
                                     .map(Number)}
                                 >
                                   <Card
-                                    places={places}
+                                    setChange={setChange}
+                                    change={change}
+                                    inSearch={true}
+                                    places={props.queryData}
                                     setPlaces={setPlaces}
                                     inMap={true}
                                     date={el[0].date}
@@ -705,6 +716,8 @@ const Search = (props) => {
                           />
                         )}
                         <Card
+                          setChange={setChange}
+                          change={change}
                           places={places}
                           setPlaces={setPlaces}
                           toast={props.toast}
@@ -752,6 +765,8 @@ const Search = (props) => {
                           />
                         )}
                         <Card
+                          setChange={setChange}
+                          change={change}
                           places={props.queryData}
                           setPlaces={setPlaces}
                           date={el[0].date}

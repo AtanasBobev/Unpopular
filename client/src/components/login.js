@@ -12,7 +12,7 @@ import Tilty from "react-tilty";
 import PureModal from "react-pure-modal";
 import Particles from "react-tsparticles";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
-
+import amongus from "../images/cyan_amongus.png";
 const axios = require("axios");
 
 const Login = (props) => {
@@ -714,7 +714,7 @@ const Login = (props) => {
                 type: "images",
                 options: {
                   images: {
-                    src: "https://particles.js.org/images/cyan_amongus.png",
+                    src: amongus,
                     width: 500,
                     height: 634,
                   },

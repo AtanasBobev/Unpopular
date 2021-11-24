@@ -36,6 +36,7 @@ import Share from "./share";
 import Edit from "./edit";
 import moment from "moment";
 import TooltipImage from "./tooltipImage";
+import { getCenter, getPreciseDistance } from "geolib";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -48,6 +49,41 @@ const CardElement = (props) => {
   const [saved, setSaved] = React.useState(props.saved);
   const [comments, setComments] = React.useState([]);
   const [likedNumbers, setLikedNumbers] = React.useState(props.numbersLiked);
+
+  React.useEffect(() => {
+    if (!localStorage.getItem("jwt")) {
+      return false;
+    }
+    if (props.change.length && !props.change.includes(Number(props.idData))) {
+      return false;
+    } else if (props.change.includes(Number(props.idData))) {
+      axios
+        .request({
+          method: "GET",
+          url: "http://localhost:5000/places/liked/saved",
+          headers: {
+            jwt: localStorage.getItem("jwt"),
+          },
+          params: {
+            place_id: props.idData,
+          },
+        })
+        .then((data) => {
+          if (data.data) {
+            setLiked(data.data["liked"] == "true");
+            setSaved(data.data["saved"] == "true");
+            console.log(data.data["liked"] == "true", liked);
+          } else {
+            setLiked(false);
+            setSaved(false);
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, []);
+
   const handleClickOpen = () => {
     setOpen(true);
   };
@@ -155,23 +191,25 @@ const CardElement = (props) => {
       })
       .then(() => {
         if (!props.inSearch) {
-          setTimeout(() => {
-            props.setPlaces(async (prev) => {
-              let dataCopy = props.places;
-              await Promise.all([
-                dataCopy.forEach((el) => {
-                  if (el[0].place_id == id) {
-                    el.forEach((a) => {
-                      a.liked = "true";
-                      a.likednumber = Number(a.likednumber) + 1;
-                    });
-                  }
-                }),
-              ]).then(() => {
-                return dataCopy;
+          if (!props.change.includes(props.idData)) {
+            props.setChange((prev) =>
+              [...prev, Number(props.idData)].filter(function (
+                item,
+                index,
+                inputArray
+              ) {
+                return inputArray.indexOf(item) == index;
+              })
+            );
+          } else {
+            props.setChange((prev) => {
+              let data = prev;
+              data = data.filter(function (item) {
+                return item !== props.idData;
               });
+              return data;
             });
-          }, 0);
+          }
         }
       })
       .catch(async (err) => {
@@ -223,19 +261,7 @@ const CardElement = (props) => {
         }
       });
   };
-  Array.prototype.unique = function () {
-    var a = this.concat();
-    for (var i = 0; i < a.length; ++i) {
-      for (var j = i + 1; j < a.length; ++j) {
-        if (a[i] === a[j]) a.splice(j--, 1);
-      }
-    }
 
-    return a;
-  };
-  React.useEffect(() => {
-    console.log(props.places);
-  }, [props.places]);
   const unlike = async (id) => {
     setLiked(false);
     setLikedNumbers((prev) => prev - 1);
@@ -252,23 +278,25 @@ const CardElement = (props) => {
       })
       .then(() => {
         if (!props.inSearch) {
-          setTimeout(() => {
-            props.setPlaces(async (prev) => {
-              let dataCopy = props.places;
-              await Promise.all([
-                dataCopy.forEach((el) => {
-                  if (el[0].place_id == id) {
-                    el.forEach((a) => {
-                      a.liked = "false";
-                      a.likednumber = Number(a.likednumber) - 1;
-                    });
-                  }
-                }),
-              ]).then(() => {
-                return dataCopy;
+          if (!props.change.includes(props.idData)) {
+            props.setChange((prev) =>
+              [...prev, Number(props.idData)].filter(function (
+                item,
+                index,
+                inputArray
+              ) {
+                return inputArray.indexOf(item) == index;
+              })
+            );
+          } else {
+            props.setChange((prev) => {
+              let data = prev;
+              data = data.filter(function (item) {
+                return item !== props.idData;
               });
+              return data;
             });
-          }, 0);
+          }
         }
       })
       .catch(async (err) => {
@@ -309,22 +337,26 @@ const CardElement = (props) => {
       })
       .then(() => {
         if (!props.inSearch) {
-          setTimeout(() => {
-            props.setPlaces(async (prev) => {
-              let dataCopy = props.places;
-              await Promise.all([
-                dataCopy.forEach((el) => {
-                  if (el[0].place_id == id) {
-                    el.forEach((a) => {
-                      a.saved = "true";
-                    });
-                  }
-                }),
-              ]).then(() => {
-                return dataCopy;
+          if (!props.change.includes(props.idData)) {
+            props.setChange((prev) =>
+              [...prev, Number(props.idData)].filter(function (
+                item,
+                index,
+                inputArray
+              ) {
+                return inputArray.indexOf(item) == index;
+              })
+            );
+          } else {
+            props.setChange((prev) => {
+              let data = prev;
+              data = data.filter(function (item) {
+                return item !== props.idData;
               });
+              return data;
+              return data;
             });
-          }, 0);
+          }
         }
       })
       .catch((err) => {
@@ -364,26 +396,30 @@ const CardElement = (props) => {
       })
       .then(() => {
         if (!props.inSearch) {
-          setTimeout(() => {
-            props.setPlaces(async (prev) => {
-              let dataCopy = props.places;
-              await Promise.all([
-                dataCopy.forEach((el) => {
-                  if (el[0].place_id == id) {
-                    el.forEach((a) => {
-                      a.saved = "false";
-                    });
-                  }
-                }),
-              ]).then(() => {
-                return dataCopy;
+          if (!props.change.includes(props.idData)) {
+            props.setChange((prev) =>
+              [...prev, Number(props.idData)].filter(function (
+                item,
+                index,
+                inputArray
+              ) {
+                return inputArray.indexOf(item) == index;
+              })
+            );
+          } else {
+            props.setChange((prev) => {
+              let data = prev;
+              data = data.filter(function (item) {
+                return item !== props.idData;
               });
+              return data;
             });
-          }, 0);
+          }
         }
       })
       .catch((err) => {
-        setLiked(true);
+        alert(err, props.change);
+        setSaved(true);
         if (err.response.status == 406) {
           console.warn("Вече сте премахнали това място от запазени");
         } else if (err.response.status == 401) {

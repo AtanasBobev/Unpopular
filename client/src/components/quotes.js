@@ -20,14 +20,18 @@ const Quotes = (props) => {
       }
     }
     props.setAvailable((available) => [...available, el]);
-    if (quotes[el].hasOwnProperty("quote")) {
-      setText(quotes[el].quote);
-    }
-    if (quotes[el].hasOwnProperty("author")) {
-      setAuthor(quotes[el].author);
-    }
-    if (quotes[el].hasOwnProperty("source")) {
-      setSource(quotes[el].source);
+    try {
+      if (quotes[el].hasOwnProperty("quote")) {
+        setText(quotes[el].quote);
+      }
+      if (quotes[el].hasOwnProperty("author")) {
+        setAuthor(quotes[el].author);
+      }
+      if (quotes[el].hasOwnProperty("source")) {
+        setSource(quotes[el].source);
+      }
+    } catch (err) {
+      await props.setAvailable([]);
     }
   }, []);
 
