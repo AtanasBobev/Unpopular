@@ -1,29 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <meta property="og:title" content="Title of the website" />
-    <meta property="og:image" content="//media.example.com/ 1234567.jpg" />
-    <meta
-      property="og:description"
-      content="Description that will show in the preview"
-    />
-    <meta property="og:url" content="//www.example.com/URL of the article" />
-    <!--
+<html lang="bg">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="Неизвестно" content="Платформа за споделяне на неверотяни места в България" />
+  <meta property="og:title" content="Неизвестно" />
+  <meta property="og:image" content="%PUBLIC_URL%/favicon.svg" />
+  <meta property="og:description" content="Платформа за споделяна на невероятни места в България" />
+  <meta name="googlebot" content="notranslate" />
+  <meta name="author" content="Атанас Бобев">
+  <meta name="keywords" content="">
+  <meta name="language" content="Bulgarian">
+  <meta http-equiv="content-language" content="bg">
+  <meta name="og:image" content="%PUBLIC_URL%/favicon.svg" />
+  <meta name="og:site_name" content="Неизвестно" />
+  <meta name="og:country-name" content="Bulgaria" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta content="yes" name="apple-touch-fullscreen" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="twitter:title" content="Неизвестно">
+  <meta name="twitter:description" content="Платформа за споделяна на невероятни места в България">
+  <meta name="twitter:image" content="%PUBLIC_URL%/favicon.svg">
+  <meta name="twitter:image:alt" content="Ела на сайта!">
+
+  <!--
       To be included:
       <div>Icons made by <a href="https://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
      <div>Icons made by <a href="https://creativemarket.com/eucalyp" title="Eucalyp">Eucalyp</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a></div>
 
     -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <!--
       Notice the use of %PUBLIC_URL% in the tags above.
       It will be replaced with the URL of the `public` folder during the build.
       Only files inside the `public` folder can be referenced from the HTML.
@@ -32,29 +43,21 @@
       work correctly both with client-side routing and a non-root public URL.
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
-    <title>Непопулярно</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+  <title>Неизвестно</title>
+</head>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root"></div>
+  <script>
+    window.onblur = function () {
+      document.title = "Хей, къде отиде :)";
+    };
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-    <script>
-      window.onblur = function () {
-        document.title = "Хей, къде отиде :)";
-      };
+    window.onfocus = function () {
+      document.title = "Неизвестно";
+    };
+  </script>
+</body>
 
-      window.onfocus = function () {
-        document.title = "Непопулярно";
-      };
-    </script>
-  </body>
 </html>

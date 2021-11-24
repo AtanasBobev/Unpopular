@@ -418,7 +418,6 @@ const CardElement = (props) => {
         }
       })
       .catch((err) => {
-        alert(err, props.change);
         setSaved(true);
         if (err.response.status == 406) {
           console.warn("Вече сте премахнали това място от запазени");

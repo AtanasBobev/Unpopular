@@ -112,7 +112,7 @@ const Share = (props) => {
             href={getFacebookUrl({
               url: `https://www.localhost:3000/place/${props.item_id}`,
               quote: `Запознай се с ${props.name}`,
-              hashtag: "Непопулярно",
+              hashtag: "Неизвестно",
             })}
             children={<FacebookIcon />}
           />
@@ -120,7 +120,7 @@ const Share = (props) => {
             href={getTwitterUrl({
               url: `https://www.localhost:3000/place/${props.item_id}`,
               text: `Запознай се с ${props.name}`,
-              hashtags: "Непопулярно",
+              hashtags: "Неизвестно",
             })}
             children={<TwitterIcon />}
           />
