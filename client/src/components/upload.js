@@ -33,6 +33,45 @@ const Upload = (props) => {
   const [files, setFiles] = React.useState({});
   const [location, setLocation] = React.useState("");
   const [token, setToken] = React.useState();
+  const acceptedImageTypes = ["image/jpeg", "image/png"];
+
+  React.useEffect(() => {
+    if (!files.length) {
+      return false;
+    }
+    console.log(files);
+    Array.from(files).forEach((el) => {
+      if (!acceptedImageTypes.includes(el["type"])) {
+        toast.warn(
+          "Един от файловете не е изображение. Позволените формати са jpeg и png",
+          {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          }
+        );
+        setFiles("");
+        return false;
+      }
+      if (el.size > 3e6) {
+        toast.warn("Един от файловете е с размер над 3МБ", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        setFiles("");
+        return false;
+      }
+    });
+  }, [files]);
   const Upload = (e) => {
     e.preventDefault();
     if (!location || !isValidCoords(location.replace(/\s+/g, "").split(","))) {
@@ -220,12 +259,7 @@ const Upload = (props) => {
         });
     }
   };
-  React.useEffect(() => {
-    console.log([
-      location.replace(/\s+/g, "").split(",")[0],
-      location.replace(/\s+/g, "").split(",")[1],
-    ]);
-  }, [location]);
+
   return (
     <Container maxWidth="sm">
       <ToastContainer

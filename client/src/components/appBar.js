@@ -13,6 +13,7 @@ import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import FadeIn from "react-fade-in";
 import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 import ExploreOutlinedIcon from "@material-ui/icons/ExploreOutlined";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { Link } from "react-router-dom";
 const styles = {
   root: {
@@ -137,11 +138,11 @@ const TopBar = (props) => {
                 onClick={handleClick}
                 size={"large"}
                 style={{ textTransform: "none" }}
-                startIcon={<MoreHorizOutlinedIcon />}
+                startIcon={<InfoOutlinedIcon />}
                 component={Link}
-                to="/more"
+                to="/info"
               >
-                Още
+                За проекта
               </Button>
             </FadeIn>
           </Toolbar>

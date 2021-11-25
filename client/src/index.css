@@ -860,3 +860,20 @@ header {
 .day {
   cursor: default
 }
+
+.info {
+  width: 50vw;
+  margin-top: 20vh;
+  margin-left: 25vw;
+  padding: 2vmax;
+  box-shadow: 0 20px 50px rgba(8, 112, 184, 0.7);
+
+  z-index: 1;
+}
+
+.meImg {
+  width: 20vw;
+  border-radius: 50%;
+  box-shadow: 0 3px 6px rgba(251, 255, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  pointer-events: none;
+}

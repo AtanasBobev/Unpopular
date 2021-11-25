@@ -864,64 +864,69 @@ const CardElement = (props) => {
             {props.reportButtonVisible && verify() && (
               <ReportOutlinedIcon onClick={() => setReportOpen(!openReport)} />
             )}
-            <PureModal
-              header="Редактирай"
-              isOpen={openEdit}
-              onClose={() => {
-                setEditOpen(false);
-                return true;
-              }}
-            >
-              <Edit
-                close={setEditOpen}
-                toast={props.toast}
-                images={props.images}
-                name={props.title}
-                description={props.description}
-                placelocation={props.placelocation}
-                category={props.category}
-                dangerous={props.dangerous}
-                price={props.price}
-                city={props.city}
-                accessibility={props.accessibility}
-                item_id={props.idData}
-              />
-            </PureModal>
-            <PureModal
-              header="Сподели"
-              isOpen={openShare}
-              onClose={() => {
-                setShareOpen(false);
-                return true;
-              }}
-            >
-              <Share
-                toast={props.toast}
-                name={props.title}
-                description={
-                  props.description.length > 100
-                    ? props.description.substring(0, 100) + "..."
-                    : props.description
-                }
-                item_id={props.idData}
-              />
-            </PureModal>
+            {!props.demo && (
+              <>
+                <PureModal
+                  header="Редактирай"
+                  isOpen={openEdit}
+                  onClose={() => {
+                    setEditOpen(false);
+                    return true;
+                  }}
+                >
+                  <Edit
+                    close={setEditOpen}
+                    toast={props.toast}
+                    images={props.images}
+                    name={props.title}
+                    description={props.description}
+                    placelocation={props.placelocation}
+                    category={props.category}
+                    dangerous={props.dangerous}
+                    price={props.price}
+                    city={props.city}
+                    accessibility={props.accessibility}
+                    item_id={props.idData}
+                  />
+                </PureModal>
 
-            <PureModal
-              header="Съобщи за нередност"
-              isOpen={openReport}
-              onClose={() => {
-                setReportOpen(false);
-                return true;
-              }}
-            >
-              <Report
-                toast={props.toast}
-                setReportOpen={setReportOpen}
-                item_id={props.idData}
-                type="place"
-              />
-            </PureModal>
+                <PureModal
+                  header="Сподели"
+                  isOpen={openShare}
+                  onClose={() => {
+                    setShareOpen(false);
+                    return true;
+                  }}
+                >
+                  <Share
+                    toast={props.toast}
+                    name={props.title}
+                    description={
+                      props.description.length > 100
+                        ? props.description.substring(0, 100) + "..."
+                        : props.description
+                    }
+                    item_id={props.idData}
+                  />
+                </PureModal>
+
+                <PureModal
+                  header="Съобщи за нередност"
+                  isOpen={openReport}
+                  onClose={() => {
+                    setReportOpen(false);
+                    return true;
+                  }}
+                >
+                  <Report
+                    toast={props.toast}
+                    setReportOpen={setReportOpen}
+                    item_id={props.idData}
+                    type="place"
+                  />
+                </PureModal>
+              </>
+            )}
             {props.adminRights && (
               <DeleteOutlineOutlinedIcon
                 onClick={() => {

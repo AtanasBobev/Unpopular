@@ -451,6 +451,7 @@ const Edit = (props) => {
         </Typography>
         <center>
           <Card
+            inSearch={true}
             files={files}
             demo={true}
             key={Math.random()}

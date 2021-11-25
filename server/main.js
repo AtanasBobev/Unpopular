@@ -90,6 +90,26 @@ const upload = multer({
   },
   limits: { fileSize: 3000000 },
 });
+let statData;
+setInterval(() => {
+  pool.query(
+    `SELECT (SELECT COUNT(*) as users_count FROM users),
+  (SELECT COUNT(*) as places FROM places),
+  (SELECT COUNT(*) as comments FROM comments),
+  (SELECT COUNT(*) as replies FROM comments_replies),
+  (SELECT COUNT(*) as images FROM images),
+  (SELECT COUNT(*) as likes FROM "favoritePlaces"),
+  (SELECT COUNT(*) as saves FROM "savedPlaces")
+  FROM users`,
+    (err, data) => {
+      if (err) {
+        return false;
+      }
+      statData = data.rows[0];
+      console.log(statData);
+    }
+  );
+}, 1000 * 60);
 
 server.use(cors());
 server.use(cookieParser("MySecret"));
@@ -219,6 +239,10 @@ server.post("/unsave", authorizeToken, async (req, res) => {
       }
     }
   );
+});
+
+server.get("/stats", (req, res) => {
+  res.status(200).send(statData);
 });
 
 server.get("/weather", (req, res) => {

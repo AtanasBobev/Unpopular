@@ -9,6 +9,7 @@ import Upload from "./components/upload";
 import Liked from "./components/liked";
 import Saved from "./components/saved";
 import Place from "./components/place";
+import Info from "./components/info";
 import jwt_decode from "jwt-decode";
 import Verify from "./components/verifyEmail";
 import ResetPassword from "./components/resetPassword";
@@ -167,6 +168,7 @@ function App() {
             )
           }
         />
+        <Route exact path="/info" component={() => <Info toast={toast} />} />
         <Route
           exact
           path="/verify"
