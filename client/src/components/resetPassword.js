@@ -5,6 +5,7 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import { useHistory, useParams } from "react-router-dom";
 import axios from "axios";
+import Particles from "react-tsparticles";
 const passwordValidator = require("password-validator");
 
 let schema = new passwordValidator();
@@ -175,61 +176,398 @@ const ResetPassword = (props) => {
         }
       });
   }, []);
-  return validity ? (
-    <form className="resetPassword" onSubmit={submitPassword}>
-      <Typography
-        style={{ fontWeight: 800, textAlign: "center", fontSize: "2vmax" }}
-      >
-        Промяна на паролата
-      </Typography>
-      <TextField
-        onChange={(e) => setPassword(e.target.value)}
-        inputProps={{ maxLength: 100 }}
-        id="standard-name"
-        label="Нова парола"
-        type="password"
-        className="inputField"
-        margin="normal"
-        required
-      />
-      <br />
-      <TextField
-        onChange={(e) => setRepeatNewPassword(e.target.value)}
-        inputProps={{ maxLength: 100 }}
-        id="standard-name"
-        label="Потвърди нова парола"
-        type="password"
-        className="inputField"
-        margin="normal"
-        required
-      />
-      <br />
-      <Button
-        type="submit"
-        style={{ textTransform: "none", width: "auto" }}
-        variant="contained"
-        color="primary"
-      >
-        Промени
-      </Button>
-    </form>
-  ) : (
-    <Box className="resetPassword">
-      <Typography
-        style={{ fontWeight: 800, textAlign: "center", fontSize: "2vmax" }}
-      >
-        Грешен или изтекъл код
-      </Typography>
-      <Typography
-        style={{
-          fontWeight: 100,
-          textAlign: "center",
-          fontSize: "1.5vmax",
-          marginTop: "0.5vmax",
+  return (
+    <Box>
+      <Particles
+        id="tsparticles"
+        options={{
+          background: {
+            color: {
+              value: "#fff",
+            },
+            position: "50% 50%",
+            repeat: "no-repeat",
+            size: "cover",
+          },
+          fullScreen: {
+            zIndex: 1,
+          },
+          fpsLimit: 90,
+          interactivity: {
+            events: {
+              onClick: {
+                enable: true,
+                mode: "push",
+              },
+              onDiv: {
+                selectors: "#repulse-div",
+                mode: "repulse",
+              },
+              onHover: {
+                mode: "connect",
+                parallax: {
+                  enable: true,
+                  force: 70,
+                },
+              },
+            },
+            modes: {
+              attract: {
+                maxSpeed: 20,
+              },
+              bubble: {
+                distance: 400,
+                duration: 2,
+                opacity: 0.8,
+                size: 40,
+              },
+              grab: {
+                distance: 400,
+              },
+            },
+          },
+          particles: {
+            color: {
+              value: "#ffffff",
+            },
+            links: {
+              color: {
+                value: "#000",
+              },
+              distance: 150,
+              opacity: 0.4,
+            },
+            move: {
+              attract: {
+                rotate: {
+                  x: 600,
+                  y: 1200,
+                },
+              },
+              enable: true,
+              path: {},
+              outModes: {
+                bottom: "out",
+                left: "out",
+                right: "out",
+                top: "out",
+              },
+              spin: {},
+            },
+            number: {
+              density: {
+                enable: true,
+              },
+              value: 80,
+            },
+            opacity: {
+              random: {
+                enable: true,
+              },
+              value: {
+                min: 0.1,
+                max: 1,
+              },
+              animation: {
+                enable: true,
+                speed: 1,
+                minimumValue: 0.2,
+              },
+            },
+            rotate: {
+              random: {
+                enable: true,
+              },
+              animation: {
+                enable: true,
+                speed: 5,
+              },
+              direction: "random",
+            },
+            shape: {
+              options: {
+                character: {
+                  fill: false,
+                  font: "Verdana",
+                  style: "",
+                  value: "*",
+                  weight: "400",
+                },
+                char: {
+                  fill: false,
+                  font: "Verdana",
+                  style: "",
+                  value: "*",
+                  weight: "400",
+                },
+                polygon: {
+                  sides: 5,
+                },
+                star: {
+                  sides: 5,
+                },
+                image: [
+                  {
+                    src: "https://particles.js.org/images/fruits//apple.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//avocado.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//banana.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//berries.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//cherry.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//grapes.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//lemon.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//orange.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//peach.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//pear.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//pepper.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//plum.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//star.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//strawberry.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//watermelon.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//watermelon_slice.png",
+                    width: 32,
+                    height: 32,
+                  },
+                ],
+                images: [
+                  {
+                    src: "https://particles.js.org/images/fruits//apple.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//avocado.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//banana.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//berries.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//cherry.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//grapes.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//lemon.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//orange.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//peach.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//pear.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//pepper.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//plum.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//star.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//strawberry.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//watermelon.png",
+                    width: 32,
+                    height: 32,
+                  },
+                  {
+                    src: "https://particles.js.org/images/fruits//watermelon_slice.png",
+                    width: 32,
+                    height: 32,
+                  },
+                ],
+              },
+              type: "image",
+            },
+            size: {
+              value: 16,
+              animation: {
+                speed: 40,
+                minimumValue: 0.1,
+              },
+            },
+            stroke: {
+              color: {
+                value: "#000000",
+                animation: {
+                  h: {
+                    count: 0,
+                    enable: false,
+                    offset: 0,
+                    speed: 1,
+                    sync: true,
+                  },
+                  s: {
+                    count: 0,
+                    enable: false,
+                    offset: 0,
+                    speed: 1,
+                    sync: true,
+                  },
+                  l: {
+                    count: 0,
+                    enable: false,
+                    offset: 0,
+                    speed: 1,
+                    sync: true,
+                  },
+                },
+              },
+            },
+          },
         }}
-      >
-        Проверете отново имейла си или поискайте нов код
-      </Typography>
+      />
+      {validity ? (
+        <form className="resetPassword" onSubmit={submitPassword}>
+          <Typography
+            style={{ fontWeight: 800, textAlign: "center", fontSize: "2vmax" }}
+          >
+            Промяна на паролата
+          </Typography>
+          <TextField
+            onChange={(e) => setPassword(e.target.value)}
+            inputProps={{ maxLength: 100 }}
+            id="standard-name"
+            label="Нова парола"
+            type="password"
+            className="inputField"
+            margin="normal"
+            required
+          />
+          <br />
+          <TextField
+            onChange={(e) => setRepeatNewPassword(e.target.value)}
+            inputProps={{ maxLength: 100 }}
+            id="standard-name"
+            label="Потвърди нова парола"
+            type="password"
+            className="inputField"
+            margin="normal"
+            required
+          />
+          <br />
+          <Button
+            type="submit"
+            style={{ textTransform: "none", width: "auto" }}
+            variant="contained"
+            color="primary"
+          >
+            Промени
+          </Button>
+        </form>
+      ) : (
+        <Box className="resetPassword">
+          <Typography
+            style={{ fontWeight: 800, textAlign: "center", fontSize: "2vmax" }}
+          >
+            Грешен или изтекъл код
+          </Typography>
+          <Typography
+            style={{
+              fontWeight: 100,
+              textAlign: "center",
+              fontSize: "1.5vmax",
+              marginTop: "0.5vmax",
+            }}
+          >
+            Проверете отново имейла си или поискайте нов код
+          </Typography>
+        </Box>
+      )}
     </Box>
   );
 };

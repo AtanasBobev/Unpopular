@@ -584,15 +584,19 @@ server.get("/places/liked/saved", authorizeToken, (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = $2 AND user_id=$1)
-  THEN 'true' ELSE 'false' END AS liked,
-  CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = $2 AND user_id=$1)
-  THEN 'true' 
-  ELSE 'false' END as saved
-  FROM PLACES
-  JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
-  LEFT JOIN users ON users.id = places.user_id
-  WHERE "savedPlaces".USER_ID = 40  ORDER BY "savedPlaces".date DESC`,
+    `SELECT 
+    CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = $2 AND user_id=$1)
+        THEN 'true' ELSE 'false' END AS liked,
+    CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = $2 AND user_id=$1)
+        THEN 'true' ELSE 'false' END AS saved,
+        (SELECT COUNT(*) AS LIKEDNUMBER
+        FROM "favoritePlaces"
+        WHERE "favoritePlaces".PLACE_ID = $2)
+        FROM PLACES
+        JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
+        JOIN "favoritePlaces" ON PLACES.PLACE_ID = "favoritePlaces".PLACE_ID
+        LEFT JOIN users ON users.id = places.user_id
+        WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
     [req.user_id, req.query.place_id],
     (err, data) => {
       if (err) {
@@ -1613,7 +1617,9 @@ server.post("/register", hcverify, async (req, res) => {
       req.body.email &&
       req.body.username.length <= 20 &&
       req.body.username.length >= 5 &&
-      schema.validate(req.body.password)
+      schema.validate(req.body.password) &&
+      !/[а-яА-ЯЁё]/.test(req.body.username) &&
+      !/[а-яА-ЯЁё]/.test(req.body.password)
     )
   ) {
     res.status(400).send("Missing or invalid data sent");

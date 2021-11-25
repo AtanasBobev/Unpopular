@@ -36,7 +36,6 @@ import Share from "./share";
 import Edit from "./edit";
 import moment from "moment";
 import TooltipImage from "./tooltipImage";
-import { getCenter, getPreciseDistance } from "geolib";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -54,33 +53,35 @@ const CardElement = (props) => {
     if (!localStorage.getItem("jwt")) {
       return false;
     }
-    if (props.change.length && !props.change.includes(Number(props.idData))) {
-      return false;
-    } else if (props.change.includes(Number(props.idData))) {
-      axios
-        .request({
-          method: "GET",
-          url: "http://localhost:5000/places/liked/saved",
-          headers: {
-            jwt: localStorage.getItem("jwt"),
-          },
-          params: {
-            place_id: props.idData,
-          },
-        })
-        .then((data) => {
-          if (data.data) {
-            setLiked(data.data["liked"] == "true");
-            setSaved(data.data["saved"] == "true");
-            console.log(data.data["liked"] == "true", liked);
-          } else {
-            setLiked(false);
-            setSaved(false);
-          }
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+    if (!props.inSearch) {
+      if (props.change.length && !props.change.includes(Number(props.idData))) {
+        return false;
+      } else if (props.change.includes(Number(props.idData))) {
+        axios
+          .request({
+            method: "GET",
+            url: "http://localhost:5000/places/liked/saved",
+            headers: {
+              jwt: localStorage.getItem("jwt"),
+            },
+            params: {
+              place_id: props.idData,
+            },
+          })
+          .then((data) => {
+            if (data.data) {
+              setLiked(data.data["liked"] == "true");
+              setSaved(data.data["saved"] == "true");
+              setLikedNumbers(Number(data.data["likednumber"]));
+            } else {
+              setLiked(false);
+              setSaved(false);
+            }
+          })
+          .catch((err) => {
+            console.log(err);
+          });
+      }
     }
   }, []);
 
@@ -175,9 +176,10 @@ const CardElement = (props) => {
         progress: undefined,
       });
       return false;
+    } else {
+      setLiked(true);
+      setLikedNumbers((prev) => prev + 1);
     }
-    setLiked(true);
-    setLikedNumbers((prev) => prev + 1);
     axios
       .request({
         method: "POST",
@@ -190,6 +192,9 @@ const CardElement = (props) => {
         },
       })
       .then(() => {
+        if (openReport || open || openEdit || openShare) {
+          return false;
+        }
         if (!props.inSearch) {
           if (!props.change.includes(props.idData)) {
             props.setChange((prev) =>
@@ -277,6 +282,9 @@ const CardElement = (props) => {
         },
       })
       .then(() => {
+        if (openReport || open || openEdit || openShare) {
+          return false;
+        }
         if (!props.inSearch) {
           if (!props.change.includes(props.idData)) {
             props.setChange((prev) =>
@@ -300,6 +308,7 @@ const CardElement = (props) => {
         }
       })
       .catch(async (err) => {
+        console.error(err);
         setLiked(true);
         setLikedNumbers((prev) => prev + 1);
         if (err.response.status == 406) {
@@ -336,6 +345,9 @@ const CardElement = (props) => {
         },
       })
       .then(() => {
+        if (openReport || open || openEdit || openShare) {
+          return false;
+        }
         if (!props.inSearch) {
           if (!props.change.includes(props.idData)) {
             props.setChange((prev) =>
@@ -353,7 +365,6 @@ const CardElement = (props) => {
               data = data.filter(function (item) {
                 return item !== props.idData;
               });
-              return data;
               return data;
             });
           }
@@ -395,6 +406,9 @@ const CardElement = (props) => {
         },
       })
       .then(() => {
+        if (openReport || open || openEdit || openShare) {
+          return false;
+        }
         if (!props.inSearch) {
           if (!props.change.includes(props.idData)) {
             props.setChange((prev) =>
@@ -659,7 +673,7 @@ const CardElement = (props) => {
       <Dialog
         maxWidth="md"
         onClose={handleClose}
-        aria-labelledby="MoreInfo"
+        aria-labelledby=""
         open={open}
       >
         <DialogTitle id="MoreInfo" onClose={handleClose}>

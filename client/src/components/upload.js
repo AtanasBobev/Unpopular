@@ -478,6 +478,7 @@ const Upload = (props) => {
         </Typography>
         <center>
           <Card
+            inSearch={true}
             files={files}
             demo={true}
             key={Math.random()}

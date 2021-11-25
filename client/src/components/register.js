@@ -58,6 +58,21 @@ const Register = (props) => {
 
   const register = (e) => {
     e.preventDefault();
+    if (/[а-яА-ЯЁё]/.test(username) || /[а-яА-ЯЁё]/.test(password)) {
+      toast.warn(
+        "Изглежда, че има символи, които са на кирилица в потребителското име или парола. Моля, придържайте се към латиница!",
+        {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        }
+      );
+      return false;
+    }
     if (!token) {
       toast.warn("Не сте потвърдили, че не сте робот", {
         position: "bottom-left",

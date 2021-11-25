@@ -15,7 +15,7 @@ const HtmlTooltip = styled(({ className, ...props }) => (
   },
 }));
 const ImageTooltip = (props) => {
-  const [posts, setPosts] = React.useState();
+  const [posts, setPosts] = React.useState(0);
   return (
     <HtmlTooltip
       onMouseEnter={() => {

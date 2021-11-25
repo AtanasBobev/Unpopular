@@ -461,6 +461,7 @@ const Profile = (props) => {
           userData.map((el) => {
             return (
               <CardComponent
+                inSearch={true}
                 toast={props.toast}
                 key={Math.random()}
                 idData={el[0].place_id}
