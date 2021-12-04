@@ -18,6 +18,9 @@ import { useHistory } from "react-router-dom";
 import isPointInBulgaria from "./isPointInBulgaria";
 import { Map, Marker } from "pigeon-maps";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+//Profanity filter
+const filter = require("leo-profanity");
+filter.loadDictionary("en");
 
 const axios = require("axios");
 
@@ -95,6 +98,54 @@ const Upload = (props) => {
         )
       ) {
         toast.warn("Координатите не са в България", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(name)) {
+        toast.warn("Името съдържа нецензурни думи", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(description)) {
+        toast.warn("Описанието съдържа нецензурни думи", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (!/[а-яА-ЯЁё]/.test(city)) {
+        toast.warn("Градът трябва да е на кирилица!", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(city)) {
+        toast.warn("Името на града съдържа нецензурни думи", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -261,178 +312,237 @@ const Upload = (props) => {
   };
 
   return (
-    <Container maxWidth="sm">
-      <ToastContainer
-        position="bottom-left"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
+    <Box>
+      <img
+        className="uploadBackgroundLeft"
+        src={require("../images/upload1.jpg").default}
       />
-      <form
-        onSubmit={(e) => {
-          Upload(e);
-        }}
-        className="UploadForm"
-      >
-        <Typography style={{ textAlign: "center" }} variant="h2">
-          Качи място
-        </Typography>
-        <TextField
-          onBlur={(e) => setName(e.target.value)}
-          variant="outlined"
-          placeholder="Име на мястото (Бар Кула)"
-          inputProps={{ maxLength: 50 }}
-          required
+      <img
+        className="uploadBackgroundRight"
+        src={require("../images/upload2.jpg").default}
+      />
+      <Container maxWidth="sm">
+        <ToastContainer
+          position="bottom-left"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
         />
-        <TextField
-          onBlur={(e) => setDescription(e.target.value)}
-          className="UploadMain"
-          variant="outlined"
-          multiline
-          rows={10}
-          placeholder="Описание (Как изглежда мястото; как се стига до там; какво може да се види...)"
-          inputProps={{ maxLength: 5000 }}
-          required
-        />
-        <TextField
-          onChange={(e) => setLocation(e.target.value)}
-          className="UploadMain"
-          variant="outlined"
-          multiline
-          rows={1}
-          inputProps={{ maxLength: 100 }}
-          placeholder="Координати (52.0003,63.0005)"
-        />
-        <Typography>
-          Координатите трябва да е във формат "52.0003,63.0005". Отидете в
-          Google Maps. Натиснете с десен бутон върху мястото, за което искате да
-          копирате координатите. Натиснете с ляв бутон върху първата опция,
-          която са координатите. Поставете ги в полето отгоре. Ако координатите
-          са валидни, ще се появи карта и червен маркер на нея. Задължително
-          координатите трябва да са в България.
-        </Typography>
-        <Box>
-          <Divider style={{ flexShrink: "unset" }} />
+        <form
+          onSubmit={(e) => {
+            Upload(e);
+          }}
+          className="UploadForm"
+        >
+          <Typography style={{ textAlign: "center" }} variant="h2">
+            Качи място
+          </Typography>
+          <TextField
+            onBlur={(e) => setName(e.target.value)}
+            variant="outlined"
+            placeholder="Име на мястото (Бар Кула)"
+            inputProps={{ maxLength: 50 }}
+            required
+          />
+          <TextField
+            onBlur={(e) => setDescription(e.target.value)}
+            className="UploadMain"
+            variant="outlined"
+            multiline
+            rows={10}
+            placeholder="Описание (Как изглежда мястото; как се стига до там; какво може да се види...)"
+            inputProps={{ maxLength: 5000 }}
+            required
+          />
+          <TextField
+            onChange={(e) => setLocation(e.target.value)}
+            className="UploadMain"
+            variant="outlined"
+            multiline
+            rows={1}
+            inputProps={{ maxLength: 100 }}
+            placeholder="Координати (52.0003,63.0005)"
+          />
+          <Typography>
+            Координатите трябва да е във формат "52.0003,63.0005". Отидете в
+            Google Maps. Натиснете с десен бутон върху мястото, за което искате
+            да копирате координатите. Натиснете с ляв бутон върху първата опция,
+            която са координатите. Поставете ги в полето отгоре. Ако
+            координатите са валидни, ще се появи карта и червен маркер на нея.
+            Задължително координатите трябва да са в България.
+          </Typography>
+          <Box>
+            <Divider style={{ flexShrink: "unset" }} />
 
-          {isValidCoords(location.replace(/\s+/g, "").split(",")) &&
-            isPointInBulgaria(
-              Number(location.replace(/\s+/g, "").split(",")[0]),
-              Number(location.replace(/\s+/g, "").split(",")[1])
-            ) && (
-              <Map
-                metaWheelZoom={true}
-                metaWheelZoomWarning={
-                  "Използвайте ctrl+scroll, за да промените мащаба"
-                }
-                center={[
-                  Number(location.replace(/\s+/g, "").split(",")[0]),
-                  Number(location.replace(/\s+/g, "").split(",")[1]),
-                ]}
-                zoom={5}
-                height={"60vh"}
-              >
-                <Marker
-                  width={50}
-                  anchor={[
+            {isValidCoords(location.replace(/\s+/g, "").split(",")) &&
+              isPointInBulgaria(
+                Number(location.replace(/\s+/g, "").split(",")[0]),
+                Number(location.replace(/\s+/g, "").split(",")[1])
+              ) && (
+                <Map
+                  metaWheelZoom={true}
+                  metaWheelZoomWarning={
+                    "Използвайте ctrl+scroll, за да промените мащаба"
+                  }
+                  center={[
                     Number(location.replace(/\s+/g, "").split(",")[0]),
                     Number(location.replace(/\s+/g, "").split(",")[1]),
                   ]}
-                  color="red"
-                />
-              </Map>
-            )}
-          <Divider style={{ flexShrink: "unset" }} />
-        </Box>
-        <TextField
-          className="UploadMain"
-          variant="outlined"
-          inputProps={{ style: { fontSize: 15 } }}
-          inputStyle={{ fontSize: "15px" }}
-          margin="normal"
-          helperText="Град"
-          onBlur={(e) => setCity(e.target.value)}
-          placeholder="София"
-          className="filter"
-          inputProps={{ maxLength: 20 }}
-          required
-        />
-        <FormControl variant="outlined">
-          <Select
-            onBlur={(e) => setCategory(e.target.value)}
-            placeholder="Без значение"
-            labelId="category-label"
-            id="category"
+                  zoom={5}
+                  height={"60vh"}
+                >
+                  <Marker
+                    width={50}
+                    anchor={[
+                      Number(location.replace(/\s+/g, "").split(",")[0]),
+                      Number(location.replace(/\s+/g, "").split(",")[1]),
+                    ]}
+                    color="red"
+                  />
+                </Map>
+              )}
+            <Divider style={{ flexShrink: "unset" }} />
+          </Box>
+          <TextField
+            className="UploadMain"
+            variant="outlined"
+            inputProps={{ style: { fontSize: 15 } }}
+            inputStyle={{ fontSize: "15px" }}
+            margin="normal"
+            helperText="Град"
+            onBlur={(e) => setCity(e.target.value)}
+            placeholder="София"
+            className="filter"
+            inputProps={{ maxLength: 20 }}
             required
-          >
-            <MenuItem value={2}>Заведение</MenuItem>
-            <MenuItem value={3}>Нощно заведение</MenuItem>
-            <MenuItem value={4}>Магазин</MenuItem>
-            <MenuItem value={5}>Пътека</MenuItem>
-            <MenuItem value={6}>Място</MenuItem>
-            <MenuItem value={7}>Друго</MenuItem>
-          </Select>
-          <FormHelperText>Категория</FormHelperText>
-        </FormControl>
-        <FormControl variant="outlined">
-          <Select
-            onBlur={(e) => setPrice(e.target.value)}
-            labelId="price-label"
-            id="price"
-            required
-          >
-            <MenuItem value="1">
-              <em>Не се отнася</em>
-            </MenuItem>
-            <MenuItem value={2}>Ниска</MenuItem>
-            <MenuItem value={3}>Нормална</MenuItem>
-            <MenuItem value={4}>Висока</MenuItem>
-          </Select>
-          <FormHelperText>Цена</FormHelperText>
-        </FormControl>
-        <FormControl variant="outlined">
-          <Select
-            onBlur={(e) => setDangerous(e.target.value)}
-            labelId="dangerous-label"
-            id="price"
-            required
-          >
-            <MenuItem value={2}>Не е опасно</MenuItem>
-            <MenuItem value={3}>Малко опасно</MenuItem>
-            <MenuItem value={4}>Висока опасност</MenuItem>
-          </Select>
-          <FormHelperText>Опасно</FormHelperText>
-        </FormControl>
-        <FormControl variant="outlined">
-          <Select
-            onBlur={(e) => setAccessibility(e.target.value)}
-            labelId="accessibility-label"
-            id="accessibility"
-            required
-          >
-            <MenuItem value={2}>Достъп с инвалидни колички</MenuItem>
-            <MenuItem value={3}>Леснодостъпно</MenuItem>
-            <MenuItem value={4}>Средно трудно</MenuItem>
-            <MenuItem value={5}>Труднодостъпно</MenuItem>
-          </Select>
-          <FormHelperText>Достъпност</FormHelperText>
-        </FormControl>
+          />
+          <FormControl variant="outlined">
+            <Select
+              onBlur={(e) => setCategory(e.target.value)}
+              placeholder="Без значение"
+              labelId="category-label"
+              id="category"
+              required
+            >
+              <MenuItem value={2}>Заведение</MenuItem>
+              <MenuItem value={3}>Нощно заведение</MenuItem>
+              <MenuItem value={4}>Магазин</MenuItem>
+              <MenuItem value={5}>Пътека</MenuItem>
+              <MenuItem value={6}>Място</MenuItem>
+              <MenuItem value={7}>Друго</MenuItem>
+            </Select>
+            <FormHelperText>Категория</FormHelperText>
+          </FormControl>
+          <FormControl variant="outlined">
+            <Select
+              onBlur={(e) => setPrice(e.target.value)}
+              labelId="price-label"
+              id="price"
+              required
+            >
+              <MenuItem value="1">
+                <em>Не се отнася</em>
+              </MenuItem>
+              <MenuItem value={2}>Ниска</MenuItem>
+              <MenuItem value={3}>Нормална</MenuItem>
+              <MenuItem value={4}>Висока</MenuItem>
+            </Select>
+            <FormHelperText>Цена</FormHelperText>
+          </FormControl>
+          <FormControl variant="outlined">
+            <Select
+              onBlur={(e) => setDangerous(e.target.value)}
+              labelId="dangerous-label"
+              id="price"
+              required
+            >
+              <MenuItem value={1}>Не е опасно</MenuItem>
+              <MenuItem value={2}>Малко опасно</MenuItem>
+              <MenuItem value={3}>Средно опасно</MenuItem>
+              <MenuItem value={4}>Много опасно</MenuItem>
+            </Select>
+            <FormHelperText>Опасно</FormHelperText>
+          </FormControl>
+          <FormControl variant="outlined">
+            <Select
+              onBlur={(e) => setAccessibility(e.target.value)}
+              labelId="accessibility-label"
+              id="accessibility"
+              required
+            >
+              <MenuItem value={2}>Достъп с инвалидни колички</MenuItem>
+              <MenuItem value={3}>Леснодостъпно</MenuItem>
+              <MenuItem value={4}>Средно трудно</MenuItem>
+              <MenuItem value={5}>Труднодостъпно</MenuItem>
+            </Select>
+            <FormHelperText>Достъпност</FormHelperText>
+          </FormControl>
 
-        <input
-          accept="image/*"
-          style={{ display: "none" }}
-          id="raised-button-file"
-          multiple
-          type="file"
-          onChange={(e) => {
-            if (e.target.files.length > 3) {
-              toast.error(
-                "Не е позволено качването на повече от 3 снимки с размер до 3 МБ",
-                {
+          <input
+            accept="image/*"
+            style={{ display: "none" }}
+            id="raised-button-file"
+            multiple
+            type="file"
+            onChange={(e) => {
+              if (e.target.files.length > 3) {
+                toast.error(
+                  "Не е позволено качването на повече от 3 снимки с размер до 3 МБ",
+                  {
+                    position: "bottom-left",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  }
+                );
+                return false;
+              }
+              setFiles(e.target.files);
+            }}
+          />
+
+          <label htmlFor="raised-button-file">
+            <Button
+              style={{ textTransform: "none" }}
+              variant="outlined"
+              component="span"
+              startIcon={<ImageIcon />}
+            >
+              Качи снимки
+            </Button>
+          </label>
+          <center>
+            <HCaptcha
+              sitekey="10000000-ffff-ffff-ffff-000000000001"
+              size="normal"
+              languageOverride="bg"
+              onVerify={(token) => {
+                setToken(token);
+              }}
+              onError={() => {
+                toast.warn(
+                  "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                  {
+                    position: "bottom-left",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  }
+                );
+              }}
+              onExpire={() => {
+                toast.warn("Потвърдете отново, че не сте робот", {
                   position: "bottom-left",
                   autoClose: 5000,
                   hideProgressBar: false,
@@ -440,111 +550,63 @@ const Upload = (props) => {
                   pauseOnHover: true,
                   draggable: true,
                   progress: undefined,
-                }
+                });
+              }}
+            />
+          </center>
+          <ul>
+            {Array.from(files).map((image) => {
+              return (
+                <div>
+                  <li>{image.name}</li>
+                  <img
+                    src={URL.createObjectURL(image)}
+                    style={{ width: "30vw" }}
+                    alt={image.name}
+                  />
+                </div>
               );
-              return false;
-            }
-            setFiles(e.target.files);
-          }}
-        />
-
-        <label htmlFor="raised-button-file">
+            })}
+          </ul>
+          <Typography variant="h5" style={{ textAlign: "center" }}>
+            Преглед
+          </Typography>
+          <center>
+            <Card
+              inSearch={true}
+              files={files}
+              demo={true}
+              key={Math.random()}
+              idData={1}
+              title={name}
+              description={description}
+              price={price}
+              accessibility={accessibility}
+              category={category}
+              placelocation={location}
+              dangerous={dangerous}
+              likeButtonVisible={true}
+              reportButtonVisible={true}
+              liked={false}
+              saved={false}
+              numbersLiked={100}
+              mainImg={false}
+              images={[]}
+              saveButtonVisible={true}
+              adminRights={true}
+            />
+          </center>
           <Button
             style={{ textTransform: "none" }}
-            variant="outlined"
-            component="span"
-            startIcon={<ImageIcon />}
+            size="large"
+            variant="contained"
+            type="submit"
           >
-            Качи снимки
+            Качи
           </Button>
-        </label>
-        <center>
-          <HCaptcha
-            sitekey="10000000-ffff-ffff-ffff-000000000001"
-            size="normal"
-            languageOverride="bg"
-            onVerify={(token) => {
-              setToken(token);
-            }}
-            onError={() => {
-              toast.warn(
-                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
-                {
-                  position: "bottom-left",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                }
-              );
-            }}
-            onExpire={() => {
-              toast.warn("Потвърдете отново, че не сте робот", {
-                position: "bottom-left",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-            }}
-          />
-        </center>
-        <ul>
-          {Array.from(files).map((image) => {
-            return (
-              <div>
-                <li>{image.name}</li>
-                <img
-                  src={URL.createObjectURL(image)}
-                  style={{ width: "30vw" }}
-                  alt={image.name}
-                />
-              </div>
-            );
-          })}
-        </ul>
-        <Typography variant="h5" style={{ textAlign: "center" }}>
-          Преглед
-        </Typography>
-        <center>
-          <Card
-            inSearch={true}
-            files={files}
-            demo={true}
-            key={Math.random()}
-            idData={1}
-            title={name}
-            description={description}
-            price={price}
-            accessibility={accessibility}
-            category={category}
-            placelocation={location}
-            dangerous={dangerous}
-            likeButtonVisible={true}
-            reportButtonVisible={true}
-            liked={false}
-            saved={false}
-            numbersLiked={100}
-            mainImg={false}
-            images={[]}
-            saveButtonVisible={true}
-            adminRights={true}
-          />
-        </center>
-        <Button
-          style={{ textTransform: "none" }}
-          size="large"
-          variant="contained"
-          type="submit"
-        >
-          Качи
-        </Button>
-      </form>
-    </Container>
+        </form>
+      </Container>
+    </Box>
   );
 };
 

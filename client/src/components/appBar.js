@@ -7,14 +7,21 @@ import SearchSharpIcon from "@material-ui/icons/SearchSharp";
 import BookmarkBorderIcon from "@material-ui/icons/BookmarkBorder";
 import PersonOutlineIcon from "@material-ui/icons/PersonOutline";
 import PublishOutlinedIcon from "@material-ui/icons/PublishOutlined";
-import MoreHorizOutlinedIcon from "@material-ui/icons/MoreHorizOutlined";
 import TypeWriterEffect from "react-typewriter-effect";
 import FavoriteBorderIcon from "@material-ui/icons/FavoriteBorder";
 import FadeIn from "react-fade-in";
 import CreateOutlinedIcon from "@material-ui/icons/CreateOutlined";
 import ExploreOutlinedIcon from "@material-ui/icons/ExploreOutlined";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import { Link } from "react-router-dom";
+import TagFacesOutlinedIcon from "@mui/icons-material/TagFacesOutlined";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import PersonIcon from "@mui/icons-material/Person";
+import { Link, useLocation } from "react-router-dom";
+import PublishIcon from "@mui/icons-material/Publish";
+import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
+import SubjectIcon from "@mui/icons-material/Subject";
+import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
+
 const styles = {
   root: {
     flexGrow: 1,
@@ -42,6 +49,7 @@ const TopBar = (props) => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  const location = useLocation();
   return (
     <div className="indexed">
       <div className="indexed" className={styles.root}>
@@ -69,12 +77,29 @@ const TopBar = (props) => {
               >
                 Търси
               </Button>
+              {props.ls() && !props.lsA() && (
+                <Button
+                  size={"large"}
+                  style={{ textTransform: "none" }}
+                  startIcon={<EmailOutlinedIcon />}
+                  component={Link}
+                  to="/verify"
+                >
+                  Потвърди профила
+                </Button>
+              )}
               {props.lsA() ? (
                 <div>
                   <Button
                     size={"large"}
                     style={{ textTransform: "none" }}
-                    startIcon={<FavoriteBorderIcon />}
+                    startIcon={
+                      location.pathname.substring(1) == "favorite" ? (
+                        <FavoriteIcon style={{ color: "red" }} />
+                      ) : (
+                        <FavoriteBorderIcon />
+                      )
+                    }
                     component={Link}
                     to="/favorite"
                   >
@@ -83,7 +108,13 @@ const TopBar = (props) => {
                   <Button
                     size={"large"}
                     style={{ textTransform: "none" }}
-                    startIcon={<BookmarkBorderIcon />}
+                    startIcon={
+                      location.pathname.substring(1) == "saved" ? (
+                        <BookmarkIcon style={{ color: "gold" }} />
+                      ) : (
+                        <BookmarkBorderIcon />
+                      )
+                    }
                     component={Link}
                     to="/saved"
                   >
@@ -92,7 +123,13 @@ const TopBar = (props) => {
                   <Button
                     size={"large"}
                     style={{ textTransform: "none" }}
-                    startIcon={<PersonOutlineIcon />}
+                    startIcon={
+                      location.pathname.substring(1) == "profile" ? (
+                        <PersonIcon />
+                      ) : (
+                        <PersonOutlineIcon />
+                      )
+                    }
                     component={Link}
                     to="/profile"
                   >
@@ -102,7 +139,13 @@ const TopBar = (props) => {
                     className="uploadButton"
                     size={"large"}
                     style={{ textTransform: "none" }}
-                    startIcon={<PublishOutlinedIcon />}
+                    startIcon={
+                      location.pathname.substring(1) == "upload" ? (
+                        <PublishIcon />
+                      ) : (
+                        <PublishOutlinedIcon />
+                      )
+                    }
                     component={Link}
                     to="/upload"
                   >
@@ -138,7 +181,13 @@ const TopBar = (props) => {
                 onClick={handleClick}
                 size={"large"}
                 style={{ textTransform: "none" }}
-                startIcon={<InfoOutlinedIcon />}
+                startIcon={
+                  location.pathname.substring(1) == "info" ? (
+                    <EmojiEmotionsIcon />
+                  ) : (
+                    <TagFacesOutlinedIcon />
+                  )
+                }
                 component={Link}
                 to="/info"
               >

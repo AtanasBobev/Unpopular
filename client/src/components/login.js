@@ -13,9 +13,18 @@ import PureModal from "react-pure-modal";
 import Particles from "react-tsparticles";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
 import amongus from "../images/cyan_amongus.png";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 const axios = require("axios");
 
 const Login = (props) => {
+  const [passwordShow, setShowPassword] = React.useState(false);
+
   const history = useHistory();
   const [username, setUsername] = React.useState();
   const [openPassword, setOpenPassword] = React.useState();
@@ -25,7 +34,21 @@ const Login = (props) => {
   const [token, setToken] = React.useState();
   const login = (e) => {
     e.preventDefault();
-
+    if (
+      /\p{Extended_Pictographic}/u.test(username) ||
+      /\p{Extended_Pictographic}/u.test(password)
+    ) {
+      toast.warn("Не е позволено използването на емоджита", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (!token) {
       toast.warn("Не сте потвърдили, че не сте робот", {
         position: "bottom-left",
@@ -779,22 +802,43 @@ const Login = (props) => {
                 <Box className="inputFieldArea">
                   <TextField
                     onChange={(e) => setUsername(e.target.value)}
-                    label="Потребителско име"
+                    label="Потребителско име/Имейл"
                     className="inputField"
                     margin="normal"
                     inputProps={{ maxLength: 100 }}
                     required
                   />
-                  <TextField
-                    onChange={(e) => setPassword(e.target.value)}
-                    id="standard-name"
-                    label="Парола"
-                    type="password"
-                    className="inputField"
-                    margin="normal"
-                    inputProps={{ maxLength: 100 }}
-                    required
-                  />
+
+                  <FormControl
+                    style={{ marginTop: "1.5vmax", marginBottom: "1vmax" }}
+                    variant="standard"
+                  >
+                    <InputLabel htmlFor="standard-adornment-password">
+                      Парола
+                    </InputLabel>
+
+                    <Input
+                      onChange={(e) => setPassword(e.target.value)}
+                      inputProps={{ maxLength: 100 }}
+                      id="standard-name"
+                      label="Парола"
+                      type={passwordShow ? "text" : "password"}
+                      className="inputField"
+                      margin="normal"
+                      endAdornment={
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="Покажи/скрий паролата"
+                            onClick={() => setShowPassword((state) => !state)}
+                            edge="end"
+                          >
+                            {passwordShow ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      }
+                      required
+                    />
+                  </FormControl>
                 </Box>
                 <HCaptcha
                   sitekey="10000000-ffff-ffff-ffff-000000000001"

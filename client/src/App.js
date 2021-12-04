@@ -75,7 +75,7 @@ function App() {
         draggable
         pauseOnHover
       />
-      <AppBar lsA={lsA} setView={setView} />
+      <AppBar lsA={lsA} ls={ls} />
       <Box className="spaceFiller"></Box>
       <Switch>
         <Route exact path="/search">

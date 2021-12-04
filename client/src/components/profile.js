@@ -37,7 +37,7 @@ const Profile = (props) => {
   const [openPassword, setOpenPassword] = React.useState(false);
   const [openName, setOpenName] = React.useState(false);
   const [userData, setUserData] = React.useState([]);
-  const [viewcount, setViewCount] = React.useState(10);
+  const [viewcount, setViewCount] = React.useState(25);
   const [count, setUserCount] = React.useState();
   const [open, setOpen] = React.useState(false);
   const [files, setFiles] = React.useState([]);
@@ -436,7 +436,7 @@ const Profile = (props) => {
         <center>
           <FormControl style={{ margin: "1vmax" }} variant="outlined">
             <Select
-              defaultValue={10}
+              defaultValue={25}
               labelId="accessibility-label"
               id="accessibility"
               onChange={(e) => {

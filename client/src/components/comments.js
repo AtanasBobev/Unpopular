@@ -40,7 +40,7 @@ const Reply = (props) => {
         },
       })
       .then(() => {
-        props.getComments();
+        props.refreshData();
         props.toast("Отговорът е изтрит", {
           position: "bottom-left",
           autoClose: 5000,
@@ -144,7 +144,7 @@ const Reply = (props) => {
         }
       )
       .then(() => {
-        props.getComments();
+        props.refreshData();
       })
       .catch((err) => {
         if (err.response.status == 400) {
@@ -403,7 +403,7 @@ const Comment = (props) => {
         }
       )
       .then(() => {
-        props.getComments();
+        props.refreshData();
       })
       .catch((err) => {
         if (err.response.status == 400) {
@@ -472,7 +472,7 @@ const Comment = (props) => {
         },
       })
       .then(() => {
-        props.getComments();
+        props.refreshData();
         props.toast("Коментарът е изтрит", {
           position: "bottom-left",
           autoClose: 5000,
@@ -675,7 +675,7 @@ const Comment = (props) => {
         </Box>
         {reply && (
           <AddReply
-            getComments={props.getComments}
+            refreshData={props.refreshData}
             toast={props.toast}
             relating={props.el[0].comments_id}
             setReply={setReply}
@@ -777,7 +777,7 @@ const AddComment = (props) => {
           draggable: true,
           progress: undefined,
         });
-        props.getComments();
+        props.refreshData();
       })
       .catch((err) => {
         if (err.response.status == 400) {
@@ -863,13 +863,13 @@ const AddComment = (props) => {
           <FormControl variant="outlined">
             <Select
               onChange={(e) => {
-                props.setSort(e.target.value);
+                props.setSort(Number(e.target.value));
               }}
               defaultValue={0}
               labelId="category-label"
               id="category"
             >
-              <MenuItem value={0}>По подразбиране</MenuItem>
+              <MenuItem value={0}>Текущо</MenuItem>
               <MenuItem value={1}>Харесвание възходящ ред</MenuItem>
               <MenuItem value={2}>Харесване низходящ ред</MenuItem>
               <MenuItem value={3}>Дата скорошни</MenuItem>
@@ -983,7 +983,7 @@ const AddReply = (props) => {
           comment: content,
         },
       })
-      .then((data) => {
+      .then(() => {
         props.setReply(false);
         props.toast("Отговорът е публикуван", {
           position: "bottom-left",
@@ -994,7 +994,7 @@ const AddReply = (props) => {
           draggable: true,
           progress: undefined,
         });
-        props.getComments();
+        props.refreshData();
       })
       .catch((err) => {
         if (err.response.status == 400) {
@@ -1107,8 +1107,22 @@ const AddReply = (props) => {
 };
 const Comments = (props) => {
   let [data, setData] = React.useState(props.data);
-  let [sortFunc, setSort] = React.useState(1);
+  let [sortFunc, setSort] = React.useState(0);
+  React.useEffect(() => {
+    forceSort();
+  }, [sortFunc, props.data]);
   React.useLayoutEffect(() => {
+    setData(props.data);
+  }, [props.data]);
+  const verify = () => {
+    try {
+      let a = jwt_decode(localStorage.getItem("jwt"));
+      return a.Authorized ? true : false;
+    } catch (err) {
+      return false;
+    }
+  };
+  const forceSort = () => {
     if (data.length) {
       setData(
         [...data].forEach((el) => {
@@ -1125,25 +1139,25 @@ const Comments = (props) => {
           }
         })
       );
-      if (sortFunc == 2) {
+      if (sortFunc == 1) {
         setData(
           [...data].sort((a, b) => {
             if (a[0].comment_score > b[0].comment_score) {
-              return -1;
-            } else if (b[0].comment_score > a[0].comment_score) {
               return 1;
+            } else if (b[0].comment_score > a[0].comment_score) {
+              return -1;
             } else {
               return 0;
             }
           })
         );
-      } else if (sortFunc == 1) {
+      } else if (sortFunc == 2) {
         setData(
           [...data].sort((a, b) => {
             if (a[0].comment_score > b[0].comment_score) {
-              return 1;
-            } else if (b[0].comment_score > a[0].comment_score) {
               return -1;
+            } else if (b[0].comment_score > a[0].comment_score) {
+              return 1;
             } else {
               return 0;
             }
@@ -1179,17 +1193,21 @@ const Comments = (props) => {
         );
       }
     }
-  }, [sortFunc, props.data]);
-  React.useLayoutEffect(() => {
-    setData(props.data);
-  }, [props.data]);
-  const verify = () => {
-    try {
-      let a = jwt_decode(localStorage.getItem("jwt"));
-      return a.Authorized ? true : false;
-    } catch (err) {
-      return false;
-    }
+  };
+  const refreshData = () => {
+    axios
+      .request("http://localhost:5000/comments", {
+        method: "GET",
+        params: {
+          place_id: props.idData,
+        },
+        headers: {
+          jwt: localStorage.getItem("jwt"),
+        },
+      })
+      .then((data) => {
+        setData(data.data);
+      });
   };
   return (
     <Box>
@@ -1198,8 +1216,8 @@ const Comments = (props) => {
         setData={setData}
         toast={props.toast}
         place_id={props.place_id}
-        getComments={props.getComments}
         setSort={setSort}
+        refreshData={refreshData}
       />
 
       {data &&
@@ -1217,6 +1235,7 @@ const Comments = (props) => {
             avatar={el[0].avatar}
             el={el}
             toast={props.toast}
+            refreshData={refreshData}
           />
         ))}
     </Box>

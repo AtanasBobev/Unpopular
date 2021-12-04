@@ -66,6 +66,7 @@ const Place = (props) => {
       <Box>
         {el.length ? (
           <Card
+            inSearch={true}
             toast={props.toast}
             key={Math.random()}
             idData={el[0].place_id}

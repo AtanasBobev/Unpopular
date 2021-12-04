@@ -117,14 +117,17 @@ const CardElement = (props) => {
   };
   const dangerous = (num) => {
     switch (Number(num)) {
-      case 2:
+      case 1:
         return "Не е опасно";
         break;
-      case 3:
+      case 2:
         return "Малко опасно";
         break;
+      case 3:
+        return "Средно опасно";
+        break;
       case 4:
-        return "Висока опасност";
+        return "Много опасно";
         break;
       default:
         return "Без дефиниция";
@@ -632,23 +635,28 @@ const CardElement = (props) => {
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
+                    style={{ color: "red" }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
                 offIcon={
                   <FavoriteBorderIcon
+                    style={{ color: "red" }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
               />
             )}
             <Typography
-              style={{ marginLeft: props.likeButtonVisible ? 0 : "0.2vmax" }}
+              style={{
+                marginLeft: props.likeButtonVisible ? 0 : "0.2vmax",
+                userSelect: "none",
+              }}
             >
               {likedNumbers}
             </Typography>
           </Box>
-          <Box style={{ display: "flex" }}>
+          <Box style={{ display: "flex", userSelect: "none" }}>
             <TooltipImage author={props.username} avatar={props.avatar} />
           </Box>
           <Box>
@@ -808,6 +816,7 @@ const CardElement = (props) => {
               data={comments}
               place_id={props.idData}
               toast={props.toast}
+              idData={props.idData}
             />
           )}
         </DialogContent>
@@ -818,11 +827,13 @@ const CardElement = (props) => {
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
+                    style={{ fill: "green" }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
                 offIcon={
                   <FavoriteBorderIcon
+                    style={{ fill: "green" }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
@@ -831,7 +842,10 @@ const CardElement = (props) => {
               ""
             )}
             <Typography
-              style={{ marginLeft: props.likeButtonVisible ? 0 : "0.2vmax" }}
+              style={{
+                marginLeft: props.likeButtonVisible ? 0 : "0.2vmax",
+                userSelect: "none",
+              }}
             >
               {likedNumbers == 0
                 ? "Няма харесвания"

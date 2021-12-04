@@ -23,6 +23,21 @@ const Email = (props) => {
       });
       return false;
     }
+    if (
+      /\p{Extended_Pictographic}/u.test(email) ||
+      /\p{Extended_Pictographic}/u.test(password)
+    ) {
+      toast.warn("Не е позволено използването на емоджита", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     axios
       .request({
         url: "http://localhost:5000/user/email",
@@ -31,7 +46,7 @@ const Email = (props) => {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then(() => {
-        props.toast("Заявката е изпратена. Проверете си имейла", {
+        props.toast("Имейлът е променен", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -64,7 +79,7 @@ const Email = (props) => {
           });
         } else if (err.response.status == 405) {
           props.toast.warn(
-            "Вече сте използвали системата за изпращане на имейли. Тъй като използваме имейл, който има ограничение, а системата е безплатна, трябва да се съобразяваме с днвена квота. Изчакайате поне 3 минути преди да си промените имейла, името или паролата.",
+            "Имаме доста трафик в момента към сървъра. Моля, изчакайте някоко минути",
             {
               position: "bottom-left",
               autoClose: 15000,

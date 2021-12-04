@@ -12,7 +12,13 @@ import PureModal from "react-pure-modal";
 import { useHistory } from "react-router-dom";
 import Particles from "react-tsparticles";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
-
+import InputAdornment from "@mui/material/InputAdornment";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import IconButton from "@mui/material/IconButton";
+import Input from "@mui/material/Input";
 const passwordValidator = require("password-validator");
 
 let schema = new passwordValidator();
@@ -55,9 +61,25 @@ const Register = (props) => {
   const [password, setPassword] = React.useState();
   const [openPassword, setOpenPassword] = React.useState();
   const [token, setToken] = React.useState();
-
+  const [passwordShow, setShowPassword] = React.useState(false);
   const register = (e) => {
     e.preventDefault();
+    if (
+      /\p{Extended_Pictographic}/u.test(username) ||
+      /\p{Extended_Pictographic}/u.test(email) ||
+      /\p{Extended_Pictographic}/u.test(password)
+    ) {
+      toast.warn("Не е позволено използването на емоджита", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (/[а-яА-ЯЁё]/.test(username) || /[а-яА-ЯЁё]/.test(password)) {
       toast.warn(
         "Изглежда, че има символи, които са на кирилица в потребителското име или парола. Моля, придържайте се към латиница!",
@@ -767,16 +789,36 @@ const Register = (props) => {
                     name="email"
                     required
                   />
-                  <TextField
-                    onChange={(e) => setPassword(e.target.value)}
-                    inputProps={{ maxLength: 100 }}
-                    id="standard-name"
-                    label="Парола"
-                    type="password"
-                    className="inputField"
-                    margin="normal"
-                    required
-                  />
+                  <FormControl
+                    style={{ marginTop: "1.5vmax", marginBottom: "1vmax" }}
+                    variant="standard"
+                  >
+                    <InputLabel htmlFor="standard-adornment-password">
+                      Парола
+                    </InputLabel>
+
+                    <Input
+                      onChange={(e) => setPassword(e.target.value)}
+                      inputProps={{ maxLength: 100 }}
+                      id="standard-name"
+                      label="Парола"
+                      type={passwordShow ? "text" : "password"}
+                      className="inputField"
+                      margin="normal"
+                      endAdornment={
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label="Покажи/скрий паролата"
+                            onClick={() => setShowPassword((state) => !state)}
+                            edge="end"
+                          >
+                            {passwordShow ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      }
+                      required
+                    />
+                  </FormControl>
                   <HCaptcha
                     sitekey="10000000-ffff-ffff-ffff-000000000001"
                     size="normal"

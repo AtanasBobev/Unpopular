@@ -57,7 +57,6 @@ const CardElement = (props) => {
         setImage(poems[el].authorImage);
       }
     } catch (err) {
-      alert(el);
       console.log(err, el);
     }
   }, []);

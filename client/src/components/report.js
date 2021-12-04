@@ -8,7 +8,7 @@ const Report = (props) => {
   const [text, setText] = React.useState("");
   const submit = () => {
     if (Number(text.length) < 20) {
-      props.toast.error(
+      props.toast.warn(
         "За да изпратите доклад трябва да напишете поне 20 символа",
         {
           position: "bottom-left",

@@ -364,9 +364,10 @@ const Edit = (props) => {
             id="price"
             required
           >
-            <MenuItem value={2}>Не е опасно</MenuItem>
-            <MenuItem value={3}>Малко опасно</MenuItem>
-            <MenuItem value={4}>Висока опасност</MenuItem>
+            <MenuItem value={1}>Не е опасно</MenuItem>
+            <MenuItem value={2}>Малко опасно</MenuItem>
+            <MenuItem value={3}>Средно опасно</MenuItem>
+            <MenuItem value={4}>Много опасно</MenuItem>
           </Select>
           <FormHelperText>Опасно</FormHelperText>
         </FormControl>

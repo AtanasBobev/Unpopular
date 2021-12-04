@@ -106,7 +106,6 @@ setInterval(() => {
         return false;
       }
       statData = data.rows[0];
-      console.log(statData);
     }
   );
 }, 1000 * 60);
@@ -863,6 +862,8 @@ server.delete("/place", authorizeToken, async (req, res) => {
       ]);
     });
   }
+  res.status(200).send("Place deleted");
+
   setTimeout(async () => {
     await pool.query("DELETE FROM comments WHERE place_id=$1", [
       req.body.place_id,
@@ -880,7 +881,6 @@ server.delete("/place", authorizeToken, async (req, res) => {
     await pool.query("DELETE FROM places WHERE place_id=$1", [
       req.body.place_id,
     ]);
-    res.status(200).send("Place deleted");
   }, 2000);
 });
 server.get("/place/data/:id", (req, res) => {
@@ -1658,7 +1658,7 @@ server.post("/register", hcverify, async (req, res) => {
   let token = genToken(100);
   encrypt(req.body.password).then((hash) => {
     pool.query(
-      "INSERT INTO users (username, email, date, hash, verified, emailsent) VALUES ($1, $2, $3, $4, $5, $6)",
+      "INSERT INTO users (username, email, date, hash, verified, emailsent,admin) VALUES ($1, $2, $3, $4, $5, $6,false)",
       [req.body.username, req.body.email, new Date(), hash, token, new Date()],
       async (err) => {
         if (err) {
@@ -2570,7 +2570,7 @@ server.put("/user/password", authorizeToken, async (req, res) => {
               );
               sendMail(
                 `Промяна на паролата`,
-                `Поискали сте промяна на името. Натиснете линка, за да потвърдите: http://localhost:5000/user/email/${token} Променете си паролата ако не сте поисквали промяна.`,
+                `Поискали сте промяна на името. Натиснете линка, за да потвърдите: http://localhost:5000/user/password/${token} Променете си паролата ако не сте поисквали промяна.`,
                 req.email
               );
               res.status(200).send("Done");
@@ -2672,58 +2672,17 @@ server.put("/user/email", authorizeToken, async (req, res) => {
           [req.user_id]
         );
         try {
-          pool.query(
-            `INSERT INTO public.verification_actions(
-	user_id, type, url, payload, date)
-	VALUES ($1, $2, $3, $4, $5)`,
-            [req.user_id, "email", token, req.body.email, new Date()]
-          );
-          sendMail(
-            `Промяна на имейла`,
-            `Поискали сте промяна на името. Натиснете линка, за да потвърдите: http://localhost:5000/user/email/${token} Променете си паролата ако не сте поисквали промяна.`,
-            req.email
+          await pool.query(
+            `UPDATE public.users
+  SET email=$1
+  WHERE id=$2`,
+            [req.body.email, req.user_id]
           );
           res.status(200).send("Done");
         } catch (err) {
           res.status(500).send("Internal server error");
         }
       });
-    }
-  );
-});
-
-server.get("/user/email/:id", (req, res) => {
-  if (!req.params.id || req.params.id.length !== 200) {
-    res.status(400).send("Неверн код");
-    return false;
-  }
-  pool.query(
-    "SELECT payload,user_id,email FROM verification_actions JOIN users on user_id=id WHERE url=$1",
-    [req.params.id],
-    async (err, data) => {
-      if (err) {
-        console.log(err);
-        res.status(500).send();
-      }
-      if (Number(data.rowCount) > 0) {
-        await pool.query(
-          `UPDATE public.users
-SET email=$1
-WHERE id=$2`,
-          [data.rows[0].payload, data.rows[0].user_id]
-        );
-        res
-          .status(200)
-          .send(
-            "Имейла е променен. Влезнете отново в профила си, за да видите промяната"
-          );
-        pool.query(
-          "DELETE FROM verification_actions WHERE user_id=$1 AND type='email'",
-          [data.rows[0].user_id]
-        );
-      } else {
-        res.status(200).send("Неверен код");
-      }
     }
   );
 });
@@ -2825,6 +2784,9 @@ const Verification_Email = async (user_id) => {
     "SELECT date from verification_actions WHERE user_id=$1 ORDER BY date DESC LIMIT 1",
     [Number(user_id)]
   );
+  if (!data.rows.length) {
+    return true;
+  }
   let a = moment(new Date()); //now
   let b = moment(data.rows[0].date); // past email sent
   if (a.diff(b, "minutes") >= 3) {
