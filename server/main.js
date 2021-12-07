@@ -5,6 +5,7 @@ const {
   authorizeTokenFunc,
   getWeatherKey,
   isMailTemp,
+  adminToken,
 } = require("./src/auth");
 const server = express();
 const pool = require("./src/postgre");
@@ -142,6 +143,108 @@ const groupBy = function (xs, key) {
     return rv;
   }, {});
 };
+
+server.get("/stats", adminToken, (req, res) => {
+  pool.query(
+    `SELECT 
+  (SELECT COUNT(*) as users_count FROM users),
+    (SELECT COUNT(*) as places FROM places),
+    (SELECT COUNT(*) as comments FROM comments),
+    (SELECT COUNT(*) as replies FROM comments_replies),
+    (SELECT COUNT(*) as images FROM images),
+    (SELECT COUNT(*) as likes FROM "favoritePlaces"),
+    (SELECT COUNT(*) as saves FROM "savedPlaces"),
+    (SELECT COUNT(*) as place_last_1day FROM places where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as place_last_3days FROM places where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as place_last_7days FROM places where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as place_last_14days FROM places where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as place_last_30days FROM places where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as place_last_3months FROM places where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as place_last_year FROM places where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as place_last_10year FROM places where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as favoritePlaces FROM "favoritePlaces"),
+    (SELECT COUNT(*) as favoritePlaces_last_1day FROM "favoritePlaces" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as favoritePlaces_last_3days FROM "favoritePlaces" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as favoritePlaces_last_7days FROM "favoritePlaces" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as favoritePlaces_last_14days FROM "favoritePlaces" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as favoritePlaces_last_30days FROM "favoritePlaces" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as favoritePlaces_last_3months FROM "favoritePlaces" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as favoritePlaces_last_year FROM "favoritePlaces" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as favoritePlaces_last_10year FROM "favoritePlaces" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as savedPlaces_last_1day FROM "savedPlaces" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as savedPlaces_last_3days FROM "savedPlaces" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as savedPlaces_last_7days FROM "savedPlaces" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as savedPlaces_last_14days FROM "savedPlaces" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as savedPlaces_last_30days FROM "savedPlaces" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as savedPlaces_last_3months FROM "savedPlaces" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as savedPlaces_last_year FROM "savedPlaces" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as savedPlaces_last_10year FROM "savedPlaces" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as comments_last_1day FROM "comments" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as comments_last_3days FROM "comments" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as comments_last_7days FROM "comments" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as comments_last_14days FROM "comments" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as comments_last_30days FROM "comments" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as comments_last_3months FROM "comments" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as comments_last_year FROM "comments" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as comments_last_10year FROM "comments" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as comments_replies FROM "comments_replies" ),
+     (SELECT COUNT(*) as comments_replies_last_1day FROM "comments_replies" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as comments_replies_last_3days FROM "comments_replies" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as comments_replies_last_7days FROM "comments_replies" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as comments_replies_last_14days FROM "comments_replies" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as comments_replies_last_30days FROM "comments_replies" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as comments_replies_last_3months FROM "comments_replies" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as comments_replies_last_year FROM "comments_replies" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as comments_replies_last_10year FROM "comments_replies" where "date" > now() - interval '10 year'),
+     (SELECT COUNT(*) as comments_actions_last_1day FROM "comments_actions" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as comments_actions_last_3days FROM "comments_actions" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as comments_actions_last_7days FROM "comments_actions" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as comments_actions_last_14days FROM "comments_actions" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as comments_actions_last_30days FROM "comments_actions" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as comments_actions_last_3months FROM "comments_actions" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as comments_actions_last_year FROM "comments_actions" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as comments_actions_last_10year FROM "comments_actions" where "date" > now() - interval '10 year'),
+       (SELECT COUNT(*) as replies_actions_last_1day FROM "replies_actions" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as replies_actions_last_3days FROM "replies_actions" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as replies_actions_last_7days FROM "replies_actions" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as replies_actions_last_14days FROM "replies_actions" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as replies_actions_last_30days FROM "replies_actions" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as replies_actions_last_3months FROM "replies_actions" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as replies_actions_last_year FROM "replies_actions" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as replies_actions_last_10year FROM "replies_actions" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as images_last_1day FROM "images" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as images_last_3days FROM "images" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as images_last_7days FROM "images" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as images_last_14days FROM "images" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as images_last_30days FROM "images" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as images_last_3months FROM "images" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as images_last_year FROM "images" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as images_last_10year FROM "images" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as users_last_1day FROM "users" where "date" > now() - interval '1 day'),
+    (SELECT COUNT(*) as users_last_3days FROM "users" where "date" > now() - interval '3 day'),
+    (SELECT COUNT(*) as users_last_7days FROM "users" where "date" > now() - interval '7 day'),
+    (SELECT COUNT(*) as users_last_14days FROM "users" where "date" > now() - interval '14 day'),
+    (SELECT COUNT(*) as users_last_30days FROM "users" where "date" > now() - interval '30 day'),
+    (SELECT COUNT(*) as users_last_3months FROM "users" where "date" > now() - interval '3 months'),
+    (SELECT COUNT(*) as users_last_year FROM "images" where "date" > now() - interval '1 year'),
+    (SELECT COUNT(*) as active_reports FROM "reported_items" ),
+    (SELECT COUNT(*) as active_verification_actons FROM "verification_actions" ),
+    (SELECT COUNT(*) as users_unverified FROM "users" WHERE verified='false' OR verified::boolean=null),
+    (SELECT COUNT(*) as users_admins FROM "users" WHERE admin = true),
+    (SELECT COUNT(*) as users_last_10years FROM "images" where "date" > now() - interval '10 year'),
+    (SELECT COUNT(*) as locked_accounts FROM "users" WHERE locked=true )
+
+
+    FROM users LIMIT 1`,
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0]);
+    }
+  );
+});
 
 server.post("/report", authorizeToken, (req, res) => {
   if (
@@ -1671,7 +1774,7 @@ server.post("/register", hcverify, async (req, res) => {
           }
         } else {
           pool.query(
-            "SELECT id from users WHERE username=$1",
+            "SELECT id,admin from users WHERE username=$1",
             [req.body.username],
             async (err, data) => {
               if (err) {
@@ -1682,7 +1785,8 @@ server.post("/register", hcverify, async (req, res) => {
                 req.body.username,
                 false,
                 data.rows[0].id,
-                req.body.email
+                req.body.email,
+                Boolean(data.rows[0].admin)
               );
               sendEmail(
                 "Потвърдете вашия акаунт",
@@ -1723,7 +1827,7 @@ server.get("/verified", (req, res) => {
     return false;
   }
   pool.query(
-    "SELECT verified,email from users where username=$1",
+    "SELECT verified,email,admin from users where username=$1",
     [userData.Username],
     async (err, data) => {
       if (err) {
@@ -1739,7 +1843,8 @@ server.get("/verified", (req, res) => {
           userData.Username,
           true,
           userData.user_id,
-          userData.email
+          userData.email,
+          Boolean(data.rows[0].admin)
         );
         res.status(200).send({ jwt: jwtToken });
         return false;
@@ -1941,7 +2046,7 @@ server.post("/login", hcverify, async (req, res) => {
             [user_id.rows[0].id]
           );
           pool.query(
-            "SELECT verified,id,email FROM users where username=$1 OR email=$1 AND locked=false",
+            "SELECT verified,id,email,admin FROM users where username=$1 OR email=$1 AND locked=false",
             [req.body.username],
             async (err, data) => {
               if (err) {
@@ -1957,7 +2062,8 @@ server.post("/login", hcverify, async (req, res) => {
                   req.body.username,
                   true,
                   data.rows[0].id,
-                  data.rows[0].email
+                  data.rows[0].email,
+                  Boolean(data.rows[0].admin)
                 );
                 res.status(200).send({ jwt: jwtToken });
               } else {
@@ -2202,12 +2308,13 @@ server.post("/score/reply", authorizeToken, (req, res) => {
             if (!Number(data.rows[0].count)) {
               console.log("No there aren't");
               await pool.query(
-                "INSERT INTO replies_actions(user_id,reply_id,action,comment_id) VALUES($1,$2,$3,$4)",
+                "INSERT INTO replies_actions(user_id,reply_id,action,comment_id,date) VALUES($1,$2,$3,$4,$5)",
                 [
                   req.user_id,
                   req.body.reply_id,
                   req.body.type,
                   req.body.comment_id,
+                  new Date(),
                 ]
               );
             } else {
@@ -2290,8 +2397,8 @@ server.post("/score/comment", authorizeToken, (req, res) => {
             if (!Number(data.rows[0].count)) {
               console.log("No there aren't");
               await pool.query(
-                "INSERT INTO comments_actions(user_id,comment_id,action) VALUES($1,$2,$3)",
-                [req.user_id, req.body.comment_id, req.body.type]
+                "INSERT INTO comments_actions(user_id,comment_id,action,date) VALUES($1,$2,$3,$4)",
+                [req.user_id, req.body.comment_id, req.body.type, new Date()]
               );
             } else {
               console.log("Yes there are. Resetting to a neutral state");

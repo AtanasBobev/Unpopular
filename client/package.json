@@ -28,6 +28,8 @@
     "password-validator": "^5.1.1",
     "pigeon-maps": "^0.19.7",
     "qrcode.react": "^1.0.1",
+    "rainbow-villa": "^1.1.0",
+    "random-gradient": "0.0.2",
     "react": "^17.0.2",
     "react-animated-cursor": "^1.2.1",
     "react-animated-numbers": "^0.6.1",

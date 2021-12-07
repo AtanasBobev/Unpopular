@@ -10,9 +10,15 @@ import Liked from "./components/liked";
 import Saved from "./components/saved";
 import Place from "./components/place";
 import Info from "./components/info";
+import Dashboard from "./components/adminPanel/dashboard";
 import jwt_decode from "jwt-decode";
 import Verify from "./components/verifyEmail";
 import ResetPassword from "./components/resetPassword";
+import Places from "./components/adminPanel/places";
+import Comments from "./components/adminPanel/comments";
+import Complains from "./components/adminPanel/complains";
+import Users from "./components/adminPanel/users";
+
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -174,6 +180,12 @@ function App() {
           path="/verify"
           component={() => ls() && <Verify toast={toast} lsA={lsA} />}
         />
+        <Route exact path="/stats" component={Dashboard} />
+        <Route exact path="/places" component={Places} />
+        <Route exact path="/comments" component={Comments} />
+        <Route exact path="/users" component={Users} />
+        <Route exact path="/reports" component={Complains} />
+
         <Route
           exact
           path="/profile"

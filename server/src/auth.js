@@ -2,8 +2,16 @@ const jwt = require("jsonwebtoken");
 const fs = require("fs");
 const path = require("path");
 const axios = require("axios");
+const { response } = require("express");
+const pool = require("./postgre");
 
-const generateToken = async (Username, Authorized, id, email) => {
+const generateToken = async (
+  Username,
+  Authorized,
+  id,
+  email,
+  admin = false
+) => {
   let privateKey = fs
     .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
     .toString();
@@ -13,6 +21,7 @@ const generateToken = async (Username, Authorized, id, email) => {
       Authorized: Authorized,
       user_id: id,
       email: email,
+      admin: admin,
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
     },
     privateKey
@@ -29,6 +38,7 @@ const authorizeToken = (req, res, next) => {
     req.verified = decoded.Authorized;
     req.user_id = decoded.user_id;
     req.email = decoded.email;
+    req.admin = decoded.admin;
     if (req.verified) {
       next();
     } else {
@@ -77,10 +87,48 @@ const getWeatherKey = () => {
     return false;
   }
 };
+const adminToken = async (req, res, next) => {
+  let privateKey = fs
+    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
+    .toString();
+
+  try {
+    let decoded = await jwt.verify(req.headers.jwt, privateKey);
+    if (Boolean(decoded.admin)) {
+      pool.query(
+        "SELECT admin FROM users WHERE username=$1",
+        [decoded.Username],
+        (err, data) => {
+          if (err) {
+            res.status(500).send("Internal server error");
+            return false;
+          }
+          if (!data.rows.length) {
+            res.status(403).send("You are not an admin!");
+            return false;
+          }
+          if (Boolean(data.rows[0].admin)) {
+            next();
+          } else {
+            res.status(403).send("You are not an admin!");
+          }
+        }
+      );
+    } else {
+      console.log(decoded.admin);
+      res.status(401).send("Error with JWT");
+    }
+  } catch (err) {
+    console.log(err);
+    res.status(401).send("Error with JWT");
+    return false;
+  }
+};
 module.exports = {
   authorizeToken,
   generateToken,
   authorizeTokenFunc,
   getWeatherKey,
   isMailTemp,
+  adminToken,
 };

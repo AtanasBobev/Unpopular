@@ -897,3 +897,418 @@ header {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 
 }
+
+.infoPanelElement {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+  display: inline-block;
+  padding: 1vmax;
+  border-radius: 4%;
+  color: white;
+  margin-top: 1vmax;
+}
+
+.blueGradient {
+  background: linear-gradient(216deg, #2193b0, #6dd5ed, #a8e8ff);
+  background-size: 600% 600%;
+
+  -webkit-animation: BlueGradient 30s ease infinite;
+  -moz-animation: BlueGradient 30s ease infinite;
+  -o-animation: BlueGradient 30s ease infinite;
+  animation: BlueGradient 30s ease infinite;
+}
+
+@-webkit-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.greenGradient {
+  background: linear-gradient(216deg, #a8ff78, #78ffd6);
+  background-size: 400% 400%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.yellowGradient {
+  background: linear-gradient(216deg, #f2994a, #f2c94c);
+  background-size: 400% 400%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.pinkGradient {
+  background: linear-gradient(216deg, #a770ef, #cf8bf3, #fdb99b);
+  background-size: 600% 600%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.veryGreenGradient {
+  background: linear-gradient(216deg, #e53935, #e35d5b);
+  background-size: 400% 400%;
+
+  -webkit-animation: RedGradient 30s ease infinite;
+  -moz-animation: RedGradient 30s ease infinite;
+  -o-animation: RedGradient 30s ease infinite;
+  animation: RedGradient 30s ease infinite;
+}
+
+@-webkit-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.stellarGradient {
+  background: linear-gradient(216deg, #7474bf, #348ac7);
+  background-size: 400% 400%;
+
+  -webkit-animation: StellarGradient 30s ease infinite;
+  -moz-animation: StellarGradient 30s ease infinite;
+  -o-animation: StellarGradient 30s ease infinite;
+  animation: StellarGradient 30s ease infinite;
+}
+
+@-webkit-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.defaultContainer {
+  background-color: #f5f5f5;
+  color: black;
+}
+
+.specialTable {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23) !important;
+}
