@@ -108,6 +108,7 @@ const adminToken = async (req, res, next) => {
             return false;
           }
           if (Boolean(data.rows[0].admin)) {
+            req.user_id = Number(decoded.user_id);
             next();
           } else {
             res.status(403).send("You are not an admin!");
@@ -115,12 +116,42 @@ const adminToken = async (req, res, next) => {
         }
       );
     } else {
-      console.log(decoded.admin);
       res.status(401).send("Error with JWT");
     }
   } catch (err) {
-    console.log(err);
     res.status(401).send("Error with JWT");
+    return false;
+  }
+};
+const adminTokenFunc = async (token) => {
+  let privateKey = fs
+    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
+    .toString();
+  try {
+    let decoded = await jwt.verify(token, privateKey);
+    if (Boolean(decoded.admin)) {
+      pool.query(
+        "SELECT admin FROM users WHERE username=$1",
+        [decoded.Username],
+        (err, data) => {
+          if (err) {
+            console.log(err);
+            return false;
+          }
+          if (!data.rows.length) {
+            return false;
+          }
+          if (Boolean(data.rows[0].admin)) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+      );
+    } else {
+      return false;
+    }
+  } catch (err) {
     return false;
   }
 };
@@ -131,4 +162,5 @@ module.exports = {
   getWeatherKey,
   isMailTemp,
   adminToken,
+  adminTokenFunc,
 };

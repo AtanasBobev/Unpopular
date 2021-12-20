@@ -6,6 +6,7 @@ const {
   getWeatherKey,
   isMailTemp,
   adminToken,
+  adminTokenFunc,
 } = require("./src/auth");
 const server = express();
 const pool = require("./src/postgre");
@@ -144,6 +145,99 @@ const groupBy = function (xs, key) {
   }, {});
 };
 
+//Admin endpoints
+server.get("/user/comments", adminToken, (req, res) => {
+  pool.query(
+    `SELECT PLACE_ID,
+    "comments".USER_ID, avatar,
+    users.username,
+    "comments".score AS "comment_score",
+    "comments"."content" AS "comment_content",
+    COMMENTS_REPLIES."content" AS "reply_content",
+    "comments".DATE AS "comment_date",
+    "comments"."id" AS "comments_id",
+    comments_replies."id" AS "replies_id",
+    comments_replies.SCORE AS "reply_score",
+    COMMENTS_REPLIES."date" AS "reply_date",
+    (SELECT count(*) from comments_replies where relating="comments"."id") AS "replies_count",
+    replies_actions.action AS "replies_actions",
+    comments_actions.action AS "comments_actions"
+  FROM "comments"
+  LEFT JOIN COMMENTS_REPLIES ON COMMENTS_REPLIES.RELATING = "comments".ID
+  LEFT JOIN users ON users.id = "comments".user_id
+  LEFT JOIN replies_actions on replies_actions.user_id=$2 AND replies_actions."reply_id"=comments_replies."id"
+  LEFT JOIN comments_actions on comments_actions.user_id=$2 AND comments_actions.comment_id="comments"."id"
+  WHERE ("comments".visible=true OR comments_replies.visible=true) AND users.id=$2 AND comments.user_id=$2 ORDER BY comments.date DESC LIMIT $1`,
+    [Number(req.query.limit), Number(req.query.id)],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error!");
+        return false;
+      }
+      res.status(200).send(data.hasOwnProperty("rows") ? data.rows : "");
+    }
+  );
+});
+server.get("/user/replies", adminToken, (req, res) => {
+  pool.query(
+    `SELECT relating,
+    "comments_replies".USER_ID, avatar,
+    users.username,
+    "comments_replies".score AS "comment_score",
+    "comments_replies"."content" AS "comment_content",
+    COMMENTS_REPLIES."content" AS "reply_content",
+    "comments_replies".DATE AS "comment_date",
+    "comments_replies"."id" AS "comments_id",
+    (SELECT count(*) from comments where place_id=place_id) AS "comments_count",
+    replies_actions.action AS "replies_actions",
+    replies_actions.action AS "comments_actions"
+  FROM "comments_replies"
+  LEFT JOIN users ON users.id = $2
+  LEFT JOIN replies_actions ON replies_actions.user_id=$2 AND comments_replies."id"=replies_actions."action_id"
+  WHERE comments_replies.user_id=$2
+  ORDER BY "comments_replies".date  DESC LIMIT $1 `,
+    [Number(req.query.limit), req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error!");
+        return false;
+      }
+      res.status(200).send(data.hasOwnProperty("rows") ? data.rows : "");
+    }
+  );
+});
+server.get("/users/places", adminToken, (req, res) => {});
+
+server.get("/users", adminToken, (req, res) => {
+  pool.query(
+    `SELECT DISTINCT username,email,users.date,verified,emailsent,users.id,avatar,locked,admin,
+  (SELECT COUNT(*)  AS comments_count FROM comments WHERE user_id=users.id),
+  (SELECT COUNT(*) AS upladed_places FROM places WHERE user_id=users.id),
+  (SELECT COUNT(*) AS comments_replies_count FROM comments_replies WHERE user_id=users.id),
+  (SELECT COUNT(*) AS favoritePlaces_count FROM "favoritePlaces" WHERE user_id=users.id),
+  (SELECT COUNT(*) AS savedPlaces_count FROM "savedPlaces" WHERE user_id=users.id),
+  (SELECT COUNT(*) AS replies_actions_count FROM "replies_actions" WHERE user_id=users.id)
+  FROM users 
+  LEFT JOIN places ON user_id=id
+  LEFT JOIN comments ON comments.user_id=users.id
+  LEFT JOIN comments_replies ON comments_replies.user_id=users.id
+  LEFT JOIN "favoritePlaces" ON "favoritePlaces".user_id=users.id
+  LEFT JOIN "savedPlaces" ON "savedPlaces".user_id=users.id
+  LEFT JOIN replies_actions ON replies_actions.user_id=users.id
+  LIMIT $1`,
+    [req.params.limit],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal Server Error");
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
 server.get("/stats", adminToken, (req, res) => {
   pool.query(
     `SELECT 
@@ -232,16 +326,79 @@ server.get("/stats", adminToken, (req, res) => {
     (SELECT COUNT(*) as users_unverified FROM "users" WHERE verified='false' OR verified::boolean=null),
     (SELECT COUNT(*) as users_admins FROM "users" WHERE admin = true),
     (SELECT COUNT(*) as users_last_10years FROM "images" where "date" > now() - interval '10 year'),
-    (SELECT COUNT(*) as locked_accounts FROM "users" WHERE locked=true )
-
-
+    (SELECT COUNT(*) as locked_accounts FROM "users" WHERE locked=true)
     FROM users LIMIT 1`,
-    (err, data) => {
+    async (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
         return false;
       }
-      res.status(200).send(data.rows[0]);
+      let ips = await pool.query(
+        "SELECT * FROM login_attempts ORDER BY time DESC LIMIT 300"
+      );
+      res.status(200).send({ data: data.rows[0], ips: ips.rows });
+    }
+  );
+});
+
+server.get("/admin/comments", adminToken, (req, res) => {
+  pool.query(
+    `SELECT PLACE_ID,
+    "comments".USER_ID, avatar,
+    users.username,
+    "comments".score AS "comment_score",
+    "comments"."content" AS "comment_content",
+    COMMENTS_REPLIES."content" AS "reply_content",
+    "comments".DATE AS "comment_date",
+    "comments"."id" AS "comments_id",
+    comments_replies."id" AS "replies_id",
+    comments_replies.SCORE AS "reply_score",
+    COMMENTS_REPLIES."date" AS "reply_date",
+    (SELECT count(*) from comments_replies where relating="comments"."id") AS "replies_count",
+    replies_actions.action AS "replies_actions",
+    comments_actions.action AS "comments_actions"
+  FROM "comments"
+  LEFT JOIN COMMENTS_REPLIES ON COMMENTS_REPLIES.RELATING = "comments".ID
+  LEFT JOIN users ON users.id = "comments".user_id
+  LEFT JOIN replies_actions on replies_actions.user_id=comments.user_id AND replies_actions."reply_id"=comments_replies."id"
+  LEFT JOIN comments_actions on comments_actions.user_id=comments.user_id AND comments_actions.comment_id="comments"."id"
+  WHERE ("comments".visible=true OR comments_replies.visible=true) ORDER BY comments.date DESC LIMIT $1`,
+    [Number(req.query.limit)],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error!");
+        return false;
+      }
+      res.status(200).send(data.hasOwnProperty("rows") ? data.rows : "");
+    }
+  );
+});
+
+server.get("/admin/replies", adminToken, (req, res) => {
+  pool.query(
+    `SELECT relating,
+    "comments_replies".USER_ID, avatar,
+    users.username,
+    "comments_replies".score AS "comment_score",
+    "comments_replies"."content" AS "comment_content",
+    COMMENTS_REPLIES."content" AS "reply_content",
+    "comments_replies".DATE AS "comment_date",
+    "comments_replies"."id" AS "comments_id",
+    (SELECT count(*) from comments where place_id=place_id) AS "comments_count",
+    replies_actions.action AS "replies_actions",
+    replies_actions.action AS "comments_actions"
+  FROM "comments_replies"
+  LEFT JOIN users ON users.id = "comments_replies".user_id
+  LEFT JOIN replies_actions on replies_actions.user_id=$2 AND comments_replies."id"=replies_actions."action_id"
+   ORDER BY "comments_replies".date DESC LIMIT $1 `,
+    [Number(req.query.limit), req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error!");
+        return false;
+      }
+      res.status(200).send(data.hasOwnProperty("rows") ? data.rows : "");
     }
   );
 });
@@ -301,7 +458,6 @@ server.post("/save", authorizeToken, (req, res) => {
     ],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -330,7 +486,6 @@ server.post("/unsave", authorizeToken, async (req, res) => {
     [user_id, req.body.place_id],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -363,7 +518,7 @@ server.get("/weather", (req, res) => {
       res.status(200).send(data.data);
     })
     .catch((err) => {
-      //   console.log(err);
+      //
       res.status(500).send("Could not connect to the API!");
     });
 });
@@ -382,7 +537,6 @@ server.post("/like", authorizeToken, (req, res) => {
     [req.user_id, req.body.place_id],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -399,7 +553,6 @@ server.post("/like", authorizeToken, (req, res) => {
           ],
           (err, data) => {
             if (err) {
-              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
@@ -433,7 +586,6 @@ server.post("/unlike", authorizeToken, async (req, res) => {
     [user_id, req.body.place_id],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -450,6 +602,12 @@ server.post("/search", async (req, res) => {
   if (req.body.limit == undefined || req.body.offset == undefined) {
     res.status(400).send("Not enough data was provided.");
     return false;
+  }
+  let sortBy;
+  if (!req.body.sort) {
+    sortBy = "likednumber";
+  } else {
+    sortBy = "date";
   }
   if (
     req.body.limit < 0 ||
@@ -545,7 +703,9 @@ LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) S
       dangerousFormat +
       " AND accessibility =" +
       accessibilityFormat +
-      " ORDER BY likednumber DESC",
+      " ORDER BY " +
+      sortBy +
+      " DESC",
     user_id,
     req.body.limit,
     user_id,
@@ -567,7 +727,6 @@ LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) S
   );
   pool.query(sql, (err, data) => {
     if (err) {
-      console.log(sql, err);
       res.status(500).send("Internal server error.");
       return false;
     }
@@ -791,7 +950,7 @@ server.post(
             res.status(409).send("Place already exists");
             return false;
           }
-          console.log(err);
+
           res.status(500).send("Internal server error");
           return false;
         }
@@ -849,12 +1008,13 @@ server.put(
       "SELECT COUNT(*) FROM places WHERE user_id=$1 AND place_id=$2",
       [req.user_id, req.body.place_id]
     );
-    if (!Number(owns.rows[0].count)) {
+    let b = await !adminTokenFunc(req.headers.jwt);
+    if (!Number(owns.rows[0].count) && b) {
       res.status(403).send("You do not own this place!");
       return false;
     }
     pool.query(
-      "UPDATE places SET title=$1, description=$2, placelocation=$3, category=$4, price=$5, accessibility=$6, dangerous=$7,city=$8 WHERE place_id=$9 AND user_id=$10",
+      "UPDATE places SET title=$1, description=$2, placelocation=$3, category=$4, price=$5, accessibility=$6, dangerous=$7,city=$8 WHERE place_id=$9",
       [
         req.body.name,
         req.body.description,
@@ -865,7 +1025,6 @@ server.put(
         req.body.dangerous,
         req.body.city,
         req.body.place_id,
-        req.user_id,
       ],
       (err, data) => {
         if (err) {
@@ -878,7 +1037,6 @@ server.put(
           [req.body.name],
           async (err, data) => {
             if (err) {
-              console.log(err);
               return false;
             }
             //Check if there are new images
@@ -928,7 +1086,8 @@ server.delete("/place", authorizeToken, async (req, res) => {
     "SELECT COUNT(*) FROM places WHERE place_id=$1 AND user_id=$2",
     [req.body.place_id, req.user_id]
   );
-  if (!Number(allowedQuery.rows[0].count)) {
+  let b = await !adminTokenFunc(req.headers.jwt);
+  if (!Number(allowedQuery.rows[0].count) && b) {
     res.status(403).send("You do not own this place");
     return false;
   }
@@ -1108,7 +1267,7 @@ RIGHT JOIN users on id=places.user_id
 WHERE places.user_id = $1`,
     [req.user_id]
   );
-  console.log(userPlaces.rows);
+
   let data = groupBy(userPlaces.rows, "place_id");
   data = Object.keys(data).map((key) => data[key]);
   if (!data.length) {
@@ -1238,7 +1397,6 @@ WHERE places.user_id = $1`,
   setTimeout(() => {
     fs.unlinkSync(`${__dirname}/${name}`, (err) => {
       if (err) {
-        console.log(err);
       }
     });
   }, 20000);
@@ -1469,7 +1627,6 @@ WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
     [req.user_id],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -1491,11 +1648,12 @@ WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
   );
 });
 
-server.post("/user/places", authorizeToken, (req, res) => {
+server.post("/user/places", authorizeToken, async (req, res) => {
   if (Number(req.body.limit) < 0 || Number(req.body.limit) > 1000000) {
     res.status(400).send("Invalid data sent");
     return false;
   }
+  let b = await !adminTokenFunc(req.headers.jwt);
   pool.query(
     `SELECT places.place_id,avatar,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2) THEN 'true' ELSE 
     'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
@@ -1504,13 +1662,13 @@ server.post("/user/places", authorizeToken, (req, res) => {
     FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT $2) places 
     LEFT JOIN images ON images.place_id = places.place_id 
     LEFT JOIN users ON places.user_id = users.id
-    WHERE users.id=$1
+    WHERE users.id::varchar=$1::varchar OR users.username::varchar=$1::varchar
     ORDER BY likednumber DESC`,
-    [req.user_id, req.body.limit],
+    [b ? req.user_id : req.body.admin, req.body.limit],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
+        console.log(err);
         return false;
       }
       let copyObj = data.rows;
@@ -1558,7 +1716,6 @@ server.post(
       [imagesSrc[0], req.user_id],
       (err) => {
         if (err) {
-          console.log(err);
           res.status(500).send("We couldn't save the avatar");
           return false;
         }
@@ -1683,7 +1840,6 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
     [req.user],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error!");
         return false;
       }
@@ -1698,7 +1854,6 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
         data.rows[0].hash,
         async (err, result) => {
           if (err) {
-            console.log(err);
             res.status(500).send("Internal server error");
             return false;
           }
@@ -1718,7 +1873,6 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
             [req.user_id, "user-delete", token, new Date()],
             (err) => {
               if (err) {
-                console.log(err);
                 res.status(500).send("Internal server error");
                 return false;
               }
@@ -1809,7 +1963,7 @@ server.get("/verify/:id", (req, res) => {
     async (err, data) => {
       if (err) {
         res.status(500).send("Internal server error!");
-        console.log(err);
+
         return false;
       }
       if (data.rowCount == 0) {
@@ -1862,7 +2016,7 @@ server.get("/newMail", async (req, res) => {
     [user.user_id],
     (err, data) => {
       if (err) {
-        // console.log(err);
+        //
         res.status(500).send("Internal server error");
         return false;
       }
@@ -1888,7 +2042,6 @@ server.get("/newMail", async (req, res) => {
           [a, user.user_id],
           (err) => {
             if (err) {
-              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
@@ -1917,7 +2070,6 @@ server.post("/login", hcverify, async (req, res) => {
     [req.body.username],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error!");
         return false;
       }
@@ -1941,7 +2093,7 @@ server.post("/login", hcverify, async (req, res) => {
           `SELECT verification_actions.date FROM verification_actions LEFT JOIN users on user_id=id WHERE username=$1 AND type='account-lock'`,
           [req.body.username]
         );
-        console.log(date.rows);
+
         let a = moment(new Date()); //now
         let b = moment(date.rows[0].date); // past email sent
         if (a.diff(b, "minutes") < 3) {
@@ -2003,7 +2155,6 @@ server.post("/login", hcverify, async (req, res) => {
           [Number(user_id.rows[0].id), "account-lock", token, new Date()],
           (err) => {
             if (err) {
-              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
@@ -2022,7 +2173,6 @@ server.post("/login", hcverify, async (req, res) => {
         data.rows[0].hash,
         async function (err, result) {
           if (err) {
-            console.log(err);
             res.status(500).send("Internal server error");
             return false;
           }
@@ -2050,7 +2200,6 @@ server.post("/login", hcverify, async (req, res) => {
             [req.body.username],
             async (err, data) => {
               if (err) {
-                console.log(err);
                 return false;
               }
               if (!data.rows[0].verified.length) {
@@ -2105,7 +2254,6 @@ server.delete("/avatar/delete", authorizeToken, (req, res) => {
     [req.user],
     (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
@@ -2173,7 +2321,7 @@ server.post("/reply", hcverify, authorizeToken, (req, res) => {
         } else {
           res.status(500).send("Internal server error");
         }
-        console.log(err);
+
         return false;
       }
       res.status(200).send("Reply added successfully!");
@@ -2223,7 +2371,6 @@ WHERE "comments".place_id = $1 AND ("comments".visible=true OR comments_replies.
   );
   pool.query(sql, [req.query.place_id], (err, data) => {
     if (err) {
-      console.log(sql, err);
       res.status(500).send("Internal server error");
       return false;
     }
@@ -2253,18 +2400,12 @@ server.post("/score/reply", authorizeToken, (req, res) => {
     [req.body.comment_id, req.user_id, req.body.type, req.body.reply_id],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500);
         return false;
       }
       //Check if the same action has already been performed
       if (Number(data.rows[0].count)) {
-        console.log("Action already performed");
         if (req.body.type == 1) {
-          console.log(
-            "Updating the score by by increasing it by one since value has already been decreased. Count is:" +
-              data.rows[0].count
-          );
           await pool.query(
             `UPDATE public.comments_replies
 	SET score=score+1
@@ -2272,9 +2413,6 @@ server.post("/score/reply", authorizeToken, (req, res) => {
             [req.body.reply_id]
           );
         } else {
-          console.log(
-            "Updating the score by decreasing it since value has already been increased"
-          );
           await pool.query(
             `UPDATE public.comments_replies
 	SET score=score-1
@@ -2287,7 +2425,6 @@ server.post("/score/reply", authorizeToken, (req, res) => {
           [req.user_id, req.body.reply_id]
         );
       } else {
-        console.log("No action has been performed running the following query");
         let sql = format(
           `UPDATE public.comments_replies	SET score=score %s 1	WHERE id=$1`,
           req.body.type == 1 ? "-" : "+"
@@ -2298,15 +2435,11 @@ server.post("/score/reply", authorizeToken, (req, res) => {
           [req.user_id, req.body.reply_id],
           async (err, data) => {
             if (err) {
-              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
-            console.log(
-              "Checking if there any other records from this user with regards to this comment"
-            );
+
             if (!Number(data.rows[0].count)) {
-              console.log("No there aren't");
               await pool.query(
                 "INSERT INTO replies_actions(user_id,reply_id,action,comment_id,date) VALUES($1,$2,$3,$4,$5)",
                 [
@@ -2318,7 +2451,6 @@ server.post("/score/reply", authorizeToken, (req, res) => {
                 ]
               );
             } else {
-              console.log("Yes there are. Resetting to a neutral state");
               await pool.query(
                 "DELETE FROM replies_actions WHERE user_id=$1 AND reply_id=$2",
                 [req.user_id, req.body.reply_id]
@@ -2342,18 +2474,12 @@ server.post("/score/comment", authorizeToken, (req, res) => {
     [req.body.comment_id, req.user_id, req.body.type],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500);
         return false;
       }
       //Check if the same action has already been performed
       if (Number(data.rows[0].count)) {
-        console.log("Action already performed");
         if (req.body.type == 1) {
-          console.log(
-            "Updating the score by by increasing it by one since value has already been decreased. Count is:" +
-              data.rows[0].count
-          );
           await pool.query(
             `UPDATE public.comments
 	SET score=score+1
@@ -2361,9 +2487,6 @@ server.post("/score/comment", authorizeToken, (req, res) => {
             [req.body.comment_id]
           );
         } else {
-          console.log(
-            "Updating the score by decreasing it since value has already been increased"
-          );
           await pool.query(
             `UPDATE public.comments
 	SET score=score-1
@@ -2376,7 +2499,6 @@ server.post("/score/comment", authorizeToken, (req, res) => {
           [req.user_id, req.body.comment_id]
         );
       } else {
-        console.log("No action has been performed running the following query");
         let sql = format(
           `UPDATE public.comments	SET score=score %s 1	WHERE id=$1`,
           req.body.type == 1 ? "-" : "+"
@@ -2387,21 +2509,15 @@ server.post("/score/comment", authorizeToken, (req, res) => {
           [req.user_id, req.body.comment_id],
           async (err, data) => {
             if (err) {
-              console.log(err);
               res.status(500).send("Internal server error");
               return false;
             }
-            console.log(
-              "Checking if there any other records from this user with regards to this comment"
-            );
             if (!Number(data.rows[0].count)) {
-              console.log("No there aren't");
               await pool.query(
                 "INSERT INTO comments_actions(user_id,comment_id,action,date) VALUES($1,$2,$3,$4)",
                 [req.user_id, req.body.comment_id, req.body.type, new Date()]
               );
             } else {
-              console.log("Yes there are. Resetting to a neutral state");
               await pool.query(
                 "DELETE FROM comments_actions WHERE user_id=$1 AND comment_id=$2",
                 [req.user_id, req.body.comment_id]
@@ -2415,80 +2531,86 @@ server.post("/score/comment", authorizeToken, (req, res) => {
   );
   //Check if opposite statement exists and if true, erase it and update the value
 });
-server.delete("/comment/delete", authorizeToken, (req, res) => {
+server.delete("/comment/delete", authorizeToken, async (req, res) => {
   if (!req.body.comment_id) {
     res.status(400).send("Incomplete data");
     return false;
   }
-  pool.query(
-    "SELECT COUNT(*) FROM comments_replies WHERE id=$1 AND user_id=$2",
-    [req.body.comment_id, req.user_id],
-    async (err, data) => {
-      if (err) {
-        res.status(500).send("Internal server error");
-        return false;
-      }
-      if (data.rows[0].count) {
-        await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
-          req.body.comment_id,
-        ]);
-        await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
-          req.body.comment_id,
-        ]);
-        await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
-          req.body.comment_id,
-        ]);
-        let final = await pool.query(
-          "DELETE FROM comments WHERE user_id = $1 AND id = $2",
-          [req.user_id, req.body.comment_id]
-        );
-        res
-          .status(final.rowCount ? 200 : 403)
-          .send(`${final.rowCount} rows deleted`);
-      } else {
-        res.status(403).send("You are unauthorized to delete this comment");
-      }
+  let b = await !adminTokenFunc(req.headers.jwt);
+  let specialUser = !b ? "" : " AND user_id=$2";
+  let params = !b
+    ? [Number(req.body.comment_id)]
+    : [Number(req.body.comment_id), Number(req.user_id)];
+  let sql = "SELECT COUNT(*) FROM comments WHERE id=$1" + specialUser;
+  pool.query(sql, params, async (err, data) => {
+    if (err) {
+      res.status(500).send("Internal server error");
+      return false;
     }
-  );
+    if (Number(data.rows[0].count) !== 0) {
+      await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
+        req.body.comment_id,
+      ]);
+      await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
+        req.body.comment_id,
+      ]);
+      await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
+        req.body.comment_id,
+      ]);
+      let final = await pool.query(
+        "DELETE FROM comments WHERE id = $1" + specialUser,
+        params
+      );
+      res
+        .status(final.rowCount == 1 ? 200 : 403)
+        .send(`${final.rowCount} rows deleted`);
+    } else {
+      res.status(403).send("You are unauthorized to delete this comment");
+    }
+  });
 });
-server.delete("/reply/delete", authorizeToken, (req, res) => {
+server.delete("/reply/delete", authorizeToken, async (req, res) => {
+  if (req.body.comment_id) {
+    req.body.reply_id = req.body.comment_id;
+  }
   if (!req.body.reply_id) {
     res.status(400).send("Incomplete data");
     return false;
   }
-  pool.query(
-    "SELECT COUNT(*) FROM comments_replies WHERE id=$1 AND user_id=$2",
-    [req.body.reply_id, req.user_id],
-    async (err, data) => {
-      if (err) {
-        res.status(500).send("Internal server error");
-        return false;
-      }
-      if (data.rows[0].count) {
-        await pool.query("DELETE FROM replies_actions WHERE reply_id=$1", [
-          req.body.reply_id,
-        ]);
-        let final = await pool.query(
-          "DELETE FROM comments_replies WHERE user_id = $1 AND id = $2",
-          [req.user_id, req.body.reply_id]
-        );
-        res
-          .status(final.rowCount ? 200 : 403)
-          .send(`${final.rowCount} rows deleted`);
-      } else {
-        res
-          .status(403)
-          .send(
-            "Either you are not authorized to delete the reply or no rows associated with you and the id are found"
-          );
-      }
+  let b = await !adminTokenFunc(req.headers.jwt);
+  let specialUser = !b ? "" : " AND user_id=$2";
+  let params = !b
+    ? [Number(req.body.reply_id)]
+    : [Number(req.body.reply_id), Number(req.user_id)];
+  let sql = "SELECT COUNT(*) FROM comments_replies WHERE id=$1" + specialUser;
+  pool.query(sql, params, async (err, data) => {
+    if (err) {
+      res.status(500).send("Internal server error");
+      return false;
     }
-  );
+    if (data.rows[0].count) {
+      await pool.query("DELETE FROM replies_actions WHERE reply_id=$1", [
+        req.body.reply_id,
+      ]);
+      let final = await pool.query(
+        "DELETE FROM comments_replies WHERE id = $1" + specialUser,
+        params
+      );
+      res
+        .status(final.rowCount ? 200 : 403)
+        .send(`${final.rowCount} rows deleted`);
+    } else {
+      res
+        .status(403)
+        .send(
+          "Either you are not authorized to delete the reply or no rows associated with you and the id are found"
+        );
+    }
+  });
 });
 
 //Change user data endpoints
 server.put("/user/password/forgotten", (req, res) => {
-  console.log(req.body.cred);
   if (req.body.cred.length > 100 || req.body.cred.length == 0) {
     res.status(400).send("Data sent invalid!");
     return false;
@@ -2641,7 +2763,6 @@ server.put("/user/password", authorizeToken, async (req, res) => {
     [req.user],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send("Internal server error!");
         return false;
       }
@@ -2654,7 +2775,6 @@ server.put("/user/password", authorizeToken, async (req, res) => {
         data.rows[0].hash,
         async (err, result) => {
           if (err) {
-            console.log(err);
             res.status(500).send("Internal server error");
             return false;
           }
@@ -2701,7 +2821,6 @@ server.get("/user/password/:id", (req, res) => {
     [req.params.id],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send();
       }
       if (Number(data.rowCount) > 0) {
@@ -2769,7 +2888,6 @@ server.put("/user/email", authorizeToken, async (req, res) => {
       }
       bcrypt.compare(req.body.password, data.rows[0].hash, async (err) => {
         if (err) {
-          console.log(err);
           res.status(500).send("Internal server error");
           return false;
         }
@@ -2833,7 +2951,6 @@ server.put("/user/name", authorizeToken, async (req, res) => {
     (err) => {
       if (err) {
         res.status(500).send("Internal Server Error");
-        console.log(err);
         return false;
       }
       sendMail(
@@ -2856,7 +2973,6 @@ server.get("/user/name/:id", (req, res) => {
     [req.params.id],
     async (err, data) => {
       if (err) {
-        console.log(err);
         res.status(500).send();
       }
       if (Number(data.rowCount) > 0) {
@@ -2882,9 +2998,7 @@ WHERE id=$2`,
   );
 });
 
-server.listen(5000, () => {
-  console.log("The server is up!");
-});
+server.listen(5000, () => {});
 
 const Verification_Email = async (user_id) => {
   let data = await pool.query(

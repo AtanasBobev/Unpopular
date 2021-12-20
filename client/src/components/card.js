@@ -269,7 +269,14 @@ const CardElement = (props) => {
         }
       });
   };
-
+  const isAdmin = () => {
+    let a = jwt_decode(localStorage.getItem("jwt"));
+    if (Boolean(a.admin)) {
+      return true;
+    } else {
+      return false;
+    }
+  };
   const unlike = async (id) => {
     setLiked(false);
     setLikedNumbers((prev) => prev - 1);
@@ -872,7 +879,7 @@ const CardElement = (props) => {
               />
             )}
             <ShareOutlinedIcon onClick={() => setShareOpen(!openShare)} />
-            {props.adminRights && (
+            {(props.adminRights || isAdmin()) && (
               <EditOutlinedIcon onClick={() => setEditOpen(!openEdit)} />
             )}
             {props.reportButtonVisible && verify() && (
@@ -941,7 +948,7 @@ const CardElement = (props) => {
                 </PureModal>
               </>
             )}
-            {props.adminRights && (
+            {(props.adminRights || isAdmin()) && (
               <DeleteOutlineOutlinedIcon
                 onClick={() => {
                   !props.demo &&

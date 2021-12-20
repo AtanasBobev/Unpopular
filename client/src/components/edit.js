@@ -183,19 +183,22 @@ const Edit = (props) => {
         })
         .then((res) => {
           props.close(false);
-          props.toast.success("Мястото е редактирано успешно", {
-            position: "bottom-left",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
+          props.toast.success(
+            "Мястото е редактирано успешно. Презаредете страницата, за да видите промяната.",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
         })
         .catch((err) => {
           if (err.response.status == 403) {
-            props.toast.error(
+            props.toast.warn(
               "Не сте създали това мяста, за да правите редакции",
               {
                 position: "bottom-left",

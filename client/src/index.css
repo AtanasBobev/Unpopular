@@ -1312,3 +1312,110 @@ header {
 .specialTable {
   box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23) !important;
 }
+
+.side {
+  width: 45%;
+  margin: .5vmax;
+}
+
+.infoBox {
+  display: flex;
+  width: 95%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1vmax;
+  padding: 1vmax;
+  border-radius: 0.2vmax;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.moreInfoBox {
+  width: 95%;
+
+  margin: 1vmax;
+  padding: 1vmax;
+  border-radius: 0.2vmax;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.boxes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.boxes>* {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+  margin: 1vmax;
+  border-radius: 5%;
+  padding: 1vmax;
+  color: white;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(128deg, #36d1dc, #5b86e5);
+  background-size: 400% 400%;
+
+  -webkit-animation: Background 51s ease infinite;
+  -moz-animation: Background 51s ease infinite;
+  -o-animation: Background 51s ease infinite;
+  animation: Background 51s ease infinite;
+}
+
+@-webkit-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@-moz-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@-o-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}

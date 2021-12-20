@@ -16,6 +16,8 @@ const axios = require("axios");
 
 const Dashboard = () => {
   const [data, setData] = React.useState({});
+  const [ips, setIps] = React.useState([]);
+
   const isAdmin = () => {
     try {
       if (Boolean(jwt_decode(localStorage.getItem("jwt")).admin)) {
@@ -37,8 +39,8 @@ const Dashboard = () => {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
-        setData(data.data);
-        console.log(data.data);
+        setData(data.data.data);
+        setIps(data.data.ips);
       })
       .catch((err) => {
         alert("Грешка при получаването на информация");
@@ -362,6 +364,35 @@ const Dashboard = () => {
           Администраторски профила
         </Typography>
       </Box>
+      <TableContainer
+        style={{ margin: "2vmax", width: "auto" }}
+        className="specialTable"
+        component={Paper}
+      >
+        <Table style={{ width: 1200 }} aria-label="Детайлна статистика">
+          <TableHead>
+            <TableRow>
+              <TableCell>Активност на невалидни влизания</TableCell>
+              <TableCell align="center">IP-адрес</TableCell>
+              <TableCell align="center">Дата</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {ips.map((el) => (
+              <TableRow
+                key={el.user}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {el.user}
+                </TableCell>
+                <TableCell align="center">{el.ip}</TableCell>
+                <TableCell align="center">{el.time}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };
