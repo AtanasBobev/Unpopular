@@ -30,6 +30,9 @@ const Dashboard = () => {
         );
       });
   }, []);
+  const removeMe = (id) => {
+    setUsers((el) => el.filter((e) => Number(e.id) !== Number(id)));
+  };
   return (
     <Box>
       {users &&
@@ -49,6 +52,7 @@ const Dashboard = () => {
               username={el.username}
               verified={el.verified}
               avatar={el.avatar}
+              removeMe={removeMe}
               id={el.id}
             />
           );

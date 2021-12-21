@@ -36,6 +36,7 @@ import Share from "./share";
 import Edit from "./edit";
 import moment from "moment";
 import TooltipImage from "./tooltipImage";
+import Image from "material-ui-image";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -194,32 +195,6 @@ const CardElement = (props) => {
           place_id: id,
         },
       })
-      .then(() => {
-        if (openReport || open || openEdit || openShare) {
-          return false;
-        }
-        if (!props.inSearch) {
-          if (!props.change.includes(props.idData)) {
-            props.setChange((prev) =>
-              [...prev, Number(props.idData)].filter(function (
-                item,
-                index,
-                inputArray
-              ) {
-                return inputArray.indexOf(item) == index;
-              })
-            );
-          } else {
-            props.setChange((prev) => {
-              let data = prev;
-              data = data.filter(function (item) {
-                return item !== props.idData;
-              });
-              return data;
-            });
-          }
-        }
-      })
       .catch(async (err) => {
         setLiked(false);
         setLikedNumbers((prev) => prev - 1);
@@ -270,10 +245,14 @@ const CardElement = (props) => {
       });
   };
   const isAdmin = () => {
-    let a = jwt_decode(localStorage.getItem("jwt"));
-    if (Boolean(a.admin)) {
-      return true;
-    } else {
+    try {
+      let a = jwt_decode(localStorage.getItem("jwt"));
+      if (Boolean(a.admin)) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
       return false;
     }
   };
@@ -290,32 +269,6 @@ const CardElement = (props) => {
         data: {
           place_id: id,
         },
-      })
-      .then(() => {
-        if (openReport || open || openEdit || openShare) {
-          return false;
-        }
-        if (!props.inSearch) {
-          if (!props.change.includes(props.idData)) {
-            props.setChange((prev) =>
-              [...prev, Number(props.idData)].filter(function (
-                item,
-                index,
-                inputArray
-              ) {
-                return inputArray.indexOf(item) == index;
-              })
-            );
-          } else {
-            props.setChange((prev) => {
-              let data = prev;
-              data = data.filter(function (item) {
-                return item !== props.idData;
-              });
-              return data;
-            });
-          }
-        }
       })
       .catch(async (err) => {
         console.error(err);
@@ -354,32 +307,6 @@ const CardElement = (props) => {
           place_id: id,
         },
       })
-      .then(() => {
-        if (openReport || open || openEdit || openShare) {
-          return false;
-        }
-        if (!props.inSearch) {
-          if (!props.change.includes(props.idData)) {
-            props.setChange((prev) =>
-              [...prev, Number(props.idData)].filter(function (
-                item,
-                index,
-                inputArray
-              ) {
-                return inputArray.indexOf(item) == index;
-              })
-            );
-          } else {
-            props.setChange((prev) => {
-              let data = prev;
-              data = data.filter(function (item) {
-                return item !== props.idData;
-              });
-              return data;
-            });
-          }
-        }
-      })
       .catch((err) => {
         setSaved(false);
         if (err.response.status == 406) {
@@ -415,32 +342,7 @@ const CardElement = (props) => {
           place_id: id,
         },
       })
-      .then(() => {
-        if (openReport || open || openEdit || openShare) {
-          return false;
-        }
-        if (!props.inSearch) {
-          if (!props.change.includes(props.idData)) {
-            props.setChange((prev) =>
-              [...prev, Number(props.idData)].filter(function (
-                item,
-                index,
-                inputArray
-              ) {
-                return inputArray.indexOf(item) == index;
-              })
-            );
-          } else {
-            props.setChange((prev) => {
-              let data = prev;
-              data = data.filter(function (item) {
-                return item !== props.idData;
-              });
-              return data;
-            });
-          }
-        }
-      })
+
       .catch((err) => {
         setSaved(true);
         if (err.response.status == 406) {
@@ -601,9 +503,10 @@ const CardElement = (props) => {
             <CardMedia
               className="mediaImgOverview"
               component={() => (
-                <img
-                  style={{ height: "28.5vh" }}
+                <Image
+                  imageStyle={{ height: "28.5vh" }}
                   src={URL.createObjectURL(props.files[0])}
+                  aspectRatio={16 / 9}
                 />
               )}
               title="Главно изображение"
@@ -639,6 +542,7 @@ const CardElement = (props) => {
           <Box className="likesContainer">
             {props.likeButtonVisible && (
               <ToggleIcon
+                style={{ color: liked && "#E53935" }}
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
@@ -669,6 +573,7 @@ const CardElement = (props) => {
           <Box>
             {props.saveButtonVisible && (
               <ToggleIcon
+                style={{ color: saved && "#FFD700" }}
                 on={saved}
                 onIcon={
                   <BookmarkOutlinedIcon
@@ -701,7 +606,11 @@ const CardElement = (props) => {
                 props.images[0].url &&
                 props.images.map((el) => (
                   <div key={Math.random()}>
-                    <img alt="" src={"http://localhost:5000/image/" + el.url} />
+                    <img
+                      alt=""
+                      src={"http://localhost:5000/image/" + el.url}
+                      aspectRatio={16 / 9}
+                    />
                     <p className="legend">{el.caption}</p>
                   </div>
                 ))}
@@ -831,6 +740,7 @@ const CardElement = (props) => {
           <Box className="likesContainer">
             {props.likeButtonVisible ? (
               <ToggleIcon
+                style={{ color: liked && "#E53935" }}
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
@@ -865,6 +775,7 @@ const CardElement = (props) => {
           <Box className="endButtons">
             {props.saveButtonVisible && (
               <ToggleIcon
+                style={{ color: "#FFD700" }}
                 on={saved}
                 onIcon={
                   <BookmarkOutlinedIcon

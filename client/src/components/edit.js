@@ -17,7 +17,7 @@ import Card from "./card";
 import { useHistory } from "react-router-dom";
 import isPointInBulgaria from "./isPointInBulgaria";
 import { Map, Marker, ZoomControl } from "pigeon-maps";
-
+import Image from "material-ui-image";
 const axios = require("axios");
 
 const Edit = (props) => {
@@ -429,10 +429,11 @@ const Edit = (props) => {
         {!Object.keys(files).length &&
           props.images.map((el) => (
             <div key={Math.random()}>
-              <img
+              <Image
                 alt=""
                 style={{ width: "100%" }}
                 src={"http://localhost:5000/image/" + el.url}
+                aspectRatio={16 / 9}
               />
             </div>
           ))}

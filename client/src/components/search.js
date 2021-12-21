@@ -163,8 +163,8 @@ const Search = (props) => {
           dangerous: props.searchDangerous,
           accessibility: props.searchAccessibility,
           query: props.searchQuery,
-          limit: 10,
-          offset: props.searchQueryLimit,
+          limit: props.searchQueryLimit,
+          offset: 0,
         },
       })
       .then((data) => {
@@ -172,7 +172,7 @@ const Search = (props) => {
         props.setPrevSearchQuery(props.searchQuery);
         if (!data.data.length) {
           props.setQueryData([]);
-          props.setSearchQueryLimit(0);
+          //   props.setSearchQueryLimit(10);
           return false;
         }
         if (!props.queryData.length) {

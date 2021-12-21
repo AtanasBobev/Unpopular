@@ -11,6 +11,7 @@ import Typography from "@material-ui/core/Typography";
 import "react-pure-modal/dist/react-pure-modal.min.css";
 import DialogActions from "@material-ui/core/DialogActions";
 import poems from "./widgets/poems.json";
+import Image from "material-ui-image";
 
 const CardElement = (props) => {
   const [open, setOpen] = React.useState(false);
@@ -131,7 +132,7 @@ const CardElement = (props) => {
               }}
               className="specialText"
             >
-              <img
+              <Image
                 style={{
                   width: "68%",
                   boxShadow:

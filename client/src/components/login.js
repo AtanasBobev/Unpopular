@@ -20,6 +20,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import ToggleIcon from "material-ui-toggle-icon";
+
 const axios = require("axios");
 
 const Login = (props) => {
@@ -832,8 +834,13 @@ const Login = (props) => {
                             onClick={() => setShowPassword((state) => !state)}
                             edge="end"
                           >
-                            {passwordShow ? <VisibilityOff /> : <Visibility />}
+                            <ToggleIcon
+                              on={passwordShow}
+                              onIcon={<Visibility />}
+                              offIcon={<VisibilityOff />}
+                            />
                           </IconButton>
+                          ;
                         </InputAdornment>
                       }
                       required

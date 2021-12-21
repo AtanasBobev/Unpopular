@@ -2,6 +2,8 @@ import React from "react";
 import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Divider from "@mui/material/Divider";
+import Image from "material-ui-image";
+
 const axios = require("axios");
 const Avatar = (props) => {
   const [newAvatar, setNewAvatar] = React.useState(false);
@@ -75,7 +77,7 @@ const Avatar = (props) => {
         />
         {props.files.length ? (
           <>
-            <img
+            <Image
               draggable="false"
               style={{
                 height: "20vh",
@@ -89,7 +91,7 @@ const Avatar = (props) => {
         ) : (
           props.avatar && (
             <>
-              <img
+              <Image
                 draggable="false"
                 style={{
                   height: "20vh",

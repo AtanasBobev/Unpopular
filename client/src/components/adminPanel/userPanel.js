@@ -11,9 +11,11 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import Comment from "./../commentsModules/comment";
-
+import { confirmAlert } from "react-confirm-alert";
+import jwt_decode from "jwt-decode";
 import { toast } from "react-toastify";
 import CardComponent from "./../card";
+import Image from "material-ui-image";
 
 const axios = require("axios");
 import moment from "moment";
@@ -24,7 +26,17 @@ const UserCard = (props) => {
   const [view, setView] = React.useState(1);
   const [comments, setComments] = React.useState(1);
   const [replies, setReplies] = React.useState(1);
-
+  const isAdmin = () => {
+    try {
+      if (Boolean(jwt_decode(localStorage.getItem("jwt")).admin)) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      return false;
+    }
+  };
   const removeComment = (id) => {
     setComments((prev) =>
       prev.filter((e) => Number(e.comments_id) !== Number(id))
@@ -79,9 +91,49 @@ const UserCard = (props) => {
       return false;
     }
   };
+  const deleteUser = () => {
+    axios
+      .request({
+        url: "http://localhost:5000/admin/delete",
+        method: "DELETE",
+        headers: { jwt: localStorage.getItem("jwt"), id: props.id },
+      })
+      .then((data) => {
+        props.removeMe(props.id);
+        toast("Профилът е изтрит успешно", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      })
+      .catch((err) => {
+        toast.error("Имаше сървърна грешка. Пробвайте отново по-късно", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+      });
+  };
   return (
     <Box>
-      <Box className="infoBox">
+      <Box
+        style={{
+          border:
+            isAdmin() &&
+            jwt_decode(localStorage.getItem("jwt")).Username ==
+              props.username &&
+            "2px solid gold",
+        }}
+        className="infoBox"
+      >
         <Typography>{props.username}</Typography>
         <Typography>
           {moment(props.date).format("MMMM Do YYYY, hh:mm:ss")}
@@ -92,7 +144,25 @@ const UserCard = (props) => {
             children={expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
             onClick={() => setExpanded((prev) => !prev)}
           />
-          <IconButton children={<DeleteIcon />} />
+          <IconButton
+            onClick={() => {
+              confirmAlert({
+                title: "Потвърдете",
+                message:
+                  "Сигурен ли сте, че искате да изтриете потребителя? Това решение не може да се върне назад",
+                buttons: [
+                  {
+                    label: "Да",
+                    onClick: () => deleteUser(),
+                  },
+                  {
+                    label: "Не",
+                  },
+                ],
+              });
+            }}
+            children={<DeleteIcon />}
+          />
         </Box>
       </Box>
       {expanded && (
@@ -122,7 +192,7 @@ const UserCard = (props) => {
               Аватар:
               <Box>
                 {props.avatar ? (
-                  <img
+                  <Image
                     style={{ maxWidth: "5vw", width: "100%" }}
                     alt=""
                     src={"http://localhost:5000/image/" + props.avatar}
@@ -134,7 +204,7 @@ const UserCard = (props) => {
             </Box>
             <Box>ID: {Number(props.id)}</Box>
           </Box>
-          {(places.length || comments.length || replies.length) && (
+          {places.length || comments.length || replies.length ? (
             <FormControl>
               <InputLabel>Места</InputLabel>
               <Select
@@ -142,11 +212,17 @@ const UserCard = (props) => {
                 label="Покажи"
                 onChange={(e) => setView(e.target.value)}
               >
-                <MenuItem value={1}>Места</MenuItem>
-                <MenuItem value={2}>Коментари</MenuItem>
-                <MenuItem value={3}>Отговори</MenuItem>
+                {places ? <MenuItem value={1}>Места</MenuItem> : ""}
+                {comments.length ? (
+                  <MenuItem value={2}>Коментари</MenuItem>
+                ) : (
+                  ""
+                )}
+                {replies.length ? <MenuItem value={3}>Отговори</MenuItem> : ""}
               </Select>
             </FormControl>
+          ) : (
+            ""
           )}
 
           <Box

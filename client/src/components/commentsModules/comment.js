@@ -102,7 +102,7 @@ const Comment = (props) => {
         link,
         {
           type: type,
-          comment_id: props.idData,
+          comment_id: props.SpecialReply ? props.comment_id : props.idData,
           reply_id: props.idData,
         },
         {

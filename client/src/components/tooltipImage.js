@@ -2,6 +2,8 @@ import React from "react";
 import Typography from "@material-ui/core/Typography";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
+import Image from "material-ui-image";
+
 const axios = require("axios");
 
 const HtmlTooltip = styled(({ className, ...props }) => (
@@ -33,7 +35,7 @@ const ImageTooltip = (props) => {
         <React.Fragment>
           <center>
             {props.avatar && (
-              <img
+              <Image
                 style={{
                   width: "10vw",
                 }}

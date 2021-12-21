@@ -146,6 +146,64 @@ const groupBy = function (xs, key) {
 };
 
 //Admin endpoints
+server.get("/admin/complains", adminToken, (req, res) => {
+  pool.query(
+    "SELECT * FROM reported_items  WHERE priority=0 ORDER BY date LIMIT $1 ",
+    [req.query.limit],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal Server Error");
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
+server.get("/admin/featured/complains", adminToken, (req, res) => {
+  pool.query(
+    "SELECT * FROM reported_items WHERE priority>0 ORDER BY priority LIMIT $1",
+    [req.query.limit],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal Server Error");
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
+server.delete("/complain", adminToken, (req, res) => {
+  pool.query(
+    "DELETE FROM reported_items WHERE report_id=$1",
+    [req.body.report_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal Server Error");
+        return false;
+      }
+      res.status(200).send("Report successfully deleted");
+    }
+  );
+});
+
+server.put("/complain/score", adminToken, (req, res) => {
+  pool.query(
+    `UPDATE public.reported_items
+    SET priority=$2
+    WHERE report_id=$1`,
+    [req.body.report_id, req.body.priority],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal Server Error");
+        return false;
+      }
+      res.status(200).send("Report priority successfully changed");
+    }
+  );
+});
+
 server.get("/user/comments", adminToken, (req, res) => {
   pool.query(
     `SELECT PLACE_ID,
@@ -189,13 +247,12 @@ server.get("/user/replies", adminToken, (req, res) => {
     COMMENTS_REPLIES."content" AS "reply_content",
     "comments_replies".DATE AS "comment_date",
     "comments_replies"."id" AS "comments_id",
-    (SELECT count(*) from comments where place_id=place_id) AS "comments_count",
     replies_actions.action AS "replies_actions",
     replies_actions.action AS "comments_actions"
   FROM "comments_replies"
   LEFT JOIN users ON users.id = $2
   LEFT JOIN replies_actions ON replies_actions.user_id=$2 AND comments_replies."id"=replies_actions."action_id"
-  WHERE comments_replies.user_id=$2
+  WHERE comments_replies.user_id=$2 AND users.id=$2 AND replies_actions.user_id=$2
   ORDER BY "comments_replies".date  DESC LIMIT $1 `,
     [Number(req.query.limit), req.user_id],
     (err, data) => {
@@ -225,7 +282,7 @@ server.get("/users", adminToken, (req, res) => {
   LEFT JOIN "favoritePlaces" ON "favoritePlaces".user_id=users.id
   LEFT JOIN "savedPlaces" ON "savedPlaces".user_id=users.id
   LEFT JOIN replies_actions ON replies_actions.user_id=users.id
-  LIMIT $1`,
+  ORDER BY users.date LIMIT $1`,
     [req.params.limit],
     (err, data) => {
       if (err) {
@@ -390,9 +447,9 @@ server.get("/admin/replies", adminToken, (req, res) => {
     replies_actions.action AS "comments_actions"
   FROM "comments_replies"
   LEFT JOIN users ON users.id = "comments_replies".user_id
-  LEFT JOIN replies_actions on replies_actions.user_id=$2 AND comments_replies."id"=replies_actions."action_id"
+  LEFT JOIN replies_actions on replies_actions.user_id=users.id AND replies_actions.reply_id=comments_replies.id
    ORDER BY "comments_replies".date DESC LIMIT $1 `,
-    [Number(req.query.limit), req.user_id],
+    [Number(req.query.limit)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error!");
@@ -415,8 +472,8 @@ server.post("/report", authorizeToken, (req, res) => {
     return false;
   }
   pool.query(
-    `INSERT INTO public.reported_items(item_id, type, reason, date, user_id)
-	VALUES ($1, $2, $3,$4,$5)`,
+    `INSERT INTO public.reported_items(item_id, type, reason, date, user_id,priority)
+	VALUES ($1, $2, $3,$4,$5,0)`,
     [
       Number(req.body.item_id),
       req.body.type,
@@ -1725,6 +1782,129 @@ server.post(
   }
 );
 // Login/Register.Account endpoints
+server.delete("/admin/delete", adminToken, async (req, res) => {
+  if (!req.headers.id) {
+    res.status(401).send("Invalid data sent");
+    return false;
+  }
+  const userPlaces = await pool.query(
+    "SELECT place_id from places WHERE user_id=$1",
+    [req.headers.id]
+  );
+  let counter = userPlaces.rows.length;
+  userPlaces.rows.forEach(async (el) => {
+    counter--;
+    let images = await pool.query("SELECT url FROM images WHERE place_id=$1", [
+      el.place_id,
+    ]);
+    //Remove all the images related to the place if there are any
+    if (images.rows.length) {
+      images.rows.forEach((el) => {
+        fs.unlink("./uploads/" + el.url, () => {});
+      });
+    }
+    //Remove the images references on the database
+    await pool.query("DELETE FROM images WHERE place_id=$1", [el.place_id]);
+    //Get the comments associated with the place
+    let comments_ids = await pool.query(
+      "SELECT id FROM comments WHERE place_id=$1",
+      [el.place_id]
+    );
+    //Delete these comments if there are any
+    if (comments_ids.rows.length) {
+      comments_ids.rows.forEach(async (el) => {
+        //Delete the actions for the comments
+        await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
+          el.id,
+        ]);
+        await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
+          el.id,
+        ]);
+        await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
+          el.id,
+        ]);
+      });
+    }
+    await pool.query("DELETE FROM comments WHERE place_id=$1", [el.place_id]);
+    await pool.query(`DELETE FROM "savedPlaces" WHERE place_id=$1`, [
+      el.place_id,
+    ]);
+    await pool.query(`DELETE FROM "favoritePlaces" WHERE place_id=$1 `, [
+      el.place_id,
+    ]);
+    await pool.query("DELETE FROM places WHERE place_id=$1", [el.place_id]);
+    if (!counter) {
+      await pool.query(`DELETE FROM "savedPlaces" WHERE user_id=$2`, [
+        req.headers.id,
+      ]);
+      await pool.query("DELETE FROM reported_items WHERE user_id=$1", [
+        req.headers.id,
+      ]);
+      await pool.query("DELETE FROM places WHERE user_id=$1", [req.user_id]);
+      setTimeout(async () => {
+        await pool.query("DELETE FROM users WHERE id=$1", [req.user_id]);
+      }, 0);
+      res
+        .status(200)
+        .send(
+          "User profile and all corresponsing data have been deleted successfully!"
+        );
+      return false;
+    }
+  });
+  //Assuming no places
+  if (!userPlaces.rows.length) {
+    let comments_ids = await pool.query(
+      "SELECT id FROM comments WHERE user_id=$1",
+      [req.headers.id]
+    );
+    //Delete these comments if there are any
+    if (comments_ids.rows.length) {
+      comments_ids.rows.forEach(async (el) => {
+        //Delete the actions for the comments
+        await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
+          el.id,
+        ]);
+        await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
+          el.id,
+        ]);
+        await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
+          el.id,
+        ]);
+      });
+    }
+
+    await pool.query("DELETE FROM replies_actions WHERE user_id=$1", [
+      req.headers.id,
+    ]);
+    await pool.query("DELETE FROM comments_actions WHERE user_id=$1", [
+      req.headers.id,
+    ]);
+    await pool.query("DELETE FROM comments_replies WHERE user_id=$1", [
+      req.headers.id,
+    ]);
+    await pool.query(`DELETE FROM "savedPlaces" WHERE  user_id=$1`, [
+      req.headers.id,
+    ]);
+    await pool.query(`DELETE FROM "favoritePlaces" WHERE  user_id=$1`, [
+      req.headers.id,
+    ]);
+    await pool.query("DELETE FROM reported_items WHERE user_id=$1", [
+      req.headers.id,
+    ]);
+    await pool.query("DELETE FROM comments WHERE user_id=$1", [req.headers.id]);
+
+    await pool.query("DELETE FROM places WHERE user_id=$1", [req.headers.id]);
+    setTimeout(async () => {
+      await pool.query("DELETE FROM users WHERE id = $1", [req.headers.id]);
+    }, 0);
+    res
+      .status(200)
+      .send(
+        "User profile and all corresponsing data have been deleted successfully!"
+      );
+  }
+});
 
 server.get("/user/delete/:id", (req, res) => {
   if (req.params.id === undefined || req.params.id.length !== 200) {
@@ -1830,6 +2010,7 @@ server.get("/user/delete/:id", (req, res) => {
     }
   );
 });
+
 server.delete("/user/delete", authorizeToken, (req, res) => {
   if (!req.body.password) {
     res.status(400);
@@ -2395,6 +2576,7 @@ server.post("/score/reply", authorizeToken, (req, res) => {
     res.status(400).send("Not enough data was provided");
     return false;
   }
+
   pool.query(
     "SELECT COUNT(*) FROM replies_actions WHERE comment_id=$1 AND user_id=$2 AND action=$3 AND reply_id=$4",
     [req.body.comment_id, req.user_id, req.body.type, req.body.reply_id],

@@ -58,7 +58,7 @@ const Report = (props) => {
       })
       .catch((err) => {
         if (err.response.status == 409) {
-          props.toast.error("Доклад със същото съдъражение вече съществува", {
+          props.toast.warn("Доклад със същото съдъражение вече съществува", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
