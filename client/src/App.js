@@ -18,10 +18,11 @@ import Places from "./components/adminPanel/places";
 import Comments from "./components/adminPanel/comments";
 import Complains from "./components/adminPanel/complains";
 import Users from "./components/adminPanel/users";
+import CookieNotice from "react-cookienotice";
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
+import "react-cookienotice/dist/index.css";
 import { Switch, Route, Redirect } from "react-router-dom";
 const axios = require("axios");
 axios.defaults.withCredentials = true;
@@ -84,6 +85,16 @@ function App() {
         draggable
         pauseOnHover
       />
+      <CookieNotice
+        acceptButtonLabel={"Добре!"}
+        readMoreButtonLabel={"Още информация"}
+        readMoreButtonLink={"https://ec.europa.eu/info/cookies_bg"}
+        cookieTextLabel={
+          "Използваме бисквитки, за да може приложението да работи"
+        }
+        cookieExpiration={"90"}
+      />
+
       <AppBar lsA={lsA} ls={ls} />
       <Box className="spaceFiller"></Box>
       <Switch>

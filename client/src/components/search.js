@@ -169,18 +169,10 @@ const Search = (props) => {
       })
       .then((data) => {
         props.setSearchLoading(3);
-        props.setPrevSearchQuery(props.searchQuery);
-        if (!data.data.length) {
-          props.setQueryData([]);
-          //   props.setSearchQueryLimit(10);
-          return false;
+        if (!data.data) {
+          props.setSearchQueryLimit(10);
         }
-        if (!props.queryData.length) {
-          props.setQueryData(data.data.reverse());
-        } else {
-          let temp = data.data.concat(props.queryData);
-          props.setQueryData(RemoveDuplicates(temp, "place_id"));
-        }
+        props.setQueryData(data.data);
       })
       .catch((err) => {
         props.toast.error(
@@ -299,13 +291,7 @@ const Search = (props) => {
             }}
             size="large"
             variant="outlined"
-            onClick={async () => {
-              if (props.searchQueryLimit !== 0) {
-                props.setSearchQueryLimit(0);
-              } else {
-                search();
-              }
-            }}
+            onClick={search}
           >
             Търсене
           </Button>
@@ -829,7 +815,7 @@ const Search = (props) => {
             >
               <Button
                 onClick={() => {
-                  props.setSearchQueryLimit(props.searchQueryLimit + 10);
+                  props.setSearchQueryLimit((prev) => prev + 10);
                 }}
                 startIcon={<AddIcon />}
               >

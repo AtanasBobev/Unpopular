@@ -38,6 +38,7 @@
     "react-circle-modal": "^0.0.2",
     "react-confirm-alert": "^2.7.0",
     "react-content-loader": "^6.0.3",
+    "react-cookienotice": "^4.0.0",
     "react-custom-scrollbars": "^4.2.1",
     "react-dom": "^17.0.2",
     "react-fade-in": "^2.0.1",
