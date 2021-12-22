@@ -22,7 +22,7 @@
     "express-rate-limit": "^5.5.1",
     "express-throttle": "^2.0.0",
     "geolib": "^3.3.3",
-    "gmail-send": "^1.8.10",
+    "gmail-send": "^1.8.14",
     "google-auth-library": "^7.5.0",
     "hcaptcha": "^0.1.0",
     "helmet": "^4.6.0",
