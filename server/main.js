@@ -22,6 +22,7 @@ const multer = require("multer");
 const mime = require("mime-types");
 const moment = require("moment");
 const format = require("pg-format");
+const throttle = require("express-throttle");
 const axios = require("axios");
 const sanitizer = require("express-html-sanitizer");
 const fs = require("fs");
@@ -31,14 +32,21 @@ const isPointInBulgaria = require("./src/isPointInBulgaria");
 const passwordValidator = require("password-validator");
 const { verify } = require("hcaptcha");
 const secret = "0x0000000000000000000000000000000000000000";
-
+var helmet = require("helmet");
 config = {
   allowedTags: ["b", "i", "em", "strong", "a"],
   allowedAttributes: { a: ["href"] },
   allowedIframeHostnames: ["www.youtube.com"],
 };
 const sanitizeReqBody = sanitizer(config);
-server.use(sanitizeReqBody);
+const rateLimit = require("express-rate-limit");
+
+const limiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 150, // limit each IP to 100 requests per windowMs
+  message:
+    "Too many accounts created from this IP, please try again in a minute",
+});
 let schema = new passwordValidator();
 schema
   .is()
@@ -111,12 +119,14 @@ setInterval(() => {
     }
   );
 }, 1000 * 60);
-
-server.use(cors());
+server.use(helmet());
 server.use(cookieParser("MySecret"));
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json({ limit: "10kb" }));
+server.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+server.use(limiter);
 
+server.use(sanitizeReqBody);
 const hcverify = (req, res, next) => {
   if (!req.headers.token) {
     res.status(401).send("No or wrong captcha provided");
@@ -462,11 +472,10 @@ server.get("/admin/replies", adminToken, (req, res) => {
 
 server.post("/report", authorizeToken, (req, res) => {
   if (
-    !(
-      Number(req.body.item_id) &&
+    !(Number(req.body.item_id) &&
       req.body.type &&
-      req.body.reason !== undefined
-    )
+      req.body.reason !== undefined,
+    typeof req.body.reason == "string")
   ) {
     res.status(400).send("Incomplete data provided");
     return false;
@@ -536,7 +545,7 @@ server.post("/unsave", authorizeToken, async (req, res) => {
     res.status(403).send("Your account is unauthorized! Verify your account!");
     return false;
   }
-  let user_id = await authorizeTokenFunc(req.headers.jwt);
+  let user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
   user_id = user_id.user_id;
   pool.query(
     `DELETE FROM "savedPlaces" WHERE user_id=$1 AND place_id=$2`,
@@ -580,7 +589,7 @@ server.get("/weather", (req, res) => {
     });
 });
 
-server.post("/like", authorizeToken, (req, res) => {
+server.post("/like", throttle({ rate: "5/s" }), authorizeToken, (req, res) => {
   if (!req.body.place_id) {
     res.status(400).send("Not enough data was provided!");
     return false;
@@ -627,35 +636,42 @@ server.post("/like", authorizeToken, (req, res) => {
   );
 });
 
-server.post("/unlike", authorizeToken, async (req, res) => {
-  if (!req.body.place_id) {
-    res.status(400).send("Not enough data was provided!");
-    return false;
-  }
-  if (!req.verified) {
-    res.status(403).send("Your account is unauthorized! Verify your account!");
-    return false;
-  }
-  let user_id = await authorizeTokenFunc(req.headers.jwt);
-  user_id = user_id.user_id;
-  pool.query(
-    `DELETE FROM "favoritePlaces" WHERE user_id=$1 AND place_id=$2`,
-    [user_id, req.body.place_id],
-    (err, data) => {
-      if (err) {
-        res.status(500).send("Internal server error");
-        return false;
-      }
-      if (data.rowCount) {
-        res.status(200).send("Place unliked successfully!");
-      } else {
-        res.status(406).send("You don't like this place");
-      }
+server.post(
+  "/unlike",
+  throttle({ rate: "5/s" }),
+  authorizeToken,
+  async (req, res) => {
+    if (!req.body.place_id) {
+      res.status(400).send("Not enough data was provided!");
+      return false;
     }
-  );
-});
+    if (!req.verified) {
+      res
+        .status(403)
+        .send("Your account is unauthorized! Verify your account!");
+      return false;
+    }
+    let user_id = req.user_id;
 
-server.post("/search", async (req, res) => {
+    pool.query(
+      `DELETE FROM "favoritePlaces" WHERE user_id=$1 AND place_id=$2`,
+      [user_id, req.body.place_id],
+      (err, data) => {
+        if (err) {
+          res.status(500).send("Internal server error");
+          return false;
+        }
+        if (data.rowCount) {
+          res.status(200).send("Place unliked successfully!");
+        } else {
+          res.status(406).send("You don't like this place");
+        }
+      }
+    );
+  }
+);
+
+server.post("/search", throttle({ rate: "3/s" }), async (req, res) => {
   if (req.body.limit == undefined || req.body.offset == undefined) {
     res.status(400).send("Not enough data was provided.");
     return false;
@@ -723,8 +739,8 @@ server.post("/search", async (req, res) => {
     accessibility = req.body.accessibility;
   }
 
-  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt)) {
-    user_id = await authorizeTokenFunc(req.headers.jwt);
+  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt, req.cookies.JWT)) {
+    user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
     user_id = user_id.user_id;
   } else {
     user_id = -1;
@@ -952,6 +968,7 @@ server.get("/places/liked/saved", authorizeToken, (req, res) => {
 
 server.post(
   "/place",
+  throttle({ rate: "2/s" }),
   hcverify,
   authorizeToken,
   upload.array("images", 3),
@@ -1040,6 +1057,7 @@ server.post(
 server.put(
   "/place",
   authorizeToken,
+  throttle({ rate: "2/s" }),
   upload.array("images", 3),
   async (req, res) => {
     let imagesSrc = req.files.map((file) => file.filename);
@@ -1488,7 +1506,7 @@ server.get("/place/specific", async (req, res) => {
     user_id;
 
   if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt)) {
-    user_id = await authorizeTokenFunc(req.headers.jwt);
+    user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
     user_id = user_id.user_id;
   } else {
     user_id = -1;
@@ -2081,7 +2099,10 @@ server.post("/register", hcverify, async (req, res) => {
       req.body.username.length >= 5 &&
       schema.validate(req.body.password) &&
       !/[а-яА-ЯЁё]/.test(req.body.username) &&
-      !/[а-яА-ЯЁё]/.test(req.body.password)
+      !/[а-яА-ЯЁё]/.test(req.body.password) &&
+      typeof req.body.username == "string" &&
+      typeof req.body.password == "string" &&
+      typeof req.body.email == "string"
     )
   ) {
     res.status(400).send("Missing or invalid data sent");
@@ -2123,12 +2144,26 @@ server.post("/register", hcverify, async (req, res) => {
                 req.body.email,
                 Boolean(data.rows[0].admin)
               );
+              let jwtToken2 = await generateToken(
+                req.body.username,
+                false,
+                data.rows[0].id,
+                req.body.email,
+                Boolean(data.rows[0].admin)
+              );
               sendEmail(
                 "Потвърдете вашия акаунт",
                 `Натиснете линка, за да потвърдите акаунта си: http://localhost:5000/verify/${token}`,
                 req.body.email
               );
-              res.status(200).send({ jwt: jwtToken });
+              res
+                .status(200)
+                .cookie("JWT", jwtToken2, {
+                  maxAge: 86400 * 90,
+                  httpOnly: true,
+                  secure: false,
+                })
+                .send({ jwt: jwtToken });
               return false;
             }
           );
@@ -2156,7 +2191,7 @@ server.get("/verify/:id", (req, res) => {
   );
 });
 server.get("/verified", (req, res) => {
-  const userData = authorizeTokenFunc(req.headers.jwt);
+  const userData = authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
   if (!userData) {
     res.status(401).send("No jwt provided!");
     return false;
@@ -2181,7 +2216,21 @@ server.get("/verified", (req, res) => {
           userData.email,
           Boolean(data.rows[0].admin)
         );
-        res.status(200).send({ jwt: jwtToken });
+        let jwtToken2 = await generateToken(
+          userData.Username,
+          true,
+          userData.user_id,
+          userData.email,
+          Boolean(data.rows[0].admin)
+        );
+        res
+          .status(200)
+          .cookie("JWT", jwtToken2, {
+            maxAge: 86400 * 90,
+            httpOnly: true,
+            secure: false,
+          })
+          .send({ jwt: jwtToken });
         return false;
       } else {
         res.status(403).send("Still unauthorized");
@@ -2191,7 +2240,7 @@ server.get("/verified", (req, res) => {
   );
 });
 server.get("/newMail", async (req, res) => {
-  let user = await authorizeTokenFunc(req.headers.jwt);
+  let user = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
   pool.query(
     "SELECT email,emailsent,verified FROM users where id=$1",
     [user.user_id],
@@ -2241,7 +2290,14 @@ server.get("/newMail", async (req, res) => {
 });
 server.post("/login", hcverify, async (req, res) => {
   //Validating request
-  if (!(req.body.username && req.body.password)) {
+  if (
+    !(
+      req.body.username &&
+      req.body.password &&
+      typeof req.body.username == "string" &&
+      typeof req.body.password == "string"
+    )
+  ) {
     res.status(400).send("Invalid request");
     return false;
   }
@@ -2395,7 +2451,21 @@ server.post("/login", hcverify, async (req, res) => {
                   data.rows[0].email,
                   Boolean(data.rows[0].admin)
                 );
-                res.status(200).send({ jwt: jwtToken });
+                let jwtToken2 = await generateToken(
+                  req.body.username,
+                  true,
+                  data.rows[0].id,
+                  data.rows[0].email,
+                  Boolean(data.rows[0].admin)
+                );
+                res
+                  .status(200)
+                  .cookie("JWT", jwtToken2, {
+                    maxAge: 86400 * 90,
+                    httpOnly: true,
+                    secure: false,
+                  })
+                  .send({ jwt: jwtToken });
               } else {
                 let jwtToken = await generateToken(
                   req.body.username,
@@ -2403,7 +2473,21 @@ server.post("/login", hcverify, async (req, res) => {
                   data.rows[0].id,
                   data.rows[0].email
                 );
-                res.status(200).send({ jwt: jwtToken });
+                let jwtToken2 = await generateToken(
+                  req.body.username,
+                  true,
+                  data.rows[0].id,
+                  data.rows[0].email,
+                  Boolean(data.rows[0].admin)
+                );
+                res
+                  .status(200)
+                  .cookie("JWT", jwtToken2, {
+                    maxAge: 86400 * 90,
+                    httpOnly: true,
+                    secure: false,
+                  })
+                  .send({ jwt: jwtToken });
               }
             }
           );
@@ -2445,7 +2529,11 @@ server.delete("/avatar/delete", authorizeToken, (req, res) => {
 // Comments/Replies endpoints
 
 server.post("/comment", hcverify, authorizeToken, (req, res) => {
-  if (!req.body.comment && req.body.place_id) {
+  if (
+    !req.body.comment &&
+    req.body.place_id &&
+    typeof req.body.reason !== "string"
+  ) {
     res.status(400).send("Not enough data was provided!");
     return false;
   }
@@ -2518,7 +2606,7 @@ server.get("/comments", async (req, res) => {
     user_id1,
     user_id2;
   if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt)) {
-    user_id = await authorizeTokenFunc(req.headers.jwt);
+    user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
     user_id1 = user_id.user_id;
     user_id2 = user_id.user_id;
   } else {
@@ -2864,7 +2952,8 @@ server.put("/user/password/reset", (req, res) => {
     !req.body.password &&
     req.body.password.length < 8 &&
     req.body.password.length > 100 &&
-    !schema.validate(req.body.password)
+    !schema.validate(req.body.password) &&
+    typeof req.body.password !== "string"
   ) {
     res.status(401).send("Password invalid");
     return false;
@@ -2930,7 +3019,9 @@ server.put("/user/password", authorizeToken, async (req, res) => {
     !req.body.password ||
     req.body.newPassword.length < 8 ||
     !req.body.newPassword ||
-    !schema.validate(req.body.newPassword)
+    !schema.validate(req.body.newPassword) ||
+    typeof req.body.password !== "string" ||
+    typeof req.body.newPassword !== "string"
   ) {
     res.status(400).send("Not enough data was provided");
     return false;
@@ -3033,7 +3124,9 @@ server.put("/user/email", authorizeToken, async (req, res) => {
     req.body.password == undefined ||
     req.body.email == undefined ||
     req.body.email.length > 50 ||
-    req.body.email.length < 5
+    req.body.email.length < 5 ||
+    typeof req.body.email !== "string" ||
+    typeof req.body.password !== "string"
   ) {
     res.status(400).send("Not enough data was provided.");
     return false;
@@ -3099,7 +3192,9 @@ server.put("/user/name", authorizeToken, async (req, res) => {
     req.body.name.length > 20 ||
     req.body.name.length < 5 ||
     req.body.name == undefined ||
-    req.body.name == req.user
+    req.body.name == req.user ||
+    typeof req.body.password !== "string" ||
+    typeof req.body.newPassword !== "string"
   ) {
     res
       .status(400)

@@ -31,7 +31,9 @@ const Place = (props) => {
       return false;
     }
     axios
-      .get("http://localhost:5000/place/specific", { params: { place_id: id } })
+      .get("http://localhost:5000/place/specific", {
+        params: { place_id: id },
+      })
       .then((data) => {
         setEl(data.data[0]);
       })

@@ -23,6 +23,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { Switch, Route, Redirect } from "react-router-dom";
+const axios = require("axios");
+axios.defaults.withCredentials = true;
+
 function App() {
   //Search component
   const [center, setCenter] = React.useState();

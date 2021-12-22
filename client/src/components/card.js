@@ -775,7 +775,7 @@ const CardElement = (props) => {
           <Box className="endButtons">
             {props.saveButtonVisible && (
               <ToggleIcon
-                style={{ color: "#FFD700" }}
+                style={{ color: saved && "#FFD700" }}
                 on={saved}
                 onIcon={
                   <BookmarkOutlinedIcon

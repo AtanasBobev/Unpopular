@@ -321,7 +321,7 @@ const TopBar = (props) => {
               <ToggleButtonGroup
                 value={adminUser}
                 exclusive
-                onChange={(е, b) => b !== null && setAdminUser(b)}
+                onChange={(e, b) => b !== null && setAdminUser(b)}
                 aria-label="text alignment"
               >
                 <ToggleButton value="user" aria-label="Потребителски преглед">

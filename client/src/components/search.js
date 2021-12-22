@@ -448,47 +448,95 @@ const Search = (props) => {
           />
         )}
         {(props.searchLoading == 3 || props.searchLoading == 1) &&
-          props.queryData.length && (
-            <FadeIn
-              transitionDuration={600}
-              delay={100}
-              className="CardContainer"
-            >
-              {
-                <div className="MapContainer">
-                  {props.queryData.length && (
-                    <center>
-                      <Map
-                        metaWheelZoom={true}
-                        metaWheelZoomWarning={
-                          "Използвайте ctrl+scroll, за да промените мащаба"
-                        }
-                        center={location ? location : center}
-                        zoom={7}
-                        width={"70vw"}
-                        height={"60vh"}
-                      >
-                        <ZoomControl />
-                        {locationChecked && location && (
-                          <Marker anchor={location} color={"red"} />
-                        )}
-                        {markersChecked &&
-                          location &&
-                          props.queryData.map((el) => (
-                            <Marker
-                              anchor={el[0].placelocation
-                                .replace(/\s+/g, "")
-                                .split(",")
-                                .map(Number)}
-                              color={markerColor(el[0])}
-                            />
-                          ))}
-                        {placesChecked &&
-                          (places.length && locationChecked
-                            ? places.map((el) => (
+        props.queryData.length ? (
+          <FadeIn
+            transitionDuration={600}
+            delay={100}
+            className="CardContainer"
+          >
+            {
+              <div className="MapContainer">
+                {props.queryData.length && (
+                  <center>
+                    <Map
+                      metaWheelZoom={true}
+                      metaWheelZoomWarning={
+                        "Използвайте ctrl+scroll, за да промените мащаба"
+                      }
+                      center={location ? location : center}
+                      zoom={7}
+                      width={"70vw"}
+                      height={"60vh"}
+                    >
+                      <ZoomControl />
+                      {locationChecked && location && (
+                        <Marker anchor={location} color={"red"} />
+                      )}
+                      {markersChecked &&
+                        location &&
+                        props.queryData.map((el) => (
+                          <Marker
+                            anchor={el[0].placelocation
+                              .replace(/\s+/g, "")
+                              .split(",")
+                              .map(Number)}
+                            color={markerColor(el[0])}
+                          />
+                        ))}
+                      {placesChecked &&
+                        (places.length && locationChecked
+                          ? places.map((el) => (
+                              <Overlay
+                                offset={[0, 50]}
+                                anchor={el[1][0].placelocation
+                                  .replace(/\s+/g, "")
+                                  .split(",")
+                                  .map(Number)}
+                              >
+                                <Card
+                                  setChange={setChange}
+                                  change={change}
+                                  inSearch={true}
+                                  places={places}
+                                  setPlaces={setPlaces}
+                                  inMap={true}
+                                  toast={props.toast}
+                                  key={Math.random()}
+                                  date={el[1][0].date}
+                                  idData={el[1][0].place_id}
+                                  title={el[1][0].title}
+                                  description={el[1][0].description}
+                                  price={el[1][0].price}
+                                  accessibility={el[1][0].accessibility}
+                                  category={el[1][0].category}
+                                  placelocation={el[1][0].placelocation}
+                                  dangerous={el[1][0].dangerous}
+                                  username={el[1][0].username}
+                                  avatar={el[1][0].avatar}
+                                  likeButtonVisible={verify()}
+                                  reportButtonVisible={true}
+                                  liked={
+                                    el[1][0].liked == "true" ? true : false
+                                  }
+                                  saved={
+                                    el[1][0].saved == "true" ? true : false
+                                  }
+                                  numbersLiked={Number(el[1][0].likednumber)}
+                                  mainImg={el[1][0].url}
+                                  city={el[1][0].city}
+                                  images={el[1]}
+                                  saveButtonVisible={verify()}
+                                  adminRights={el[1][0].user_id == ID()}
+                                  distance={el[0]}
+                                  date={el[1][0].date}
+                                />
+                              </Overlay>
+                            ))
+                          : props.queryData.map((el) => {
+                              return (
                                 <Overlay
                                   offset={[0, 50]}
-                                  anchor={el[1][0].placelocation
+                                  anchor={el[0].placelocation
                                     .replace(/\s+/g, "")
                                     .split(",")
                                     .map(Number)}
@@ -497,331 +545,277 @@ const Search = (props) => {
                                     setChange={setChange}
                                     change={change}
                                     inSearch={true}
-                                    places={places}
+                                    places={props.queryData}
                                     setPlaces={setPlaces}
                                     inMap={true}
+                                    date={el[0].date}
                                     toast={props.toast}
                                     key={Math.random()}
-                                    date={el[1][0].date}
-                                    idData={el[1][0].place_id}
-                                    title={el[1][0].title}
-                                    description={el[1][0].description}
-                                    price={el[1][0].price}
-                                    accessibility={el[1][0].accessibility}
-                                    category={el[1][0].category}
-                                    placelocation={el[1][0].placelocation}
-                                    dangerous={el[1][0].dangerous}
-                                    username={el[1][0].username}
-                                    avatar={el[1][0].avatar}
+                                    idData={el[0].place_id}
+                                    title={el[0].title}
+                                    description={el[0].description}
+                                    price={el[0].price}
+                                    accessibility={el[0].accessibility}
+                                    category={el[0].category}
+                                    placelocation={el[0].placelocation}
+                                    dangerous={el[0].dangerous}
                                     likeButtonVisible={verify()}
                                     reportButtonVisible={true}
-                                    liked={
-                                      el[1][0].liked == "true" ? true : false
-                                    }
-                                    saved={
-                                      el[1][0].saved == "true" ? true : false
-                                    }
-                                    numbersLiked={Number(el[1][0].likednumber)}
-                                    mainImg={el[1][0].url}
-                                    city={el[1][0].city}
-                                    images={el[1]}
+                                    liked={el[0].liked == "true" ? true : false}
+                                    saved={el[0].saved == "true" ? true : false}
+                                    numbersLiked={Number(el[0].likednumber)}
+                                    mainImg={el[0].url}
+                                    city={el[0].city}
+                                    username={el[0].username}
+                                    avatar={el[0].avatar}
+                                    images={el}
                                     saveButtonVisible={verify()}
-                                    adminRights={el[1][0].user_id == ID()}
-                                    distance={el[0]}
-                                    date={el[1][0].date}
+                                    adminRights={el[0].user_id == ID()}
                                   />
                                 </Overlay>
-                              ))
-                            : props.queryData.map((el) => {
-                                return (
-                                  <Overlay
-                                    offset={[0, 50]}
-                                    anchor={el[0].placelocation
-                                      .replace(/\s+/g, "")
-                                      .split(",")
-                                      .map(Number)}
-                                  >
-                                    <Card
-                                      setChange={setChange}
-                                      change={change}
-                                      inSearch={true}
-                                      places={props.queryData}
-                                      setPlaces={setPlaces}
-                                      inMap={true}
-                                      date={el[0].date}
-                                      toast={props.toast}
-                                      key={Math.random()}
-                                      idData={el[0].place_id}
-                                      title={el[0].title}
-                                      description={el[0].description}
-                                      price={el[0].price}
-                                      accessibility={el[0].accessibility}
-                                      category={el[0].category}
-                                      placelocation={el[0].placelocation}
-                                      dangerous={el[0].dangerous}
-                                      likeButtonVisible={verify()}
-                                      reportButtonVisible={true}
-                                      liked={
-                                        el[0].liked == "true" ? true : false
-                                      }
-                                      saved={
-                                        el[0].saved == "true" ? true : false
-                                      }
-                                      numbersLiked={Number(el[0].likednumber)}
-                                      mainImg={el[0].url}
-                                      city={el[0].city}
-                                      username={el[0].username}
-                                      avatar={el[0].avatar}
-                                      images={el}
-                                      saveButtonVisible={verify()}
-                                      adminRights={el[0].user_id == ID()}
-                                    />
-                                  </Overlay>
-                                );
-                              }))}
-                      </Map>
-                    </center>
-                  )}
-                  {
-                    <>
-                      <Box
+                              );
+                            }))}
+                    </Map>
+                  </center>
+                )}
+                {
+                  <>
+                    <Box
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        flexDirection: "row",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        paddingTop: "0.5vmax",
+                      }}
+                    >
+                      <div
                         style={{
                           display: "flex",
                           flexWrap: "wrap",
-                          flexDirection: "row",
-                          justifyContent: "space-between",
                           alignItems: "center",
-                          paddingTop: "0.5vmax",
                         }}
                       >
                         <div
                           style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            alignItems: "center",
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "red",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
                           }}
-                        >
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "red",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Моята локация</Typography>
-
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "purple",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Заведение</Typography>
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "orange",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Нощно заведение</Typography>
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "RoyalBlue",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Магазин</Typography>
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "green",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Пътека</Typography>
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "pink",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Място</Typography>
-                          <div
-                            style={{
-                              height: "1vmax",
-                              width: "1vmax",
-                              borderRadius: "50%",
-                              backgroundColor: "black",
-                              marginRight: "0.5vmax",
-                              marginLeft: "1vmax",
-                            }}
-                          ></div>
-                          <Typography>Друго</Typography>
-                        </div>
+                        ></div>
+                        <Typography>Моята локация</Typography>
 
                         <div
                           style={{
-                            display: "flex",
-                            flexWrap: "wrap",
-                            alignItems: "center",
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "purple",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
                           }}
-                        >
-                          <Switch
-                            checked={locationChecked && location}
-                            onChange={(e) =>
-                              setLocationChecked(e.target.checked)
-                            }
-                          />
-                          <Typography>Сортирай по близост</Typography>
-                          <Checkbox
-                            trackColor={{ true: "red", false: "grey" }}
-                            checked={markersChecked}
-                            onChange={(e) =>
-                              setMarkersChecked(e.target.checked)
-                            }
-                          />
-                          <Typography>Маркери</Typography>
-                          <Checkbox
-                            checked={placesChecked}
-                            onChange={(e) => setPlacesChecked(e.target.checked)}
-                          />
-                          <Typography>Места</Typography>
-                        </div>
-                      </Box>
-                    </>
-                  }
-                </div>
-              }
+                        ></div>
+                        <Typography>Заведение</Typography>
+                        <div
+                          style={{
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "orange",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
+                          }}
+                        ></div>
+                        <Typography>Нощно заведение</Typography>
+                        <div
+                          style={{
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "RoyalBlue",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
+                          }}
+                        ></div>
+                        <Typography>Магазин</Typography>
+                        <div
+                          style={{
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "green",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
+                          }}
+                        ></div>
+                        <Typography>Пътека</Typography>
+                        <div
+                          style={{
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "pink",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
+                          }}
+                        ></div>
+                        <Typography>Място</Typography>
+                        <div
+                          style={{
+                            height: "1vmax",
+                            width: "1vmax",
+                            borderRadius: "50%",
+                            backgroundColor: "black",
+                            marginRight: "0.5vmax",
+                            marginLeft: "1vmax",
+                          }}
+                        ></div>
+                        <Typography>Друго</Typography>
+                      </div>
 
-              {places.length && locationChecked
-                ? places.map((el) => {
-                    return (
-                      <>
-                        {!props.admin && (
-                          <>
-                            {Number(el[1][0].place_id) % 4 == 0 && (
-                              <Poems
-                                available={availablePoem}
-                                setAvailable={setAvailablePoem}
-                              />
-                            )}
-                            {Number(el[1][0].place_id) % 2 == 0 && (
-                              <Quotes
-                                available={available}
-                                setAvailable={setAvailable}
-                              />
-                            )}
-                          </>
-                        )}
-                        <Card
-                          setChange={setChange}
-                          change={change}
-                          places={places}
-                          setPlaces={setPlaces}
-                          toast={props.toast}
-                          key={Math.random()}
-                          date={el[1][0].date}
-                          idData={el[1][0].place_id}
-                          title={el[1][0].title}
-                          description={el[1][0].description}
-                          price={el[1][0].price}
-                          accessibility={el[1][0].accessibility}
-                          category={el[1][0].category}
-                          placelocation={el[1][0].placelocation}
-                          dangerous={el[1][0].dangerous}
-                          username={el[1][0].username}
-                          avatar={el[1][0].avatar}
-                          likeButtonVisible={verify()}
-                          reportButtonVisible={true}
-                          liked={el[1][0].liked == "true" ? true : false}
-                          saved={el[1][0].saved == "true" ? true : false}
-                          numbersLiked={Number(el[1][0].likednumber)}
-                          mainImg={el[1][0].url}
-                          city={el[1][0].city}
-                          images={el[1]}
-                          saveButtonVisible={verify()}
-                          adminRights={el[1][0].user_id == ID()}
-                          distance={el[0]}
-                          date={el[1][0].date}
+                      <div
+                        style={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Switch
+                          checked={locationChecked && location}
+                          onChange={(e) => setLocationChecked(e.target.checked)}
                         />
-                      </>
-                    );
-                  })
-                : props.queryData.map((el) => {
-                    return (
-                      <>
-                        {!props.admin && (
-                          <>
-                            {Number(el[0].place_id) % 4 == 0 && (
-                              <Poems
-                                available={availablePoem}
-                                setAvailable={setAvailablePoem}
-                              />
-                            )}
-                            {Number(el[0].place_id) % 5 == 0 && (
-                              <Quotes
-                                available={available}
-                                setAvailable={setAvailable}
-                              />
-                            )}
-                          </>
-                        )}
-                        <Card
-                          setChange={setChange}
-                          change={change}
-                          places={props.queryData}
-                          setPlaces={setPlaces}
-                          date={el[0].date}
-                          toast={props.toast}
-                          key={Math.random()}
-                          idData={el[0].place_id}
-                          title={el[0].title}
-                          description={el[0].description}
-                          price={el[0].price}
-                          accessibility={el[0].accessibility}
-                          category={el[0].category}
-                          placelocation={el[0].placelocation}
-                          dangerous={el[0].dangerous}
-                          likeButtonVisible={verify()}
-                          reportButtonVisible={true}
-                          liked={el[0].liked == "true" ? true : false}
-                          saved={el[0].saved == "true" ? true : false}
-                          numbersLiked={Number(el[0].likednumber)}
-                          mainImg={el[0].url}
-                          city={el[0].city}
-                          username={el[0].username}
-                          avatar={el[0].avatar}
-                          images={el}
-                          saveButtonVisible={verify()}
-                          adminRights={el[0].user_id == ID()}
+                        <Typography>Сортирай по близост</Typography>
+                        <Checkbox
+                          trackColor={{ true: "red", false: "grey" }}
+                          checked={markersChecked}
+                          onChange={(e) => setMarkersChecked(e.target.checked)}
                         />
-                      </>
-                    );
-                  })}
-            </FadeIn>
-          )}
+                        <Typography>Маркери</Typography>
+                        <Checkbox
+                          checked={placesChecked}
+                          onChange={(e) => setPlacesChecked(e.target.checked)}
+                        />
+                        <Typography>Места</Typography>
+                      </div>
+                    </Box>
+                  </>
+                }
+              </div>
+            }
+
+            {places.length && locationChecked
+              ? places.map((el) => {
+                  return (
+                    <>
+                      {!props.admin && (
+                        <>
+                          {Number(el[1][0].place_id) % 4 == 0 && (
+                            <Poems
+                              available={availablePoem}
+                              setAvailable={setAvailablePoem}
+                            />
+                          )}
+                          {Number(el[1][0].place_id) % 2 == 0 && (
+                            <Quotes
+                              available={available}
+                              setAvailable={setAvailable}
+                            />
+                          )}
+                        </>
+                      )}
+                      <Card
+                        setChange={setChange}
+                        change={change}
+                        places={places}
+                        setPlaces={setPlaces}
+                        toast={props.toast}
+                        key={Math.random()}
+                        date={el[1][0].date}
+                        idData={el[1][0].place_id}
+                        title={el[1][0].title}
+                        description={el[1][0].description}
+                        price={el[1][0].price}
+                        accessibility={el[1][0].accessibility}
+                        category={el[1][0].category}
+                        placelocation={el[1][0].placelocation}
+                        dangerous={el[1][0].dangerous}
+                        username={el[1][0].username}
+                        avatar={el[1][0].avatar}
+                        likeButtonVisible={verify()}
+                        reportButtonVisible={true}
+                        liked={el[1][0].liked == "true" ? true : false}
+                        saved={el[1][0].saved == "true" ? true : false}
+                        numbersLiked={Number(el[1][0].likednumber)}
+                        mainImg={el[1][0].url}
+                        city={el[1][0].city}
+                        images={el[1]}
+                        saveButtonVisible={verify()}
+                        adminRights={el[1][0].user_id == ID()}
+                        distance={el[0]}
+                        date={el[1][0].date}
+                      />
+                    </>
+                  );
+                })
+              : props.queryData.map((el) => {
+                  return (
+                    <>
+                      {!props.admin && (
+                        <>
+                          {Number(el[0].place_id) % 4 == 0 && (
+                            <Poems
+                              available={availablePoem}
+                              setAvailable={setAvailablePoem}
+                            />
+                          )}
+                          {Number(el[0].place_id) % 5 == 0 && (
+                            <Quotes
+                              available={available}
+                              setAvailable={setAvailable}
+                            />
+                          )}
+                        </>
+                      )}
+                      <Card
+                        setChange={setChange}
+                        change={change}
+                        places={props.queryData}
+                        setPlaces={setPlaces}
+                        date={el[0].date}
+                        toast={props.toast}
+                        key={Math.random()}
+                        idData={el[0].place_id}
+                        title={el[0].title}
+                        description={el[0].description}
+                        price={el[0].price}
+                        accessibility={el[0].accessibility}
+                        category={el[0].category}
+                        placelocation={el[0].placelocation}
+                        dangerous={el[0].dangerous}
+                        likeButtonVisible={verify()}
+                        reportButtonVisible={true}
+                        liked={el[0].liked == "true" ? true : false}
+                        saved={el[0].saved == "true" ? true : false}
+                        numbersLiked={Number(el[0].likednumber)}
+                        mainImg={el[0].url}
+                        city={el[0].city}
+                        username={el[0].username}
+                        avatar={el[0].avatar}
+                        images={el}
+                        saveButtonVisible={verify()}
+                        adminRights={el[0].user_id == ID()}
+                      />
+                    </>
+                  );
+                })}
+          </FadeIn>
+        ) : (
+          ""
+        )}
         {props.searchLoading == 3 &&
           props.searchQueryDataLength !== 0 &&
           props.queryData.length < props.searchQueryDataLength && (

@@ -10,6 +10,8 @@ import InputAdornment from "@mui/material/InputAdornment";
 import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import ToggleIcon from "material-ui-toggle-icon";
+
 const passwordValidator = require("password-validator");
 
 let schema = new passwordValidator();
@@ -214,7 +216,11 @@ const Password = (props) => {
                 onClick={() => setShowPassword1((state) => !state)}
                 edge="end"
               >
-                {passwordShow1 ? <VisibilityOff /> : <Visibility />}
+                <ToggleIcon
+                  on={passwordShow1}
+                  onIcon={<Visibility />}
+                  offIcon={<VisibilityOff />}
+                />
               </IconButton>
             </InputAdornment>
           }
@@ -249,7 +255,11 @@ const Password = (props) => {
                 onClick={() => setShowPassword2((state) => !state)}
                 edge="end"
               >
-                {passwordShow2 ? <VisibilityOff /> : <Visibility />}
+                <ToggleIcon
+                  on={passwordShow2}
+                  onIcon={<Visibility />}
+                  offIcon={<VisibilityOff />}
+                />
               </IconButton>
             </InputAdornment>
           }
@@ -284,7 +294,11 @@ const Password = (props) => {
                 onClick={() => setShowPassword3((state) => !state)}
                 edge="end"
               >
-                {passwordShow3 ? <VisibilityOff /> : <Visibility />}
+                <ToggleIcon
+                  on={passwordShow3}
+                  onIcon={<Visibility />}
+                  offIcon={<VisibilityOff />}
+                />
               </IconButton>
             </InputAdornment>
           }

@@ -67,6 +67,7 @@ const Login = (props) => {
       .post(
         "http://localhost:5000/login",
         {
+          credentials: "include",
           username: username,
           password: password,
         },
@@ -840,7 +841,6 @@ const Login = (props) => {
                               offIcon={<VisibilityOff />}
                             />
                           </IconButton>
-                          ;
                         </InputAdornment>
                       }
                       required

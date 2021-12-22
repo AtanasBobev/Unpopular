@@ -16,6 +16,7 @@ import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 import jwt_decode from "jwt-decode";
 import { Map, Marker, ZoomControl, Overlay } from "pigeon-maps";
 const axios = require("axios");
+
 const theme = createMuiTheme({
   palette: {
     primary: {
@@ -106,34 +107,21 @@ const Liked = (props) => {
   };
 
   const fetchLiked = () => {
+    fetchNumberLiked();
     setLikedLoading(2);
     axios
       .get("http://localhost:5000/userLikedPlaces", {
-        headers: { jwt: localStorage.getItem("jwt") },
+        headers: {
+          jwt: localStorage.getItem("jwt"),
+          "X-Requested-With": "XMLHttpRequest",
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Credentials": true,
+        },
         params: { limit: likedQueryOffset },
       })
       .then((data) => {
-        //  setLikedQueryData(data.data);
+        setLikedQueryData(data.data);
         setLikedLoading(3);
-        if (!data.data.length) {
-          setLikedQueryData([]);
-          setLikedQueryOffset(0);
-          return false;
-        }
-        if (!likedQueryData.length) {
-          setLikedQueryData(data.data);
-        } else {
-          function uniqBy(a, key) {
-            var seen = {};
-            return a.filter(function (item) {
-              var k = key(item);
-              return seen.hasOwnProperty(k) ? false : (seen[k] = true);
-            });
-          }
-          setLikedQueryData(
-            uniqBy([...likedQueryData, ...data.data], JSON.stringify)
-          );
-        }
       })
       .catch((err) => {
         console.log(err);

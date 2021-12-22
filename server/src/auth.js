@@ -4,7 +4,6 @@ const path = require("path");
 const axios = require("axios");
 const { response } = require("express");
 const pool = require("./postgre");
-
 const generateToken = async (
   Username,
   Authorized,
@@ -22,7 +21,8 @@ const generateToken = async (
       user_id: id,
       email: email,
       admin: admin,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30,
+      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 90,
+      randomEl: Math.random(),
     },
     privateKey
   );
@@ -32,6 +32,20 @@ const authorizeToken = (req, res, next) => {
   let privateKey = fs
     .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
     .toString();
+  if (req.headers.jwt == req.cookies.JWT) {
+    res.status(401).send("Could not verify you!");
+    return false;
+  }
+  try {
+    let decoded2 = jwt.verify(req.cookies.JWT, privateKey);
+    if (!decoded2.Authorized) {
+      res.status(401).send("Could not verify you!");
+    }
+  } catch (err) {
+    console.warn(err);
+    res.status(401).send("Could not verify you!");
+    return err;
+  }
   try {
     let decoded = jwt.verify(req.headers.jwt, privateKey);
     req.user = decoded.Username;
@@ -50,12 +64,14 @@ const authorizeToken = (req, res, next) => {
     return err;
   }
 };
-const authorizeTokenFunc = (token) => {
+const authorizeTokenFunc = (token, token2) => {
   let privateKey = fs
     .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
     .toString();
+
   try {
     let decoded = jwt.verify(token, privateKey);
+    let decoded2 = jwt.verify(token2, privateKey);
     return decoded;
   } catch (err) {
     return false;

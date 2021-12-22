@@ -8,6 +8,18 @@ import jwt_decode from "jwt-decode";
 const Name = (props) => {
   const [name, setName] = React.useState();
   const updateName = () => {
+    if (/[а-яА-ЯЁё]/.test(username) || /[а-яА-ЯЁё]/.test(password)) {
+      props.toast("Не използвайте кирилица за потребителското име", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (jwt_decode(localStorage.getItem("jwt")).Username == name) {
       props.toast(
         "Не може сегашното Ви потребителско име да е същото като предишното",
@@ -51,6 +63,7 @@ const Name = (props) => {
       .request({
         url: "http://localhost:5000/user/name",
         method: "PUT",
+
         data: { name: name },
         headers: { jwt: localStorage.getItem("jwt") },
       })
