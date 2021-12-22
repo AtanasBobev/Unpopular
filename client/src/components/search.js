@@ -730,6 +730,7 @@ const Search = (props) => {
                         placelocation={el[1][0].placelocation}
                         dangerous={el[1][0].dangerous}
                         username={el[1][0].username}
+                        user_id={el[1][0].user_id}
                         avatar={el[1][0].avatar}
                         likeButtonVisible={verify()}
                         reportButtonVisible={true}
@@ -791,6 +792,7 @@ const Search = (props) => {
                         city={el[0].city}
                         username={el[0].username}
                         avatar={el[0].avatar}
+                        user_id={el[0].user_id}
                         images={el}
                         saveButtonVisible={verify()}
                         adminRights={el[0].user_id == ID()}

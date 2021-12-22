@@ -256,6 +256,19 @@ const CardElement = (props) => {
       return false;
     }
   };
+  const isOwner = () => {
+    try {
+      let a = jwt_decode(localStorage.getItem("jwt"));
+      if (a.Username == props.username) {
+        return true;
+      } else {
+        return false;
+      }
+    } catch (err) {
+      return false;
+    }
+  };
+
   const unlike = async (id) => {
     setLiked(false);
     setLikedNumbers((prev) => prev - 1);
@@ -790,7 +803,7 @@ const CardElement = (props) => {
               />
             )}
             <ShareOutlinedIcon onClick={() => setShareOpen(!openShare)} />
-            {(props.adminRights || isAdmin()) && (
+            {verify() && (
               <EditOutlinedIcon onClick={() => setEditOpen(!openEdit)} />
             )}
             {props.reportButtonVisible && verify() && (
@@ -799,7 +812,9 @@ const CardElement = (props) => {
             {!props.demo && (
               <>
                 <PureModal
-                  header="Редактирай"
+                  header={
+                    isOwner() && !isAdmin() ? "Редактирай" : "Предложи промяна"
+                  }
                   isOpen={openEdit}
                   onClose={() => {
                     setEditOpen(false);
@@ -808,6 +823,7 @@ const CardElement = (props) => {
                 >
                   <Edit
                     close={setEditOpen}
+                    user_id={props.user_id}
                     toast={props.toast}
                     images={props.images}
                     name={props.title}
@@ -819,6 +835,7 @@ const CardElement = (props) => {
                     city={props.city}
                     accessibility={props.accessibility}
                     item_id={props.idData}
+                    isOwner={isOwner}
                   />
                 </PureModal>
 

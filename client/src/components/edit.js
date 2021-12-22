@@ -170,36 +170,23 @@ const Edit = (props) => {
       data.append("location", location);
       data.append("place_id", props.item_id);
       data.append("newImages", Object.keys(files).length ? true : false);
-
-      Array.from(files).forEach((image) => {
-        data.append("images", image);
-      });
-      axios
-        .request({
-          url: "http://localhost:5000/place",
-          method: "PUT",
-          data: data,
-          headers: { jwt: localStorage.getItem("jwt") },
-        })
-        .then((res) => {
-          props.close(false);
-          props.toast.success(
-            "Мястото е редактирано успешно. Презаредете страницата, за да видите промяната.",
-            {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
-        })
-        .catch((err) => {
-          if (err.response.status == 403) {
-            props.toast.warn(
-              "Не сте създали това мяста, за да правите редакции",
+      if (props.isOwner()) {
+        Array.from(files).forEach((image) => {
+          data.append("images", image);
+        });
+      }
+      if (props.isOwner()) {
+        axios
+          .request({
+            url: "http://localhost:5000/place",
+            method: "PUT",
+            data: data,
+            headers: { jwt: localStorage.getItem("jwt") },
+          })
+          .then((res) => {
+            props.close(false);
+            props.toast.success(
+              "Мястото е редактирано успешно. Презаредете страницата, за да видите промяната.",
               {
                 position: "bottom-left",
                 autoClose: 5000,
@@ -210,28 +197,79 @@ const Edit = (props) => {
                 progress: undefined,
               }
             );
-          } else if (err.response.status == 400) {
-            props.toast.error("Подадени са невалидни данни", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
-          } else {
-            props.toast.error("Неспецифична сървърна грешка", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
-          }
-        });
+          })
+          .catch((err) => {
+            if (err.response.status == 403) {
+              props.toast.warn(
+                "Не сте създали това мяста, за да правите редакции",
+                {
+                  position: "bottom-left",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            } else if (err.response.status == 400) {
+              props.toast.error("Подадени са невалидни данни", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            } else {
+              props.toast.error("Неспецифична сървърна грешка", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }
+          });
+      } else {
+        axios
+          .request({
+            url: "http://localhost:5000/place/suggest",
+            method: "PUT",
+            data: {
+              name: name,
+              description: description,
+              city: city,
+              price: price,
+              category: category,
+              price: price,
+              accessibility: accessibility,
+              dangerous: dangerous,
+              location: location,
+              place_id: props.item_id,
+              user_id: props.user_id,
+            },
+            headers: { jwt: localStorage.getItem("jwt") },
+          })
+          .then((res) => {
+            props.close(false);
+            props.toast.success(
+              "Промените са предложени успешно. Ако бъдат одобрени ще получите имейл.",
+              {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              }
+            );
+          });
+      }
     }
   };
   return (
@@ -389,68 +427,71 @@ const Edit = (props) => {
           </Select>
           <FormHelperText>Достъпност</FormHelperText>
         </FormControl>
-
-        <input
-          accept="image/*"
-          style={{ display: "none" }}
-          id="raised-button-file"
-          multiple
-          type="file"
-          onChange={(e) => {
-            if (e.target.files.length > 3) {
-              toast.error(
-                "Не е позволено качването на повече от 3 снимки с размер до 3 МБ",
-                {
-                  position: "bottom-left",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
+        {props.isOwner() && (
+          <>
+            <input
+              accept="image/*"
+              style={{ display: "none" }}
+              id="raised-button-file"
+              multiple
+              type="file"
+              onChange={(e) => {
+                if (e.target.files.length > 3) {
+                  toast.error(
+                    "Не е позволено качването на повече от 3 снимки с размер до 3 МБ",
+                    {
+                      position: "bottom-left",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                    }
+                  );
+                  return false;
                 }
-              );
-              return false;
-            }
-            setFiles(e.target.files);
-          }}
-        />
+                setFiles(e.target.files);
+              }}
+            />
 
-        <label htmlFor="raised-button-file">
-          <Button
-            style={{ textTransform: "none" }}
-            variant="outlined"
-            component="span"
-            startIcon={<ImageIcon />}
-          >
-            Качи снимки
-          </Button>
-        </label>
-        {!Object.keys(files).length &&
-          props.images.map((el) => (
-            <div key={Math.random()}>
-              <Image
-                alt=""
-                style={{ width: "100%" }}
-                src={"http://localhost:5000/image/" + el.url}
-                aspectRatio={16 / 9}
-              />
-            </div>
-          ))}
-        <ul>
-          {Array.from(files).map((image) => {
-            return (
-              <div>
-                <li>{image.name}</li>
-                <img
-                  src={URL.createObjectURL(image)}
-                  style={{ width: "30vw" }}
-                  alt={image.name}
-                />
-              </div>
-            );
-          })}
-        </ul>
+            <label htmlFor="raised-button-file">
+              <Button
+                style={{ textTransform: "none" }}
+                variant="outlined"
+                component="span"
+                startIcon={<ImageIcon />}
+              >
+                Качи снимки
+              </Button>
+            </label>
+            {!Object.keys(files).length &&
+              props.images.map((el) => (
+                <div key={Math.random()}>
+                  <Image
+                    alt=""
+                    style={{ width: "100%" }}
+                    src={"http://localhost:5000/image/" + el.url}
+                    aspectRatio={16 / 9}
+                  />
+                </div>
+              ))}
+            <ul>
+              {Array.from(files).map((image) => {
+                return (
+                  <div>
+                    <li>{image.name}</li>
+                    <img
+                      src={URL.createObjectURL(image)}
+                      style={{ width: "30vw" }}
+                      alt={image.name}
+                    />
+                  </div>
+                );
+              })}
+            </ul>
+          </>
+        )}
         <Typography variant="h5" style={{ textAlign: "center" }}>
           Преглед
         </Typography>
@@ -485,7 +526,7 @@ const Edit = (props) => {
           variant="contained"
           type="submit"
         >
-          Потвърди промяна
+          {props.isOwner() ? "Потвърди промяна" : "Предложи промяната"}
         </Button>
       </form>
     </Container>

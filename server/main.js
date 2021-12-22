@@ -1150,7 +1150,64 @@ server.put(
     );
   }
 );
-
+server.put("/place/suggest", authorizeToken, async (req, res) => {
+  if (
+    !(
+      req.body.name &&
+      req.body.description &&
+      req.body.city &&
+      req.body.category &&
+      req.body.price &&
+      req.body.accessibility &&
+      req.body.dangerous &&
+      req.body.location &&
+      req.body.place_id
+    )
+  ) {
+    res.status(400).send("Incomplete data sent!");
+    return false;
+  }
+  if (req.verified !== true) {
+    res.status(401).send("Account not authorized");
+    return false;
+  }
+  if (
+    !isPointInBulgaria(
+      req.body.location.replace(/\s+/g, "").split(",")[0],
+      req.body.location.replace(/\s+/g, "").split(",")[1]
+    )
+  ) {
+    res.status(400).send("Place is not in Bulgaria!");
+    return false;
+  }
+  console.log(req.body.location);
+  pool.query(
+    `INSERT INTO public.suggested_places(
+      place_id, title, description, placelocation, category, price, accessibility, city, dangerous, suggested_user_id, created_user_id)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    [
+      req.body.place_id,
+      req.body.name,
+      req.body.description,
+      req.body.location,
+      req.body.category,
+      req.body.price,
+      req.body.accessibility,
+      req.body.city,
+      req.body.dangerous,
+      req.user_id,
+      req.body.user_id,
+    ],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send("Place suggested successfully!");
+    }
+  );
+});
 server.delete("/place", authorizeToken, async (req, res) => {
   if (!req.body.place_id) {
     res.status(400);
