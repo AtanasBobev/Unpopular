@@ -4,11 +4,26 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const Name = (props) => {
   const [name, setName] = React.useState();
+  const [token, setToken] = React.useState();
+
   const updateName = () => {
-    if (/[а-яА-ЯЁё]/.test(username) || /[а-яА-ЯЁё]/.test(password)) {
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
+    if (/[а-яА-ЯЁё]/.test(name)) {
       props.toast("Не използвайте кирилица за потребителското име", {
         position: "bottom-left",
         autoClose: 5000,
@@ -63,9 +78,8 @@ const Name = (props) => {
       .request({
         url: "http://localhost:5000/user/name",
         method: "PUT",
-
         data: { name: name },
-        headers: { jwt: localStorage.getItem("jwt") },
+        headers: { jwt: localStorage.getItem("jwt"), token: token },
       })
       .then(() => {
         props.toast("Заявката е изпратена. Проверете си имейла", {
@@ -124,6 +138,39 @@ const Name = (props) => {
         placeholder="Ново име"
         onChange={(e) => setName(e.target.value)}
       ></TextField>
+      <HCaptcha
+        sitekey="10000000-ffff-ffff-ffff-000000000001"
+        size="normal"
+        languageOverride="bg"
+        onVerify={(token) => {
+          setToken(token);
+        }}
+        onError={() => {
+          toast.warn(
+            "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        }}
+        onExpire={() => {
+          toast.warn("Потвърдете отново, че не сте робот", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        }}
+      />
       <center>
         <Button
           onClick={updateName}

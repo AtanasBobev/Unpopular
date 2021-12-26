@@ -223,18 +223,15 @@ const Profile = (props) => {
         link.setAttribute("download", `Data.zip`);
         document.body.appendChild(link);
         link.click();
-        props.toast(
-          "Изтяглянето се стартира. Имейл с данните е изпратен до Вашия имейл адрес",
-          {
-            position: "bottom-left",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          }
-        );
+        props.toast("Изтяглянето се стартира. Копие е изпратено по имейл.", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       })
       .catch((err) => {
         props.error(
@@ -425,28 +422,32 @@ const Profile = (props) => {
             >
               <Name toast={toast} setOpenName={setOpenName} axios={axios} />
             </PureModal>
-            <Button
-              style={{ textTransform: "none", margin: "0.5vmax" }}
-              variant="outlined"
-              onClick={() => {
-                confirmAlert({
-                  title: "Потвърдете",
-                  message:
-                    "Сигурен ли сте, че искате да запазите данните? Ще Ви изпратим копие по имейл",
-                  buttons: [
-                    {
-                      label: "Да",
-                      onClick: () => downloadData(),
-                    },
-                    {
-                      label: "Не",
-                    },
-                  ],
-                });
-              }}
-            >
-              Изтегли всички данни
-            </Button>
+            {userData.length ? (
+              <Button
+                style={{ textTransform: "none", margin: "0.5vmax" }}
+                variant="outlined"
+                onClick={() => {
+                  confirmAlert({
+                    title: "Потвърдете",
+                    message:
+                      "Сигурен ли сте, че искате да запазите данните? Ще Ви изпратим копие по имейл",
+                    buttons: [
+                      {
+                        label: "Да",
+                        onClick: () => downloadData(),
+                      },
+                      {
+                        label: "Не",
+                      },
+                    ],
+                  });
+                }}
+              >
+                Изтегли всички данни
+              </Button>
+            ) : (
+              ""
+            )}
             <Button
               style={{ textTransform: "none", margin: "0.5vmax" }}
               variant="outlined"
@@ -496,7 +497,7 @@ const Profile = (props) => {
       )}
 
       <Box className="CardContainer">
-        {userData !== [] ? (
+        {userData ? (
           userData.map((el) => {
             return (
               <CardComponent
@@ -529,10 +530,10 @@ const Profile = (props) => {
             );
           })
         ) : (
-          <Typography variant="h1">Зареждане на данни</Typography>
+          <Typography variant="h5">Зареждане на данни</Typography>
         )}
       </Box>
-      {userData !== [] && count > viewcount ? (
+      {userData.length && count > viewcount ? (
         <Container
           style={{
             display: "flex",

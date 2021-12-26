@@ -64,6 +64,12 @@ const authorizeToken = (req, res, next) => {
     return err;
   }
 };
+let captcha = fs
+  .readFileSync(path.resolve(__dirname, "./keys/captcha.key"))
+  .toString();
+let cookieSecret = fs
+  .readFileSync(path.resolve(__dirname, "./keys/cookieSecret.key"))
+  .toString();
 const authorizeTokenFunc = (token, token2) => {
   let privateKey = fs
     .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
@@ -179,4 +185,6 @@ module.exports = {
   isMailTemp,
   adminToken,
   adminTokenFunc,
+  captcha,
+  cookieSecret,
 };

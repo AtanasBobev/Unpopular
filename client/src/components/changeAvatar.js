@@ -3,18 +3,30 @@ import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
 import Divider from "@mui/material/Divider";
 import Image from "material-ui-image";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 const Avatar = (props) => {
   const [newAvatar, setNewAvatar] = React.useState(false);
-
+  const [token, setToken] = React.useState();
   const upload = () => {
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     const data = new FormData();
     data.append("images", props.files[0]);
-    console.log(props.files);
     axios
       .post("http://localhost:5000/user/avatar", data, {
-        headers: { jwt: localStorage.getItem("jwt") },
+        headers: { jwt: localStorage.getItem("jwt"), token: token },
       })
       .then(() => {
         props.setOpenAvatar(false);
@@ -104,7 +116,39 @@ const Avatar = (props) => {
             </>
           )
         )}
-
+        <HCaptcha
+          sitekey="10000000-ffff-ffff-ffff-000000000001"
+          size="normal"
+          languageOverride="bg"
+          onVerify={(token) => {
+            setToken(token);
+          }}
+          onError={() => {
+            toast.warn(
+              "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+              {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              }
+            );
+          }}
+          onExpire={() => {
+            toast.warn("Потвърдете отново, че не сте робот", {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }}
+        />
         <label htmlFor="raised-button-file">
           <center></center>
           {newAvatar ||

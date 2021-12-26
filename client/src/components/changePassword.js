@@ -11,6 +11,7 @@ import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ToggleIcon from "material-ui-toggle-icon";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const passwordValidator = require("password-validator");
 
@@ -49,12 +50,24 @@ const Password = (props) => {
   const [password, setPassword] = React.useState();
   const [newPassword, setNewPassword] = React.useState();
   const [newPassword2, setNewPassword2] = React.useState();
-
+  const [token, setToken] = React.useState();
   const [passwordShow1, setShowPassword1] = React.useState(false);
   const [passwordShow2, setShowPassword2] = React.useState(false);
   const [passwordShow3, setShowPassword3] = React.useState(false);
 
   const updateName = () => {
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (newPassword2 !== newPassword) {
       props.toast.warning("Паролите не съвпадат", {
         position: "bottom-left",
@@ -123,7 +136,7 @@ const Password = (props) => {
         url: "http://localhost:5000/user/password",
         method: "PUT",
         data: { password: password, newPassword: newPassword },
-        headers: { jwt: localStorage.getItem("jwt") },
+        headers: { jwt: localStorage.getItem("jwt"), token: token },
       })
       .then(() => {
         props.toast("Заявката е изпратена. Проверете си имейла", {
@@ -138,7 +151,7 @@ const Password = (props) => {
       })
       .catch((err) => {
         if (err.response.status == 409) {
-          props.toast.error(
+          props.toast.warn(
             "Може би сте актуализирали името си. Трябва да влезете отново",
             {
               position: "bottom-left",
@@ -164,7 +177,7 @@ const Password = (props) => {
             }
           );
         } else if (err.response.status == 401) {
-          props.toast.error("Грешна парола", {
+          props.toast.warn("Грешна парола", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -174,7 +187,7 @@ const Password = (props) => {
             progress: undefined,
           });
         } else {
-          props.toast.error("Сървърна грешка", {
+          props.toast.warn("Сървърна грешка", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -305,6 +318,39 @@ const Password = (props) => {
           required
         />
       </FormControl>
+      <HCaptcha
+        sitekey="10000000-ffff-ffff-ffff-000000000001"
+        size="normal"
+        languageOverride="bg"
+        onVerify={(token) => {
+          setToken(token);
+        }}
+        onError={() => {
+          toast.warn(
+            "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        }}
+        onExpire={() => {
+          toast.warn("Потвърдете отново, че не сте робот", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
+        }}
+      />
       <center>
         <Button
           onClick={updateName}

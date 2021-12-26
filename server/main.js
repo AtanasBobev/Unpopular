@@ -7,6 +7,8 @@ const {
   isMailTemp,
   adminToken,
   adminTokenFunc,
+  captcha,
+  cookieSecret,
 } = require("./src/auth");
 const server = express();
 const pool = require("./src/postgre");
@@ -31,19 +33,19 @@ const sendMail = require("./src/email");
 const isPointInBulgaria = require("./src/isPointInBulgaria");
 const passwordValidator = require("password-validator");
 const { verify } = require("hcaptcha");
-const secret = "0x0000000000000000000000000000000000000000";
 var helmet = require("helmet");
 config = {
   allowedTags: ["b", "i", "em", "strong", "a"],
   allowedAttributes: { a: ["href"] },
   allowedIframeHostnames: ["www.youtube.com"],
 };
+const secret = captcha;
 const sanitizeReqBody = sanitizer(config);
 const rateLimit = require("express-rate-limit");
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
-  max: 150, // limit each IP to 100 requests per windowMs
+  max: 150, // limit each IP to 150 requests per windowMs
   message:
     "Too many accounts created from this IP, please try again in a minute",
 });
@@ -120,7 +122,7 @@ setInterval(() => {
   );
 }, 1000 * 60);
 server.use(helmet());
-server.use(cookieParser("MySecret"));
+server.use(cookieParser(cookieSecret));
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json({ limit: "10kb" }));
 server.use(cors({ credentials: true, origin: "http://localhost:3000" }));
@@ -1929,6 +1931,7 @@ server.post("/user/places", authorizeToken, async (req, res) => {
 server.post(
   "/user/avatar",
   authorizeToken,
+  hcverify,
   upload.array("images", 1),
   async (req, res) => {
     let imagesSrc = req.files.map((file) => file.filename);
@@ -3168,7 +3171,7 @@ server.get("/user/unblock/:id", async (req, res) => {
     res.status(401).send("Грешен код");
   }
 });
-server.put("/user/password", authorizeToken, async (req, res) => {
+server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
   if (
     !req.body.password ||
     req.body.newPassword.length < 8 ||
@@ -3273,7 +3276,7 @@ WHERE id=$2`,
   );
 });
 
-server.put("/user/email", authorizeToken, async (req, res) => {
+server.put("/user/email", authorizeToken, hcverify, async (req, res) => {
   if (
     req.body.password == undefined ||
     req.body.email == undefined ||
@@ -3341,14 +3344,13 @@ server.put("/user/email", authorizeToken, async (req, res) => {
   );
 });
 
-server.put("/user/name", authorizeToken, async (req, res) => {
+server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
   if (
     req.body.name.length > 20 ||
     req.body.name.length < 5 ||
     req.body.name == undefined ||
     req.body.name == req.user ||
-    typeof req.body.password !== "string" ||
-    typeof req.body.newPassword !== "string"
+    typeof req.body.name !== "string"
   ) {
     res
       .status(400)

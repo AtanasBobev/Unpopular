@@ -3,6 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "material-ui-image";
+import Link from "@material-ui/core/Link";
 
 const axios = require("axios");
 
@@ -21,7 +22,6 @@ const ImageTooltip = (props) => {
   return (
     <HtmlTooltip
       onMouseEnter={() => {
-        console.log("Username:", props.username);
         axios
           .get(`http://localhost:5000/user/preview`, {
             params: {
@@ -43,9 +43,14 @@ const ImageTooltip = (props) => {
                 src={"http://localhost:5000/image/" + props.avatar}
               />
             )}
-            <Typography style={{ textAlign: "center" }} variant="h4">
+            <Link
+              target="_blank"
+              style={{ textAlign: "center", fontSize: "3vmax", color: "black" }}
+              href={"http://localhost:3000/profile/" + props.author}
+            >
+              {" "}
               {props.author}
-            </Typography>
+            </Link>
             <Typography style={{ textAlign: "center" }} variant="h6">
               {"Качени " +
                 posts +
@@ -67,7 +72,14 @@ const ImageTooltip = (props) => {
             src={"http://localhost:5000/image/" + props.avatar}
           />
         )}
-        {props.author}
+        <Link
+          target="_blank"
+          style={{ color: "black" }}
+          href={"http://localhost:3000/profile/" + props.author}
+        >
+          {" "}
+          {props.author}
+        </Link>
       </div>
     </HtmlTooltip>
   );
