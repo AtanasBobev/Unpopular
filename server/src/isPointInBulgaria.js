@@ -2,9 +2,9 @@ const geolib = require("geolib");
 
 module.exports = function (latitude, longitude) {
   return geolib.isPointInPolygon({ latitude: latitude, longitude: longitude }, [
-    { latitude: 41.349247, longitude: 22.937707 },
-    { latitude: 41.857882, longitude: 27.905287 },
-    { latitude: 44.1507, longitude: 28.556475 },
-    { latitude: 44.283719, longitude: 22.718092 },
+    { latitude: 41.123061, longitude: 22.237707 },
+    { latitude: 41.617865, longitude: 28.87706 },
+    { latitude: 44.169042, longitude: 29.550376 },
+    { latitude: 44.55166, longitude: 22.339255 },
   ]);
 };

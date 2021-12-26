@@ -302,6 +302,7 @@ const Liked = (props) => {
                                 key={Math.random()}
                                 date={el[1][0].date}
                                 idData={el[1][0].place_id}
+                                user_id={el[1][0].user_id}
                                 title={el[1][0].title}
                                 description={el[1][0].description}
                                 price={el[1][0].price}
@@ -309,7 +310,7 @@ const Liked = (props) => {
                                 category={el[1][0].category}
                                 placelocation={el[1][0].placelocation}
                                 dangerous={el[1][0].dangerous}
-                                username={el[1][0].username}
+                                user_id={el[1][0].user_id}
                                 avatar={el[1][0].avatar}
                                 likeButtonVisible={verify()}
                                 reportButtonVisible={true}
@@ -323,6 +324,7 @@ const Liked = (props) => {
                                 adminRights={el[1][0].user_id == ID()}
                                 distance={el[0]}
                                 date={el[1][0].date}
+                                username={el[1][0].username}
                               />
                             </Overlay>
                           ))
@@ -337,6 +339,8 @@ const Liked = (props) => {
                               >
                                 <Card
                                   inSearch={true}
+                                  user_id={el[0].user_id}
+                                  username={el[0].username}
                                   inMap={true}
                                   date={el[0].date}
                                   toast={props.toast}
@@ -356,7 +360,7 @@ const Liked = (props) => {
                                   numbersLiked={Number(el[0].likednumber)}
                                   mainImg={el[0].url}
                                   city={el[0].city}
-                                  username={el[0].username}
+                                  user_id={el[0].user_id}
                                   avatar={el[0].avatar}
                                   images={el}
                                   saveButtonVisible={verify()}
@@ -499,16 +503,18 @@ const Liked = (props) => {
                           inSearch={true}
                           toast={props.toast}
                           key={Math.random()}
+                          user_id={el[1][0].user_id}
                           date={el[1][0].date}
                           idData={el[1][0].place_id}
                           title={el[1][0].title}
+                          username={el[1][0].username}
                           description={el[1][0].description}
                           price={el[1][0].price}
                           accessibility={el[1][0].accessibility}
                           category={el[1][0].category}
                           placelocation={el[1][0].placelocation}
                           dangerous={el[1][0].dangerous}
-                          username={el[1][0].username}
+                          user_id={el[1][0].user_id}
                           avatar={el[1][0].avatar}
                           likeButtonVisible={verify()}
                           reportButtonVisible={true}
@@ -532,7 +538,9 @@ const Liked = (props) => {
                       <>
                         <Card
                           inSearch={true}
+                          user_id={el[0].user_id}
                           date={el[0].date}
+                          username={el[0].username}
                           toast={props.toast}
                           key={Math.random()}
                           idData={el[0].place_id}
@@ -550,7 +558,7 @@ const Liked = (props) => {
                           numbersLiked={Number(el[0].likednumber)}
                           mainImg={el[0].url}
                           city={el[0].city}
-                          username={el[0].username}
+                          user_id={el[0].user_id}
                           avatar={el[0].avatar}
                           images={el}
                           saveButtonVisible={verify()}

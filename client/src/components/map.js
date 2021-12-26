@@ -175,8 +175,10 @@ const MapCard = (props) => {
                     >
                       <Card
                         inMap={true}
+                        username={el[1][0].username}
                         toast={props.toast}
                         key={Math.random()}
+                        user_id={el[1][0].user_id}
                         date={el[1][0].date}
                         idData={el[1][0].place_id}
                         title={el[1][0].title}
@@ -186,7 +188,7 @@ const MapCard = (props) => {
                         category={el[1][0].category}
                         placelocation={el[1][0].placelocation}
                         dangerous={el[1][0].dangerous}
-                        username={el[1][0].username}
+                        user_id={el[1][0].user_id}
                         avatar={el[1][0].avatar}
                         likeButtonVisible={verify()}
                         reportButtonVisible={true}
@@ -217,6 +219,8 @@ const MapCard = (props) => {
                           date={el[0].date}
                           toast={props.toast}
                           key={Math.random()}
+                          username={el[0].username}
+                          user_id={el[0].user_id}
                           idData={el[0].place_id}
                           title={el[0].title}
                           description={el[0].description}
@@ -232,7 +236,7 @@ const MapCard = (props) => {
                           numbersLiked={Number(el[0].likednumber)}
                           mainImg={el[0].url}
                           city={el[0].city}
-                          username={el[0].username}
+                          user_id={el[0].user_id}
                           avatar={el[0].avatar}
                           images={el}
                           saveButtonVisible={verify()}

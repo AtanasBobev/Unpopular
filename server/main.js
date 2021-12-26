@@ -1059,6 +1059,7 @@ server.put(
   authorizeToken,
   throttle({ rate: "2/s" }),
   upload.array("images", 3),
+  hcverify,
   async (req, res) => {
     let imagesSrc = req.files.map((file) => file.filename);
     if (
@@ -1150,7 +1151,7 @@ server.put(
     );
   }
 );
-server.put("/place/suggest", authorizeToken, async (req, res) => {
+server.put("/place/suggest", authorizeToken, hcverify, async (req, res) => {
   if (
     !(
       req.body.name &&
@@ -1180,7 +1181,6 @@ server.put("/place/suggest", authorizeToken, async (req, res) => {
     res.status(400).send("Place is not in Bulgaria!");
     return false;
   }
-  console.log(req.body.location);
   pool.query(
     `INSERT INTO public.suggested_places(
       place_id, title, description, placelocation, category, price, accessibility, city, dangerous, suggested_user_id, created_user_id)
@@ -1198,16 +1198,99 @@ server.put("/place/suggest", authorizeToken, async (req, res) => {
       req.user_id,
       req.body.user_id,
     ],
-    (err, data) => {
+    async (err, data) => {
       if (err) {
         console.log(err);
         res.status(500).send("Internal server error");
         return false;
       }
+      let emailQuery = await pool.query("SELECT email from users where id=$1", [
+        req.body.user_id,
+      ]);
+      sendMail(
+        `Предложение`,
+        `Направено бе предложение за редакция на едно от местата, което Вие сте създали с име ${req.body.name}. Влезнете в профила си, за да одобрите или премахнете промяната: http://localhost:3000`,
+        emailQuery.rows[0].email
+      );
       res.status(200).send("Place suggested successfully!");
     }
   );
 });
+
+server.delete("/place/suggested/rejected", authorizeToken, async (req, res) => {
+  if (!req.body.suggestions_id) {
+    res.status(400).send("Invalid data sent");
+    return false;
+  }
+  await pool.query("DELETE FROM suggested_places WHERE id=$1", [
+    req.body.suggestions_id,
+  ]);
+  res.status(200).send("Suggestion deleted successfully");
+});
+
+server.post("/place/suggested/accepted", authorizeToken, (req, res) => {
+  if (
+    !(
+      req.body.place_id ||
+      req.body.suggestions_id ||
+      req.body.suggested_user_id
+    )
+  ) {
+    res.status(400).send("Not enough information was given");
+    return false;
+  }
+  pool.query(
+    `SELECT COUNT(*) FROM suggested_places JOIN places ON places.place_id=suggested_places.place_id WHERE suggested_places.place_id=$1 AND created_user_id=$2 AND suggested_places.id=$3 `,
+    [req.body.place_id, req.user_id, req.body.suggestions_id],
+    async (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      if (!Number(data.rows[0].count)) {
+        res.status(403).send("You do not have access to accept these changes");
+        return false;
+      }
+      await pool.query(
+        `UPDATE places SET title=suggested_places.title, description=suggested_places.description, placelocation=suggested_places.placelocation, category=suggested_places.category,price=suggested_places.price,accessibility=suggested_places.accessibility,city=suggested_places.city,dangerous=suggested_places.dangerous
+FROM suggested_places
+WHERE places.place_id=suggested_places.place_id AND suggested_places.id=$1`,
+        [req.body.suggestions_id]
+      );
+      res.status(200).send("Place update successfully");
+
+      let emailQuery = await pool.query(
+        "SELECT email from users JOIN suggested_places on suggested_user_id=users.id where suggested_places.id=$1",
+        [req.body.suggestions_id]
+      );
+      pool.query("DELETE FROM suggested_places WHERE id=$1", [
+        req.body.suggestions_id,
+      ]);
+      sendMail(
+        `Редакцията беше одобрена`,
+        `Редакцията на място със заглавие е ${req.body.title} одобрено`,
+        emailQuery.rows[0].email
+      );
+    }
+  );
+});
+
+server.get("/place/suggested", authorizeToken, async (req, res) => {
+  pool.query(
+    `SELECT places.place_id,places.title,places.description,places.placelocation,places.category,places.price,places.accessibility,places.dangerous,places.city,places.dangerous,places.user_id,suggested_places.title as "suggested_places_title",suggested_places.description AS "suggested_places_description",suggested_places.placelocation AS "suggested_places_placelocation",suggested_places.category AS "suggested_places_category",suggested_places.category AS "suggested_places_category", suggested_places.price AS "suggested_places_price", suggested_places.accessibility AS "suggested_places_accessibility", suggested_places.city AS "suggested_places_city", suggested_places.dangerous AS "suggested_places_dangerous",suggested_places.id,suggested_places.suggested_user_id FROM places 
+    JOIN suggested_places ON places.place_id=suggested_places.place_id
+    WHERE user_id=$1 AND created_user_id=$1 LIMIT 999`,
+    [req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500);
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
 server.delete("/place", authorizeToken, async (req, res) => {
   if (!req.body.place_id) {
     res.status(400);
@@ -1633,6 +1716,20 @@ WHERE places.place_id=$1`,
   });
 });
 
+server.get("/user/achievments", authorizeToken, (req, res) => {
+  pool.query(
+    `SELECT date,(SELECT COUNT(*) AS "places_count" FROM places WHERE user_id=$1), (SELECT COUNT(*)  AS "comments_count" FROM comments WHERE user_id=$1), (SELECT COUNT(*) AS  "replies_count" FROM comments_replies WHERE user_id=$1) from users WHERE id=$1`,
+    [req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error!");
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
 server.get("/userLikedPlaces", authorizeToken, (req, res) => {
   if (Number(req.query.limit) < 0 || Number(req.query.limit) > 1000000) {
     res.status(400).send("Invalid LIMIT sent");
@@ -1796,7 +1893,7 @@ server.post("/user/places", authorizeToken, async (req, res) => {
     LEFT JOIN users ON places.user_id = users.id
     WHERE users.id::varchar=$1::varchar OR users.username::varchar=$1::varchar
     ORDER BY likednumber DESC`,
-    [b ? req.user_id : req.body.admin, req.body.limit],
+    [!b ? req.user_id : req.body.admin, req.body.limit],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -2216,7 +2313,7 @@ server.post("/register", hcverify, async (req, res) => {
               res
                 .status(200)
                 .cookie("JWT", jwtToken2, {
-                  maxAge: 86400 * 90,
+                  expire: 1000 * 60 * 60 * 24 * 30 * 9,
                   httpOnly: true,
                   secure: false,
                 })
@@ -2283,7 +2380,7 @@ server.get("/verified", (req, res) => {
         res
           .status(200)
           .cookie("JWT", jwtToken2, {
-            maxAge: 86400 * 90,
+            expire: 1000 * 60 * 60 * 24 * 30 * 9,
             httpOnly: true,
             secure: false,
           })
@@ -2518,7 +2615,7 @@ server.post("/login", hcverify, async (req, res) => {
                 res
                   .status(200)
                   .cookie("JWT", jwtToken2, {
-                    maxAge: 86400 * 90,
+                    expire: 1000 * 60 * 60 * 24 * 30 * 9,
                     httpOnly: true,
                     secure: false,
                   })
@@ -2540,7 +2637,7 @@ server.post("/login", hcverify, async (req, res) => {
                 res
                   .status(200)
                   .cookie("JWT", jwtToken2, {
-                    maxAge: 86400 * 90,
+                    expire: 1000 * 60 * 60 * 24 * 30 * 9,
                     httpOnly: true,
                     secure: false,
                   })
@@ -3331,6 +3428,61 @@ WHERE id=$2`,
     }
   );
 });
+
+server.get("/user/profile/", throttle({ rate: "5/s" }), (req, res) => {
+  if (req.query.username.length < 5 || req.query.username.length > 100) {
+    res.status(400).send("Invalid username");
+    return false;
+  }
+  pool.query(
+    `SELECT places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,user_id,images.url,username,(SELECT avatar FROM users WHERE username=$1) FROM places  JOIN users on users.id=places.user_id 
+    LEFT JOIN images on images.place_id = places.place_id WHERE username=$1  LIMIT 100
+    `,
+    [req.query.username],
+    (err, data) => {
+      if (err) {
+        console.log(err);
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      let copyObj = data.rows;
+      //Handle corrupted records
+      for (const obj of copyObj) {
+        if (obj.place_id === undefined || obj.place_id === null) {
+          copyObj.place_id = Math.random();
+        }
+      }
+      let final = groupBy(copyObj, "place_id");
+      let finalArray = [];
+      //Turn the newly created object of objects into an array of objects for front-end manipulation
+      Object.keys(final).forEach(function (key) {
+        finalArray.push(final[key]);
+      });
+      res.status(200).send(finalArray);
+    }
+  );
+});
+server.get(
+  "/user/profile/additional",
+  throttle({ rate: "5/s" }),
+  (req, res) => {
+    if (req.query.username.length < 5 || req.query.username.length > 100) {
+      res.status(400).send("Invalid username");
+      return false;
+    }
+    pool.query(
+      "SELECT avatar,username,date FROM users WHERE username=$1",
+      [req.query.username],
+      (err, data) => {
+        if (err) {
+          res.status(500).send("Internal server error");
+          return false;
+        }
+        res.status(200).send(data.rows);
+      }
+    );
+  }
+);
 
 server.listen(5000, () => {});
 

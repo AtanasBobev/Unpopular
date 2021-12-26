@@ -488,6 +488,8 @@ const Search = (props) => {
                                   inMap={true}
                                   toast={props.toast}
                                   key={Math.random()}
+                                  username={el[0].username}
+                                  user_id={el[1][0].user_id}
                                   date={el[1][0].date}
                                   idData={el[1][0].place_id}
                                   title={el[1][0].title}
@@ -497,8 +499,9 @@ const Search = (props) => {
                                   category={el[1][0].category}
                                   placelocation={el[1][0].placelocation}
                                   dangerous={el[1][0].dangerous}
-                                  username={el[1][0].username}
+                                  user_id={el[1][0].user_id}
                                   avatar={el[1][0].avatar}
+                                  user_id={el[1][0].user_id}
                                   likeButtonVisible={verify()}
                                   reportButtonVisible={true}
                                   liked={
@@ -537,12 +540,14 @@ const Search = (props) => {
                                     date={el[0].date}
                                     toast={props.toast}
                                     key={Math.random()}
+                                    user_id={el[0].user_id}
                                     idData={el[0].place_id}
                                     title={el[0].title}
                                     description={el[0].description}
                                     price={el[0].price}
                                     accessibility={el[0].accessibility}
                                     category={el[0].category}
+                                    user_id={el[0].user_id}
                                     placelocation={el[0].placelocation}
                                     dangerous={el[0].dangerous}
                                     likeButtonVisible={verify()}
@@ -552,11 +557,12 @@ const Search = (props) => {
                                     numbersLiked={Number(el[0].likednumber)}
                                     mainImg={el[0].url}
                                     city={el[0].city}
-                                    username={el[0].username}
+                                    user_id={el[0].user_id}
                                     avatar={el[0].avatar}
                                     images={el}
                                     saveButtonVisible={verify()}
                                     adminRights={el[0].user_id == ID()}
+                                    username={el[0].username}
                                   />
                                 </Overlay>
                               );
@@ -699,13 +705,13 @@ const Search = (props) => {
                     <>
                       {!props.admin && (
                         <>
-                          {Number(el[1][0].place_id) % 4 == 0 && (
+                          {Number(el[1][0].place_id) % 7 == 0 && (
                             <Poems
                               available={availablePoem}
                               setAvailable={setAvailablePoem}
                             />
                           )}
-                          {Number(el[1][0].place_id) % 2 == 0 && (
+                          {Number(el[1][0].place_id) % 6 == 0 && (
                             <Quotes
                               available={available}
                               setAvailable={setAvailable}
@@ -721,15 +727,17 @@ const Search = (props) => {
                         toast={props.toast}
                         key={Math.random()}
                         date={el[1][0].date}
+                        username={el[1][0].username}
                         idData={el[1][0].place_id}
                         title={el[1][0].title}
                         description={el[1][0].description}
+                        user_id={el[1][0].user_id}
                         price={el[1][0].price}
                         accessibility={el[1][0].accessibility}
                         category={el[1][0].category}
                         placelocation={el[1][0].placelocation}
                         dangerous={el[1][0].dangerous}
-                        username={el[1][0].username}
+                        user_id={el[1][0].user_id}
                         user_id={el[1][0].user_id}
                         avatar={el[1][0].avatar}
                         likeButtonVisible={verify()}
@@ -742,8 +750,10 @@ const Search = (props) => {
                         images={el[1]}
                         saveButtonVisible={verify()}
                         adminRights={el[1][0].user_id == ID()}
+                        user_id={el[1][0].user_id}
                         distance={el[0]}
                         date={el[1][0].date}
+                        username={el[1][0].username}
                       />
                     </>
                   );
@@ -753,13 +763,13 @@ const Search = (props) => {
                     <>
                       {!props.admin && (
                         <>
-                          {Number(el[0].place_id) % 4 == 0 && (
+                          {Number(el[0].place_id) % 7 == 0 && (
                             <Poems
                               available={availablePoem}
                               setAvailable={setAvailablePoem}
                             />
                           )}
-                          {Number(el[0].place_id) % 5 == 0 && (
+                          {Number(el[0].place_id) % 6 == 0 && (
                             <Quotes
                               available={available}
                               setAvailable={setAvailable}
@@ -776,9 +786,11 @@ const Search = (props) => {
                         toast={props.toast}
                         key={Math.random()}
                         idData={el[0].place_id}
+                        username={el[0].username}
                         title={el[0].title}
                         description={el[0].description}
                         price={el[0].price}
+                        user_id={el[0].user_id}
                         accessibility={el[0].accessibility}
                         category={el[0].category}
                         placelocation={el[0].placelocation}
@@ -790,12 +802,13 @@ const Search = (props) => {
                         numbersLiked={Number(el[0].likednumber)}
                         mainImg={el[0].url}
                         city={el[0].city}
-                        username={el[0].username}
+                        user_id={el[0].user_id}
                         avatar={el[0].avatar}
                         user_id={el[0].user_id}
                         images={el}
                         saveButtonVisible={verify()}
                         adminRights={el[0].user_id == ID()}
+                        username={el[0].username}
                       />
                     </>
                   );

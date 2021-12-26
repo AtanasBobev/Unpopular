@@ -1,5 +1,6 @@
 import React from "react";
 import Box from "@material-ui/core/Box";
+import Link from "@material-ui/core/Link";
 import Typography from "@material-ui/core/Typography";
 import FacebookIcon from "@material-ui/icons/Facebook";
 import IconButton from "@material-ui/core/IconButton";
@@ -32,19 +33,34 @@ const Share = (props) => {
       <center>
         <QRCode
           id="qr-gen"
-          value={`https://www.localhost:3000/place/${props.item_id}`}
+          value={`https://www.localhost:3000/place/${window.btoa(
+            props.item_id
+          )}`}
           size={200}
           level={"H"}
           includeMargin={false}
+          style={{ marginBottom: "2vmax" }}
         />
-        <Typography>https://localhost:3000/place/{props.item_id}</Typography>
-        <Box style={{ display: "flex", justifyContent: "space-around" }}>
+        <Typography>
+          <Link
+            href={`http://localhost:3000/place/${window.btoa(props.item_id)}`}
+          >
+            http://localhost:3000/place/{window.btoa(props.item_id)}
+          </Link>
+        </Typography>
+        <Box
+          style={{
+            display: "flex",
+            justifyContent: "space-around",
+            marginTop: "2vmax",
+          }}
+        >
           <IconButton onClick={downloadQRCode} children={<GetAppIcon />} />
           <IconButton
             onClick={() => {
               try {
                 navigator.clipboard.writeText(
-                  `localhost:3000/place/${props.item_id}`
+                  `localhost:3000/place/${window.btoa(props.item_id)}`
                 );
                 props.toast("Линкът е копиран в клипборда", {
                   position: "bottom-left",
@@ -110,7 +126,9 @@ const Share = (props) => {
           />
           <IconButton
             href={getFacebookUrl({
-              url: `https://www.localhost:3000/place/${props.item_id}`,
+              url: `https://www.localhost:3000/place/${window.btoa(
+                props.item_id
+              )}`,
               quote: `Запознай се с ${props.name}`,
               hashtag: "Неизвестно",
             })}
@@ -118,18 +136,13 @@ const Share = (props) => {
           />
           <IconButton
             href={getTwitterUrl({
-              url: `https://www.localhost:3000/place/${props.item_id}`,
+              url: `https://www.localhost:3000/place/${window.btoa(
+                props.item_id
+              )}`,
               text: `Запознай се с ${props.name}`,
               hashtags: "Неизвестно",
             })}
             children={<TwitterIcon />}
-          />
-          <IconButton
-            href={getWhatsAppUrl({
-              url: `https://www.localhost:3000/place/${props.item_id}`,
-              text: `Запознай се с ${props.name}`,
-            })}
-            children={<WhatsAppIcon />}
           />
         </Box>
       </center>

@@ -26,7 +26,11 @@ import DialogContent from "@material-ui/core/DialogContent";
 import Settings from "@material-ui/icons/Settings";
 import LogoutIcon from "@mui/icons-material/Logout";
 import IconButton from "@material-ui/core/IconButton";
+import HailIcon from "@mui/icons-material/Hail";
+import InsightsIcon from "@mui/icons-material/Insights";
+import SuggestedPlaces from "./suggestedPlaces";
 import CardComponent from "./card";
+import UserStats from "./userStats";
 const axios = require("axios");
 
 const Profile = (props) => {
@@ -42,13 +46,15 @@ const Profile = (props) => {
   const [open, setOpen] = React.useState(false);
   const [files, setFiles] = React.useState([]);
   const [avatar, setAvatar] = React.useState();
-
+  const [suggestionsOpen, setSuggestionsOpen] = React.useState(false);
+  const [insightsOpen, setInsightsOpen] = React.useState(false);
   const handleClickOpen = () => {
     setOpen(true);
   };
   const handleClose = () => {
     setOpen(false);
   };
+
   const ID = () => {
     try {
       let a = jwt_decode(localStorage.getItem("jwt"));
@@ -280,10 +286,42 @@ const Profile = (props) => {
           )}
         </center>
         <center>
+          <IconButton
+            onClick={() => {
+              setSuggestionsOpen((prev) => !prev);
+            }}
+            children={<HailIcon />}
+          />
+          <IconButton
+            onClick={() => {
+              setInsightsOpen((prev) => !prev);
+            }}
+            children={<InsightsIcon />}
+          />
           <IconButton onClick={handleClickOpen} children={<Settings />} />
           <IconButton onClick={logOut} children={<LogoutIcon />} />
         </center>
-
+        <Box className="insights">
+          <PureModal
+            header=""
+            onClose={() => {
+              setInsightsOpen(false);
+            }}
+            isOpen={insightsOpen}
+          >
+            <UserStats />
+          </PureModal>
+        </Box>
+        <PureModal
+          className="suggestions"
+          header="Предложения"
+          isOpen={suggestionsOpen}
+          onClose={() => {
+            setSuggestionsOpen(false);
+          }}
+        >
+          <SuggestedPlaces />
+        </PureModal>
         <Dialog
           maxWidth="md"
           onClose={handleClose}
@@ -335,6 +373,7 @@ const Profile = (props) => {
                 setOpenAvatar={setOpenAvatar}
               />
             </PureModal>
+
             <PureModal
               header="Промени парола"
               isOpen={openPassword}
@@ -464,6 +503,8 @@ const Profile = (props) => {
                 inSearch={true}
                 toast={props.toast}
                 key={Math.random()}
+                username={jwt_decode(localStorage.getItem("jwt")).Username}
+                user_id={el[0].user_id}
                 idData={el[0].place_id}
                 title={el[0].title}
                 description={el[0].description}
@@ -482,7 +523,7 @@ const Profile = (props) => {
                 images={el}
                 saveButtonVisible={verify()}
                 adminRights={el[0].user_id == ID()}
-                username={el[0].username}
+                user_id={el[0].user_id}
                 avatar={el[0].avatar}
               />
             );

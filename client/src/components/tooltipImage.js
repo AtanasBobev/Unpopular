@@ -21,6 +21,7 @@ const ImageTooltip = (props) => {
   return (
     <HtmlTooltip
       onMouseEnter={() => {
+        console.log("Username:", props.username);
         axios
           .get(`http://localhost:5000/user/preview`, {
             params: {

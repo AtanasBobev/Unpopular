@@ -10,7 +10,7 @@ import Select from "@material-ui/core/Select";
 import Divider from "@material-ui/core/Divider";
 import Button from "@material-ui/core/Button";
 import ImageIcon from "@material-ui/icons/Image";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import isValidCoords from "is-valid-coords";
 import Card from "./card";
@@ -18,6 +18,9 @@ import { useHistory } from "react-router-dom";
 import isPointInBulgaria from "./isPointInBulgaria";
 import { Map, Marker, ZoomControl } from "pigeon-maps";
 import Image from "material-ui-image";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
+const filter = require("leo-profanity");
+filter.loadDictionary("en");
 const axios = require("axios");
 
 const Edit = (props) => {
@@ -31,9 +34,22 @@ const Edit = (props) => {
   const [accessibility, setAccessibility] = React.useState(props.accessibility);
   const [files, setFiles] = React.useState({});
   const [location, setLocation] = React.useState(props.placelocation);
+  const [token, setToken] = React.useState();
 
   const Upload = (e) => {
     e.preventDefault();
+    if (!token) {
+      toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (!location || !isValidCoords(location.replace(/\s+/g, "").split(","))) {
       toast.error(
         "Невалидни координати! Пример за валидни координати е 47.1231231, 179.99999999",
@@ -55,6 +71,42 @@ const Edit = (props) => {
         )
       ) {
         toast.warn("Координатите не са в България", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(name)) {
+        toast.warn("Името съдържа нецензурни думи", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(description)) {
+        toast.warn("Описанието съдържа нецензурни думи", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
+        return false;
+      }
+      if (filter.check(city)) {
+        toast.warn("Името съдържа нецензурни думи", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -181,7 +233,7 @@ const Edit = (props) => {
             url: "http://localhost:5000/place",
             method: "PUT",
             data: data,
-            headers: { jwt: localStorage.getItem("jwt") },
+            headers: { jwt: localStorage.getItem("jwt"), token: token },
           })
           .then((res) => {
             props.close(false);
@@ -252,12 +304,26 @@ const Edit = (props) => {
               place_id: props.item_id,
               user_id: props.user_id,
             },
-            headers: { jwt: localStorage.getItem("jwt") },
+            headers: { jwt: localStorage.getItem("jwt"), token: token },
           })
           .then((res) => {
             props.close(false);
             props.toast.success(
               "Промените са предложени успешно. Ако бъдат одобрени ще получите имейл.",
+              {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              }
+            );
+          })
+          .catch((err) => {
+            props.toast.error(
+              "Имаше проблем при изпращането на предложението! Пробвайте отново по-късно",
               {
                 position: "bottom-left",
                 autoClose: 5000,
@@ -274,6 +340,12 @@ const Edit = (props) => {
   };
   return (
     <Container maxWidth="sm">
+      <center>
+        <Typography>
+          {!props.isOwner() &&
+            "Предложете промяна на автора на мястото. Ако бъде одобрено, ще получите имейл."}
+        </Typography>
+      </center>
       <form
         onSubmit={(e) => {
           Upload(e);
@@ -520,6 +592,39 @@ const Edit = (props) => {
             adminRights={true}
           />
         </center>
+        <HCaptcha
+          sitekey="10000000-ffff-ffff-ffff-000000000001"
+          size="normal"
+          languageOverride="bg"
+          onVerify={(token) => {
+            setToken(token);
+          }}
+          onError={() => {
+            toast.warn(
+              "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+              {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              }
+            );
+          }}
+          onExpire={() => {
+            toast.warn("Потвърдете отново, че не сте робот", {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            });
+          }}
+        />
         <Button
           style={{ textTransform: "none" }}
           size="large"

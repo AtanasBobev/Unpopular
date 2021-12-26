@@ -259,7 +259,7 @@ const CardElement = (props) => {
   const isOwner = () => {
     try {
       let a = jwt_decode(localStorage.getItem("jwt"));
-      if (a.Username == props.username) {
+      if (a.user_id == props.user_id || isAdmin()) {
         return true;
       } else {
         return false;
@@ -542,6 +542,7 @@ const CardElement = (props) => {
               component="p"
             >
               {!props.inMap &&
+                props.description &&
                 (props.description.length > 45
                   ? props.description.substring(0, 45) + "..."
                   : props.description)}
@@ -577,7 +578,11 @@ const CardElement = (props) => {
                 userSelect: "none",
               }}
             >
-              {likedNumbers}
+              {verify()
+                ? likedNumbers
+                : likedNumbers == 1
+                ? "1 харесване"
+                : likedNumbers + " харесвания"}
             </Typography>
           </Box>
           <Box style={{ display: "flex", userSelect: "none" }}>
@@ -813,7 +818,7 @@ const CardElement = (props) => {
               <>
                 <PureModal
                   header={
-                    isOwner() && !isAdmin() ? "Редактирай" : "Предложи промяна"
+                    isOwner() || isAdmin() ? "Редактирай" : "Предложи промяна"
                   }
                   isOpen={openEdit}
                   onClose={() => {
@@ -851,9 +856,10 @@ const CardElement = (props) => {
                     toast={props.toast}
                     name={props.title}
                     description={
-                      props.description.length > 100
+                      props.description &&
+                      (props.description.length > 100
                         ? props.description.substring(0, 100) + "..."
-                        : props.description
+                        : props.description)
                     }
                     item_id={props.idData}
                   />

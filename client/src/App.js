@@ -19,7 +19,7 @@ import Comments from "./components/adminPanel/comments";
 import Complains from "./components/adminPanel/complains";
 import Users from "./components/adminPanel/users";
 import CookieNotice from "react-cookienotice";
-
+import ProfileUsername from "./components/profileUsername";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-cookienotice/dist/index.css";
@@ -199,7 +199,10 @@ function App() {
         <Route exact path="/comments" component={Comments} />
         <Route exact path="/users" component={Users} />
         <Route exact path="/reports" component={Complains} />
-
+        <Route
+          path="/profile/:username"
+          component={() => <ProfileUsername toast={toast} />}
+        />
         <Route
           exact
           path="/profile"
@@ -212,6 +215,7 @@ function App() {
           }
         />
         <Route path="/place/:id" component={() => <Place toast={toast} />} />
+
         <Route
           path="/reset/:id"
           component={() => <ResetPassword toast={toast} />}

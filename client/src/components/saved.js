@@ -289,11 +289,13 @@ const Saved = (props) => {
                                 .map(Number)}
                             >
                               <Card
+                                username={el[1][0].username}
                                 inSearch={true}
                                 inMap={true}
                                 toast={props.toast}
                                 key={Math.random()}
                                 date={el[1][0].date}
+                                user_id={el[1][0].user_id}
                                 idData={el[1][0].place_id}
                                 title={el[1][0].title}
                                 description={el[1][0].description}
@@ -302,7 +304,7 @@ const Saved = (props) => {
                                 category={el[1][0].category}
                                 placelocation={el[1][0].placelocation}
                                 dangerous={el[1][0].dangerous}
-                                username={el[1][0].username}
+                                user_id={el[1][0].user_id}
                                 avatar={el[1][0].avatar}
                                 likeButtonVisible={verify()}
                                 reportButtonVisible={true}
@@ -330,11 +332,13 @@ const Saved = (props) => {
                               >
                                 <Card
                                   inSearch={true}
+                                  username={el[0].username}
                                   inMap={true}
                                   date={el[0].date}
                                   toast={props.toast}
                                   key={Math.random()}
                                   idData={el[0].place_id}
+                                  user_id={el[0].user_id}
                                   title={el[0].title}
                                   description={el[0].description}
                                   price={el[0].price}
@@ -349,7 +353,7 @@ const Saved = (props) => {
                                   numbersLiked={Number(el[0].likednumber)}
                                   mainImg={el[0].url}
                                   city={el[0].city}
-                                  username={el[0].username}
+                                  user_id={el[0].user_id}
                                   avatar={el[0].avatar}
                                   images={el}
                                   saveButtonVisible={verify()}
@@ -492,16 +496,18 @@ const Saved = (props) => {
                           inSearch={true}
                           toast={props.toast}
                           key={Math.random()}
+                          username={el[1][0].username}
                           date={el[1][0].date}
                           idData={el[1][0].place_id}
                           title={el[1][0].title}
                           description={el[1][0].description}
+                          user_id={el[1][0].user_id}
                           price={el[1][0].price}
                           accessibility={el[1][0].accessibility}
                           category={el[1][0].category}
                           placelocation={el[1][0].placelocation}
                           dangerous={el[1][0].dangerous}
-                          username={el[1][0].username}
+                          user_id={el[1][0].user_id}
                           avatar={el[1][0].avatar}
                           likeButtonVisible={verify()}
                           reportButtonVisible={true}
@@ -529,9 +535,11 @@ const Saved = (props) => {
                           toast={props.toast}
                           key={Math.random()}
                           idData={el[0].place_id}
+                          username={el[0].username}
                           title={el[0].title}
                           description={el[0].description}
                           price={el[0].price}
+                          user_id={el[0].user_id}
                           accessibility={el[0].accessibility}
                           category={el[0].category}
                           placelocation={el[0].placelocation}
@@ -543,7 +551,7 @@ const Saved = (props) => {
                           numbersLiked={Number(el[0].likednumber)}
                           mainImg={el[0].url}
                           city={el[0].city}
-                          username={el[0].username}
+                          user_id={el[0].user_id}
                           avatar={el[0].avatar}
                           images={el}
                           saveButtonVisible={verify()}

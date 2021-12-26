@@ -518,7 +518,7 @@ header {
 }
 
 .pure-modal-backdrop .pure-modal {
-  width: auto !important;
+  min-width: 50vw !important;
   max-height: 80vh !important;
 }
 
@@ -1450,4 +1450,53 @@ header {
 .lastRowComplain {
   display: flex;
   justify-content: center;
+}
+
+.suggestedElement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestions {
+  width: 50vw !important;
+}
+
+.ButtonHolderSuggestions {
+  display: flex;
+  justify-content: space-between;
+  padding: 1vmax;
+}
+
+.insights .pure-modal {
+  width: 90vw !important;
+  height: 90vw;
+  z-index: -1 !important;
+}
+
+.insights .panel-body {
+  z-index: -1 !important;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.textInsight {
+  margin-bottom: 3vmax;
+  width: 30ch;
+  font-size: 3vmax !important;
+}
+
+.flexUser {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 1vmax;
+  width: 90%;
+  margin-left: 5%;
+}
+
+.shadowy {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }

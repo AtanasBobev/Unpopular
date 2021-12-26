@@ -258,7 +258,7 @@ const UserCard = (props) => {
                     images={el}
                     saveButtonVisible={verify()}
                     adminRights={el[0].user_id == ID()}
-                    username={el[0].username}
+                    user_id={el[0].user_id}
                     avatar={el[0].avatar}
                   />
                 );
