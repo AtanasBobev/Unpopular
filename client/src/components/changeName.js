@@ -136,7 +136,7 @@ const Name = (props) => {
         gutterBottom
         style={{ width: "100%", marginBottom: "2vmax", marginTop: "1vmax" }}
         placeholder="Ново име"
-        onChange={(e) => setName(e.target.value)}
+        onBlur={(e) => setName(e.target.value)}
       ></TextField>
       <HCaptcha
         sitekey="10000000-ffff-ffff-ffff-000000000001"

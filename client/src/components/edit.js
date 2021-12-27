@@ -372,7 +372,7 @@ const Edit = (props) => {
           required
         />
         <TextField
-          onChange={(e) => setLocation(e.target.value)}
+          onBlur={(e) => setLocation(e.target.value)}
           defaultValue={props.placelocation}
           className="UploadMain"
           variant="outlined"
@@ -507,7 +507,7 @@ const Edit = (props) => {
               id="raised-button-file"
               multiple
               type="file"
-              onChange={(e) => {
+              onBlur={(e) => {
                 if (e.target.files.length > 3) {
                   toast.error(
                     "Не е позволено качването на повече от 3 снимки с размер до 3 МБ",

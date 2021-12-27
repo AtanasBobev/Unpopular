@@ -774,7 +774,7 @@ const Register = (props) => {
                 </Typography>
                 <Box className="inputFieldArea">
                   <TextField
-                    onChange={(e) => setUsername(e.target.value)}
+                    onBlur={(e) => setUsername(e.target.value)}
                     label="Потребителско име"
                     inputProps={{ maxLength: 20 }}
                     name="username"
@@ -783,7 +783,7 @@ const Register = (props) => {
                     required
                   />
                   <TextField
-                    onChange={(e) => setEmail(e.target.value)}
+                    onBlur={(e) => setEmail(e.target.value)}
                     label="Имейл"
                     inputProps={{ maxLength: 50 }}
                     className="inputField"
@@ -800,7 +800,7 @@ const Register = (props) => {
                     </InputLabel>
 
                     <Input
-                      onChange={(e) => setPassword(e.target.value)}
+                      onBlur={(e) => setPassword(e.target.value)}
                       inputProps={{ maxLength: 100 }}
                       id="standard-name"
                       label="Парола"

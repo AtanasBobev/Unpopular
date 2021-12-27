@@ -43,7 +43,7 @@ const ForgottenPassword = (props) => {
       <form onSubmit={sendLink}>
         <Typography>Въведе имейла си или потребителското име</Typography>
         <TextField
-          onChange={(e) => setCred(e.target.value)}
+          onBlur={(e) => setCred(e.target.value)}
           style={{ width: "100%" }}
           label="Потребителско име/имейл"
           className="inputField"

@@ -170,7 +170,7 @@ const AddComment = (props) => {
           variant="outlined"
           style={{ width: "80%" }}
           inputProps={{ maxLength: 500 }}
-          onChange={(e) => setContent(e.target.value)}
+          onBlur={(e) => setContent(e.target.value)}
         />
         <Button
           size="large"

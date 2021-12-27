@@ -519,7 +519,7 @@ const ResetPassword = (props) => {
             Промяна на паролата
           </Typography>
           <TextField
-            onChange={(e) => setPassword(e.target.value)}
+            onBlur={(e) => setPassword(e.target.value)}
             inputProps={{ maxLength: 100 }}
             id="standard-name"
             label="Нова парола"
@@ -530,7 +530,7 @@ const ResetPassword = (props) => {
           />
           <br />
           <TextField
-            onChange={(e) => setRepeatNewPassword(e.target.value)}
+            onBlur={(e) => setRepeatNewPassword(e.target.value)}
             inputProps={{ maxLength: 100 }}
             id="standard-name"
             label="Потвърди нова парола"

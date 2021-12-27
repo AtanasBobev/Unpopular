@@ -215,7 +215,7 @@ const Password = (props) => {
             marginBottom: "2vmax",
             marginTop: "1vmax",
           }}
-          onChange={(e) => setNewPassword(e.target.value)}
+          onBlur={(e) => setNewPassword(e.target.value)}
           inputProps={{ maxLength: 100 }}
           id="standard-name"
           label="Нова парола"
@@ -254,7 +254,7 @@ const Password = (props) => {
             marginBottom: "2vmax",
             marginTop: "1vmax",
           }}
-          onChange={(e) => setNewPassword2(e.target.value)}
+          onBlur={(e) => setNewPassword2(e.target.value)}
           inputProps={{ maxLength: 100 }}
           id="standard-name"
           label="Потвърдете новата парола"
@@ -293,7 +293,7 @@ const Password = (props) => {
             marginBottom: "2vmax",
             marginTop: "1vmax",
           }}
-          onChange={(e) => setPassword(e.target.value)}
+          onBlur={(e) => setPassword(e.target.value)}
           inputProps={{ maxLength: 100 }}
           id="standard-name"
           label="Текуща парола"

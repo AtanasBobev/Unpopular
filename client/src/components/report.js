@@ -86,7 +86,7 @@ const Report = (props) => {
         <TextField
           style={{ width: "100%", marginTop: "2vmax" }}
           variant="outlined"
-          onChange={(e) => setText(e.target.value)}
+          onBlur={(e) => setText(e.target.value)}
           multiline
           rows={10}
           inputProps={{ maxLength: 500 }}

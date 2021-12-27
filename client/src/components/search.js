@@ -21,16 +21,17 @@ import Checkbox from "@material-ui/core/Checkbox";
 import Switch from "@material-ui/core/Switch";
 import Quotes from "./quotes";
 import Poems from "./poems";
+import AnimatedNumber from "animated-number-react";
 import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 import { ToastContainer } from "react-toastify";
 const axios = require("axios");
 const theme = createMuiTheme({
   palette: {
     primary: {
-      main: "#4169e1",
+      main: "#ffdd00",
     },
     secondary: {
-      main: "#4169e1",
+      main: "#ffdd00",
     },
   },
 });
@@ -679,6 +680,7 @@ const Search = (props) => {
                         <Switch
                           checked={locationChecked && location}
                           onChange={(e) => setLocationChecked(e.target.checked)}
+                          style={{ color: "gold" }}
                         />
                         <Typography>Сортирай по близост</Typography>
                         <Checkbox

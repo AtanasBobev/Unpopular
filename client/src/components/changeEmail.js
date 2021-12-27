@@ -132,7 +132,7 @@ const Email = (props) => {
           gutterBottom
           style={{ width: "100%", marginBottom: "2vmax", marginTop: "1vmax" }}
           placeholder="Нов имейл"
-          onChange={(e) => setEmail(e.target.value)}
+          onBlur={(e) => setEmail(e.target.value)}
           type="email"
         ></TextField>
         <Input
@@ -141,7 +141,7 @@ const Email = (props) => {
           style={{ width: "100%", marginBottom: "2vmax", marginTop: "1vmax" }}
           placeholder="Парола"
           type={passwordShow ? "text" : "password"}
-          onChange={(e) => setPassword(e.target.value)}
+          onBlur={(e) => setPassword(e.target.value)}
           endAdornment={
             <InputAdornment position="end">
               <IconButton

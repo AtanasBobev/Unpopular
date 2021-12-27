@@ -80,7 +80,7 @@ const Delete = (props) => {
         type={passwordShow ? "text" : "password"}
         style={{ width: "100%", marginBottom: "2vmax", marginTop: "1vmax" }}
         placeholder="Потвърдете парола"
-        onChange={(e) => setPassword(e.target.value)}
+        onBlur={(e) => setPassword(e.target.value)}
         endAdornment={
           <InputAdornment position="end">
             <IconButton
