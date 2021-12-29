@@ -74,7 +74,7 @@ const ImageTooltip = (props) => {
         )}
         <Link
           target="_blank"
-          style={{ color: "black" }}
+          style={{ color: !props.white ? "black" : "white" }}
           href={"http://localhost:3000/profile/" + props.author}
         >
           {" "}

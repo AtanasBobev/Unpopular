@@ -3486,7 +3486,11 @@ server.get(
   }
 );
 
-server.listen(5000, () => {});
+const port = process.env.PORT || 5000;
+
+server.listen(port, () => {
+  console.log("Server is up");
+});
 
 const Verification_Email = async (user_id) => {
   let data = await pool.query(

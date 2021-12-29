@@ -701,7 +701,11 @@ const CardElement = (props) => {
                 }}
                 className="userProfileGradient"
               >
-                <TooltipImage author={props.username} avatar={props.avatar} />
+                <TooltipImage
+                  white={"true"}
+                  author={props.username}
+                  avatar={props.avatar}
+                />
               </Box>
             )}
             {props.date && (
