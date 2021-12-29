@@ -868,7 +868,7 @@ header {
   background-color: white;
   padding: 2vmax;
   box-shadow: 0 20px 50px rgba(8, 112, 184, 0.7);
-
+  display: inline-block;
   z-index: 1;
 }
 

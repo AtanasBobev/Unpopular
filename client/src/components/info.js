@@ -402,13 +402,38 @@ const Info = () => {
             <Typography gutterBottom variant="h5">
               <b>Помогни на проекта! </b>
             </Typography>
-          </center>
-          <Typography gutterBottom variant="h6">
-            Изчислителната мощ и пространството за съхранение струват пари.
-            Помогни на проекта да просъществува с дарение на IBAN: 1231257126357
-          </Typography>
-          <center>
-            {" "}
+            <Typography gutterBottom variant="h6">
+              Изчислителната мощ и пространството за съхранение струват пари.
+              Помогни на проекта да просъществува с дарение.
+            </Typography>
+            <center>
+              <form
+                action="https://www.paypal.com/donate"
+                method="post"
+                target="_top"
+              >
+                <input
+                  type="hidden"
+                  name="hosted_button_id"
+                  value="QBB9ZDKCSSXHA"
+                />
+                <input
+                  type="image"
+                  src="https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif"
+                  border="0"
+                  name="submit"
+                  title="PayPal - The safer, easier way to pay online!"
+                  alt="Donate with PayPal button"
+                />
+                <img
+                  alt=""
+                  border="0"
+                  src="https://www.paypal.com/en_BG/i/scr/pixel.gif"
+                  width="1"
+                  height="1"
+                />
+              </form>
+            </center>
             <i>
               <div>
                 Icons made by{" "}
