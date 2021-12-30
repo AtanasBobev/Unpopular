@@ -93,7 +93,7 @@ const Name = (props) => {
         });
       })
       .catch((err) => {
-        if ((err.response.status = 409)) {
+        if (err.response.status == 409) {
           props.toast.error("Потребителското име е вече заето", {
             position: "bottom-left",
             autoClose: 5000,

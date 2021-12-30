@@ -5,3 +5,4 @@ email.js
 postgre.js
 client/src/components/ToDo.txt
 server/src/postgre.js
+server/src/email.js

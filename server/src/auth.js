@@ -49,7 +49,6 @@ const authorizeToken = (req, res, next) => {
   try {
     let decoded = jwt.verify(req.headers.jwt, privateKey);
     let decoded2 = jwt.verify(req.cookies.JWT, privateKey);
-
     if (
       decoded.Username !== decoded2.Username ||
       decoded.user_id !== decoded2.user_id ||
