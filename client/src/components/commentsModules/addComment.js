@@ -193,7 +193,7 @@ const AddComment = (props) => {
           ""
         )}
 
-        {props.data ? (
+        {props.data.length ? (
           <FormControl variant="outlined">
             <Select
               onChange={(e) => {

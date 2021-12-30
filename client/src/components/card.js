@@ -556,11 +556,17 @@ const CardElement = (props) => {
           <Box className="likesContainer">
             {props.likeButtonVisible && (
               <ToggleIcon
-                style={{ color: liked && "#E53935" }}
+                style={{
+                  color: liked && "#E53935",
+                  display: !props.likeButtonVisible && "none",
+                }}
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
-                    style={{ color: "red" }}
+                    style={{
+                      color: "red",
+                      display: !props.likeButtonVisible && "none",
+                    }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
@@ -588,10 +594,13 @@ const CardElement = (props) => {
           <Box style={{ display: "flex", userSelect: "none" }}>
             <TooltipImage author={props.username} avatar={props.avatar} />
           </Box>
-          <Box>
-            {props.saveButtonVisible && (
+          {props.saveButtonVisible && (
+            <Box>
               <ToggleIcon
-                style={{ color: saved && "#FFD700" }}
+                style={{
+                  color: saved && "#EEBC1D",
+                  display: !props.saveButtonVisible && "none",
+                }}
                 on={saved}
                 onIcon={
                   <BookmarkOutlinedIcon
@@ -604,8 +613,8 @@ const CardElement = (props) => {
                   />
                 }
               />
-            )}
-          </Box>
+            </Box>
+          )}
         </CardActions>
       </Card>
       <Dialog
@@ -766,13 +775,17 @@ const CardElement = (props) => {
                 on={liked}
                 onIcon={
                   <FavoriteOutlinedIcon
-                    style={{ fill: "green" }}
+                    style={{
+                      display: !props.likeButtonVisible && "none",
+                    }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
                 offIcon={
                   <FavoriteBorderIcon
-                    style={{ fill: "green" }}
+                    style={{
+                      display: !props.likeButtonVisible && "none",
+                    }}
                     onClick={() => likeSwitcher(props.idData)}
                   />
                 }
@@ -797,7 +810,10 @@ const CardElement = (props) => {
           <Box className="endButtons">
             {props.saveButtonVisible && (
               <ToggleIcon
-                style={{ color: saved && "#FFD700" }}
+                style={{
+                  color: saved && "#EEBC1D",
+                  display: !props.saveButtonVisible && "none",
+                }}
                 on={saved}
                 onIcon={
                   <BookmarkOutlinedIcon

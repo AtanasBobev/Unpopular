@@ -2234,7 +2234,7 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
               }
               sendMail(
                 `Изтриване на профил`,
-                `Поискали сте изтриване на профила. Натиснете линка, за да потвърдите: http://localhost:5000/user/delete/${token} Променете си паролата ако не сте поисквали действието.`,
+                `Поискали сте изтриване на профила. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/delete/${token} Променете си паролата ако не сте поисквали действието.`,
                 req.email
               );
               res.status(200).send("Delete request submitted successfully");
@@ -2310,7 +2310,7 @@ server.post("/register", hcverify, async (req, res) => {
               );
               sendEmail(
                 "Потвърдете вашия акаунт",
-                `Натиснете линка, за да потвърдите акаунта си: http://localhost:5000/verify/${token}`,
+                `Натиснете линка, за да потвърдите акаунта си: https://unknown-backend.herokuapp.com/verify/${token}`,
                 req.body.email
               );
               res
@@ -2340,7 +2340,7 @@ server.get("/verify/:id", (req, res) => {
         return false;
       }
       if (data.rowCount == 0) {
-        res.status(401).send("Линка е грешен");
+        res.status(401).send("Линкът е грешен");
       } else {
         res.status(401).send("Акаунтът е потвърден");
       }
@@ -2420,7 +2420,7 @@ server.get("/newMail", async (req, res) => {
       if (a.diff(b, "minutes") >= 2) {
         sendEmail(
           "Потвърдете вашия акаунт",
-          `Натиснете линка, за да потвърдите акаунта си http://localhost:5000/verify/` +
+          `Натиснете линка, за да потвърдите акаунта си https://unknown-backend.herokuapp.com/verify/` +
             data.rows[0].verified,
           data.rows[0].email
         );
@@ -2510,7 +2510,7 @@ server.post("/login", hcverify, async (req, res) => {
         res.status(403).send("Profile locked");
         sendMail(
           `Профилът Ви беше заключен`,
-          `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: http://localhost:5000/user/unblock/${
+          `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unknown-backend.herokuapp.com/user/unblock/${
             url.rows[data.rows.length - 1].url
           } IP адресите, от е имало опити за влизане са ${ip.filter(
             onlyUnique
@@ -2554,7 +2554,7 @@ server.post("/login", hcverify, async (req, res) => {
             }
             sendMail(
               `Профилът Ви беше заключен`,
-              `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: http://localhost:5000/user/unblock/${token} IP адресите, от е имало опити за влизане са ${ip}`,
+              `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unknown-backend.herokuapp.com/user/unblock/${token} IP адресите, от е имало опити за влизане са ${ip}`,
               email.rows[0].email
             );
           }
@@ -3227,7 +3227,7 @@ server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
               );
               sendMail(
                 `Промяна на паролата`,
-                `Поискали сте промяна на името. Натиснете линка, за да потвърдите: http://localhost:5000/user/password/${token} Променете си паролата ако не сте поисквали промяна.`,
+                `Поискали сте промяна на името. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/password/${token} Променете си паролата ако не сте поисквали промяна.`,
                 req.email
               );
               res.status(200).send("Done");
@@ -3388,7 +3388,7 @@ server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
       }
       sendMail(
         `Промяна на името`,
-        `Поискали сте промяна на името. Натиснете линка, за да потвърдите: http://localhost:5000/user/name/${token} Променете си паролата ако не сте поисквали промяна.`,
+        `Поискали сте промяна на името. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/name/${token} Променете си паролата ако не сте поисквали промяна.`,
         req.email
       );
       res.status(200).send("Check your email");

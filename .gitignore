@@ -1,4 +1,7 @@
 node_modules
 uploads
 keys
+email.js
+postgre.js
 client/src/components/ToDo.txt
+server/src/postgre.js
