@@ -16,7 +16,7 @@
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "dayjs": "^1.10.6",
-    "express": "^4.17.1",
+    "express": "^4.17.2",
     "express-fileupload": "^1.2.1",
     "express-html-sanitizer": "^1.0.1",
     "express-rate-limit": "^5.5.1",
