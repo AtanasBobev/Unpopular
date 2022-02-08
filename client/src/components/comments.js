@@ -132,7 +132,7 @@ const Comments = (props) => {
   };
   const refreshData = () => {
     axios
-      .request("http://localhost:5000/comments", {
+      .request("https://unpopular-backend.herokuapp.com/comments", {
         method: "GET",
         params: {
           place_id: props.idData,

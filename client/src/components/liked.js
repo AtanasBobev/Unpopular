@@ -11,22 +11,11 @@ import Button from "@material-ui/core/Button";
 import Switch from "@material-ui/core/Switch";
 import Checkbox from "@material-ui/core/Checkbox";
 import { getCenter, getPreciseDistance } from "geolib";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 
 import jwt_decode from "jwt-decode";
 import { Map, Marker, ZoomControl, Overlay } from "pigeon-maps";
 const axios = require("axios");
 
-const theme = createMuiTheme({
-  palette: {
-    primary: {
-      main: "#ffdd00",
-    },
-    secondary: {
-      main: "#ffdd00",
-    },
-  },
-});
 const Liked = (props) => {
   const [location, setLocation] = React.useState();
   const [center, setCenter] = React.useState();
@@ -40,6 +29,7 @@ const Liked = (props) => {
   const [numberPlaces, setNumberPlaces] = React.useState(0);
   const [likedLoading, setLikedLoading] = React.useState(1);
   const [likedQueryData, setLikedQueryData] = React.useState([]);
+
   const getCenterCoordinates = () => {
     if (likedQueryData.length) {
       let locationsArray = likedQueryData.map((el) => {
@@ -110,7 +100,7 @@ const Liked = (props) => {
     fetchNumberLiked();
     setLikedLoading(2);
     axios
-      .get("http://localhost:5000/userLikedPlaces", {
+      .get("https://unpopular-backend.herokuapp.com/userLikedPlaces", {
         headers: {
           jwt: localStorage.getItem("jwt"),
           "X-Requested-With": "XMLHttpRequest",
@@ -124,7 +114,7 @@ const Liked = (props) => {
         setLikedLoading(3);
       })
       .catch((err) => {
-        console.log(err);
+        console.error(err);
         setLikedLoading(1);
         props.toast.error(
           "Имаше проблем със сървъра при запитването. Пробвайте отново по-късно!",
@@ -205,7 +195,7 @@ const Liked = (props) => {
   }, [locationChecked]);
   const fetchNumberLiked = () => {
     axios
-      .get("http://localhost:5000/user/count/likedPlaces", {
+      .get("https://unpopular-backend.herokuapp.com/user/count/likedPlaces", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
@@ -224,279 +214,282 @@ const Liked = (props) => {
       });
   };
   return (
-    <ThemeProvider theme={theme}>
-      <Box>
-        <center>
-          <Typography style={{ margin: "2vmax" }} variant="h3">
-            Харесани места
+    <Box>
+      <center>
+        <Typography
+          style={{ margin: "2vmax" }}
+          className="likedText"
+          variant="h3"
+        >
+          Харесани места
+        </Typography>
+        <Box className="oneLiner">
+          <Typography gutterBottom variant="h5">
+            {numberPlaces == 0 ? "Няма резултати" : numberPlaces + " резултата"}
           </Typography>
-          <Box className="oneLiner">
-            <Typography gutterBottom variant="h5">
-              {numberPlaces == 0
-                ? "Няма резултати"
-                : numberPlaces + " резултати"}
-            </Typography>
-            {likedLoading !== 2 && (
-              <IconButton onClick={() => fetchLiked()}>
-                <CachedIcon />
-              </IconButton>
-            )}
-          </Box>
-        </center>
-        {likedQueryData.length == 0 && likedLoading == 3 ? (
-          <img
-            src={require("../images/liked.svg").default}
-            className="noResultsBanner"
-          />
-        ) : (
-          ""
-        )}
-        <Box maxWidth="sm">
-          {likedQueryData.length ? (
-            <FadeIn
-              transitionDuration={600}
-              delay={100}
-              className="CardContainer"
-            >
-              <div className="MapContainer">
-                <center>
-                  <Map
-                    metaWheelZoom={true}
-                    metaWheelZoomWarning={
-                      "Използвайте ctrl+scroll, за да промените мащаба"
-                    }
-                    center={location ? location : center}
-                    zoom={7}
-                    width={"70vw"}
-                    height={"60vh"}
-                  >
-                    <ZoomControl />
-                    {locationChecked && location && (
-                      <Marker anchor={location} color={"red"} />
-                    )}
-                    {markersChecked &&
-                      location &&
-                      likedQueryData.map((el) => (
-                        <Marker
-                          anchor={el[0].placelocation
-                            .replace(/\s+/g, "")
-                            .split(",")
-                            .map(Number)}
-                          color={markerColor(el[0])}
-                        />
-                      ))}
-                    {placesChecked &&
-                      (places.length && locationChecked
-                        ? places.map((el) => (
+          {likedLoading !== 2 && (
+            <IconButton onClick={() => fetchLiked()}>
+              <CachedIcon />
+            </IconButton>
+          )}
+        </Box>
+      </center>
+      {likedQueryData.length == 0 && likedLoading == 3 ? (
+        <img
+          src={require("../images/liked.svg").default}
+          className="noResultsBanner"
+        />
+      ) : (
+        ""
+      )}
+      <Box maxWidth="sm">
+        {likedQueryData.length ? (
+          <FadeIn
+            transitionDuration={600}
+            delay={100}
+            className="CardContainer"
+          >
+            <div className="MapContainer">
+              <center>
+                <Map
+                  metaWheelZoom={true}
+                  metaWheelZoomWarning={
+                    "Използвайте ctrl+scroll, за да промените мащаба"
+                  }
+                  center={location ? location : center}
+                  zoom={7}
+                  width={"70vw"}
+                  height={"60vh"}
+                >
+                  <ZoomControl />
+                  {locationChecked && location && (
+                    <Marker anchor={location} color={"red"} />
+                  )}
+                  {markersChecked &&
+                    location &&
+                    likedQueryData.map((el) => (
+                      <Marker
+                        anchor={el[0].placelocation
+                          .replace(/\s+/g, "")
+                          .split(",")
+                          .map(Number)}
+                        color={markerColor(el[0])}
+                      />
+                    ))}
+                  {placesChecked &&
+                    (places.length && locationChecked
+                      ? places.map((el) => (
+                          <Overlay
+                            offset={[0, 50]}
+                            anchor={el[1][0].placelocation
+                              .replace(/\s+/g, "")
+                              .split(",")
+                              .map(Number)}
+                          >
+                            <Card
+                              inSearch={true}
+                              inMap={true}
+                              toast={props.toast}
+                              key={Math.random()}
+                              date={el[1][0].date}
+                              idData={el[1][0].place_id}
+                              views={el[1][0].views}
+                              user_id={el[1][0].user_id}
+                              title={el[1][0].title}
+                              description={el[1][0].description}
+                              price={el[1][0].price}
+                              accessibility={el[1][0].accessibility}
+                              category={el[1][0].category}
+                              placelocation={el[1][0].placelocation}
+                              dangerous={el[1][0].dangerous}
+                              user_id={el[1][0].user_id}
+                              avatar={el[1][0].avatar}
+                              likeButtonVisible={verify()}
+                              reportButtonVisible={true}
+                              liked={el[1][0].liked == "true" ? true : false}
+                              saved={el[1][0].saved == "true" ? true : false}
+                              numbersLiked={Number(el[1][0].likednumber)}
+                              mainImg={el[1][0].url}
+                              city={el[1][0].city}
+                              images={el[1]}
+                              saveButtonVisible={verify()}
+                              adminRights={el[1][0].user_id == ID()}
+                              distance={el[0]}
+                              date={el[1][0].date}
+                              username={el[1][0].username}
+                            />
+                          </Overlay>
+                        ))
+                      : likedQueryData.map((el) => {
+                          return (
                             <Overlay
                               offset={[0, 50]}
-                              anchor={el[1][0].placelocation
+                              anchor={el[0].placelocation
                                 .replace(/\s+/g, "")
                                 .split(",")
                                 .map(Number)}
                             >
                               <Card
                                 inSearch={true}
+                                user_id={el[0].user_id}
+                                username={el[0].username}
                                 inMap={true}
+                                views={el[0].views}
+                                date={el[0].date}
                                 toast={props.toast}
                                 key={Math.random()}
-                                date={el[1][0].date}
-                                idData={el[1][0].place_id}
-                                user_id={el[1][0].user_id}
-                                title={el[1][0].title}
-                                description={el[1][0].description}
-                                price={el[1][0].price}
-                                accessibility={el[1][0].accessibility}
-                                category={el[1][0].category}
-                                placelocation={el[1][0].placelocation}
-                                dangerous={el[1][0].dangerous}
-                                user_id={el[1][0].user_id}
-                                avatar={el[1][0].avatar}
+                                idData={el[0].place_id}
+                                title={el[0].title}
+                                description={el[0].description}
+                                price={el[0].price}
+                                accessibility={el[0].accessibility}
+                                category={el[0].category}
+                                placelocation={el[0].placelocation}
+                                dangerous={el[0].dangerous}
                                 likeButtonVisible={verify()}
                                 reportButtonVisible={true}
-                                liked={el[1][0].liked == "true" ? true : false}
-                                saved={el[1][0].saved == "true" ? true : false}
-                                numbersLiked={Number(el[1][0].likednumber)}
-                                mainImg={el[1][0].url}
-                                city={el[1][0].city}
-                                images={el[1]}
+                                liked={el[0].liked == "true" ? true : false}
+                                saved={el[0].saved == "true" ? true : false}
+                                numbersLiked={Number(el[0].likednumber)}
+                                mainImg={el[0].url}
+                                city={el[0].city}
+                                user_id={el[0].user_id}
+                                avatar={el[0].avatar}
+                                images={el}
                                 saveButtonVisible={verify()}
-                                adminRights={el[1][0].user_id == ID()}
-                                distance={el[0]}
-                                date={el[1][0].date}
-                                username={el[1][0].username}
+                                adminRights={el[0].user_id == ID()}
                               />
                             </Overlay>
-                          ))
-                        : likedQueryData.map((el) => {
-                            return (
-                              <Overlay
-                                offset={[0, 50]}
-                                anchor={el[0].placelocation
-                                  .replace(/\s+/g, "")
-                                  .split(",")
-                                  .map(Number)}
-                              >
-                                <Card
-                                  inSearch={true}
-                                  user_id={el[0].user_id}
-                                  username={el[0].username}
-                                  inMap={true}
-                                  date={el[0].date}
-                                  toast={props.toast}
-                                  key={Math.random()}
-                                  idData={el[0].place_id}
-                                  title={el[0].title}
-                                  description={el[0].description}
-                                  price={el[0].price}
-                                  accessibility={el[0].accessibility}
-                                  category={el[0].category}
-                                  placelocation={el[0].placelocation}
-                                  dangerous={el[0].dangerous}
-                                  likeButtonVisible={verify()}
-                                  reportButtonVisible={true}
-                                  liked={el[0].liked == "true" ? true : false}
-                                  saved={el[0].saved == "true" ? true : false}
-                                  numbersLiked={Number(el[0].likednumber)}
-                                  mainImg={el[0].url}
-                                  city={el[0].city}
-                                  user_id={el[0].user_id}
-                                  avatar={el[0].avatar}
-                                  images={el}
-                                  saveButtonVisible={verify()}
-                                  adminRights={el[0].user_id == ID()}
-                                />
-                              </Overlay>
-                            );
-                          }))}
-                  </Map>
-                </center>
+                          );
+                        }))}
+                </Map>
+              </center>
 
-                <Box
+              <Box
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingTop: "0.5vmax",
+                }}
+              >
+                <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    paddingTop: "0.5vmax",
                   }}
                 >
                   <div
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      alignItems: "center",
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "red",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
                     }}
-                  >
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "red",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Моята локация</Typography>
+                  ></div>
+                  <Typography>Моята локация</Typography>
 
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "purple",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Заведение</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "orange",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Нощно заведение</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "RoyalBlue",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Магазин</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "green",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Пътека</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "pink",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Място</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "black",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Друго</Typography>
-                  </div>
                   <div
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      alignItems: "center",
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "purple",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
                     }}
-                  >
-                    <Switch
-                      checked={locationChecked && location}
-                      onChange={(e) => setLocationChecked(e.target.checked)}
-                    />
-                    <Typography>Сортирай по близост</Typography>
-                    <Checkbox
-                      trackColor={{ true: "red", false: "grey" }}
-                      checked={markersChecked}
-                      onChange={(e) => setMarkersChecked(e.target.checked)}
-                    />
-                    <Typography>Маркери</Typography>
-                    <Checkbox
-                      checked={placesChecked}
-                      onChange={(e) => setPlacesChecked(e.target.checked)}
-                    />
-                    <Typography>Места</Typography>
-                  </div>
-                </Box>
-              </div>
-              {likedLoading == 3 || likedLoading == 1 ? (
-                places.length && locationChecked ? (
-                  places.map((el) => {
+                  ></div>
+                  <Typography>Сграда</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "orange",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Гледка</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "RoyalBlue",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Екотуризъм</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "green",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Изкуство</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "pink",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Място</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "black",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Друго</Typography>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <Switch
+                    checked={locationChecked && location}
+                    onChange={(e) => setLocationChecked(e.target.checked)}
+                  />
+                  <Typography>Сортирай по близост</Typography>
+                  <Checkbox
+                    trackColor={{ true: "red", false: "grey" }}
+                    checked={markersChecked}
+                    onChange={(e) => setMarkersChecked(e.target.checked)}
+                  />
+                  <Typography>Маркери</Typography>
+                  <Checkbox
+                    checked={placesChecked}
+                    onChange={(e) => setPlacesChecked(e.target.checked)}
+                  />
+                  <Typography>Места</Typography>
+                </div>
+              </Box>
+            </div>
+            {likedLoading == 3 || likedLoading == 1
+              ? places.length && locationChecked
+                ? places.map((el) => {
                     return (
                       <>
                         <Card
@@ -506,6 +499,7 @@ const Liked = (props) => {
                           user_id={el[1][0].user_id}
                           date={el[1][0].date}
                           idData={el[1][0].place_id}
+                          views={el[1][0].views}
                           title={el[1][0].title}
                           username={el[1][0].username}
                           description={el[1][0].description}
@@ -532,8 +526,7 @@ const Liked = (props) => {
                       </>
                     );
                   })
-                ) : (
-                  likedQueryData.map((el) => {
+                : likedQueryData.map((el) => {
                     return (
                       <>
                         <Card
@@ -544,6 +537,7 @@ const Liked = (props) => {
                           toast={props.toast}
                           key={Math.random()}
                           idData={el[0].place_id}
+                          views={el[0].views}
                           title={el[0].title}
                           description={el[0].description}
                           price={el[0].price}
@@ -567,76 +561,102 @@ const Liked = (props) => {
                       </>
                     );
                   })
-                )
-              ) : (
-                <ContentLoader
-                  width={800}
-                  height={575}
-                  viewBox="0 0 800 575"
-                  backgroundColor="#f3f3f3"
-                  foregroundColor="#ecebeb"
-                  {...props}
-                >
-                  <rect x="12" y="58" rx="2" ry="2" width="211" height="211" />
-                  <rect x="240" y="57" rx="2" ry="2" width="211" height="211" />
-                  <rect x="467" y="56" rx="2" ry="2" width="211" height="211" />
-                  <rect x="12" y="283" rx="2" ry="2" width="211" height="211" />
-                  <rect
-                    x="240"
-                    y="281"
-                    rx="2"
-                    ry="2"
-                    width="211"
-                    height="211"
-                  />
-                  <rect
-                    x="468"
-                    y="279"
-                    rx="2"
-                    ry="2"
-                    width="211"
-                    height="211"
-                  />
-                </ContentLoader>
-              )}
-            </FadeIn>
-          ) : (
-            ""
-          )}
-          {likedLoading == 3 &&
-          likedQueryData.length &&
-          Number(likedQueryData[0][0]["count"]) !== 0 &&
-          Number(likedQueryData[0][0]["count"]) > likedQueryOffset ? (
-            <Box
-              style={{
-                width: "100vw",
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "2vmax",
+              : !(window.innerWidth < window.innerHeight) && (
+                  <ContentLoader
+                    width={800}
+                    height={575}
+                    viewBox="0 0 800 575"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                    {...props}
+                  >
+                    <rect
+                      x="12"
+                      y="58"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="240"
+                      y="57"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="467"
+                      y="56"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="12"
+                      y="283"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="240"
+                      y="281"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="468"
+                      y="279"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                  </ContentLoader>
+                )}
+          </FadeIn>
+        ) : (
+          ""
+        )}
+        {likedLoading == 3 &&
+        likedQueryData.length &&
+        Number(likedQueryData[0][0]["count"]) !== 0 &&
+        Number(likedQueryData[0][0]["count"]) > likedQueryOffset ? (
+          <Box
+            style={{
+              width: "100vw",
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "2vmax",
+            }}
+          ></Box>
+        ) : (
+          ""
+        )}
+        <center>
+          {(likedLoading == 3 || likedLoading == 1) &&
+          Number(likedQueryOffset) < Number(numberPlaces) ? (
+            <Button
+              style={{ marginTop: "2vmax" }}
+              onClick={() => {
+                setLikedQueryOffset((prev) => prev + 10);
               }}
-            ></Box>
+              startIcon={<AddIcon />}
+            >
+              Зареди още
+            </Button>
           ) : (
             ""
           )}
-          <center>
-            {(likedLoading == 3 || likedLoading == 1) &&
-            Number(likedQueryOffset) < Number(numberPlaces) ? (
-              <Button
-                style={{ marginTop: "2vmax" }}
-                onClick={() => {
-                  setLikedQueryOffset((prev) => prev + 10);
-                }}
-                startIcon={<AddIcon />}
-              >
-                Зареди още
-              </Button>
-            ) : (
-              ""
-            )}
-          </center>
-        </Box>
+        </center>
       </Box>
-    </ThemeProvider>
+    </Box>
   );
 };
 

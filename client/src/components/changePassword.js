@@ -11,7 +11,7 @@ import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ToggleIcon from "material-ui-toggle-icon";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { toast } from "react-toastify";
 
 const passwordValidator = require("password-validator");
 
@@ -50,14 +50,13 @@ const Password = (props) => {
   const [password, setPassword] = React.useState();
   const [newPassword, setNewPassword] = React.useState();
   const [newPassword2, setNewPassword2] = React.useState();
-  const [token, setToken] = React.useState();
   const [passwordShow1, setShowPassword1] = React.useState(false);
   const [passwordShow2, setShowPassword2] = React.useState(false);
   const [passwordShow3, setShowPassword3] = React.useState(false);
 
   const updateName = () => {
-    if (!token) {
-      props.toast.warn("Не сте потвърдили, че не сте робот", {
+    if (newPassword2 !== newPassword) {
+      props.toast.warning("Паролите не съвпадат", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -68,8 +67,8 @@ const Password = (props) => {
       });
       return false;
     }
-    if (newPassword2 !== newPassword) {
-      props.toast.warning("Паролите не съвпадат", {
+    if (newPassword2 == password) {
+      props.toast.warning("Не може новата парола да е същата като старата", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -133,10 +132,10 @@ const Password = (props) => {
     }
     axios
       .request({
-        url: "http://localhost:5000/user/password",
+        url: "https://unpopular-backend.herokuapp.com/user/password",
         method: "PUT",
         data: { password: password, newPassword: newPassword },
-        headers: { jwt: localStorage.getItem("jwt"), token: token },
+        headers: { jwt: localStorage.getItem("jwt") },
       })
       .then(() => {
         props.toast("Заявката е изпратена. Проверете си имейла", {
@@ -165,7 +164,7 @@ const Password = (props) => {
           );
         } else if (err.response.status == 405) {
           props.toast.warn(
-            "Вече сте използвали системата за изпращане на имейли. Тъй като използваме имейл, който има ограничение, а системата е безплатна, трябва да се съобразяваме с днвена квота. Изчакайате поне 3 минути преди да си промените имейла, името или паролата.",
+            "Имаме ограничена квота за имейли на ден. Моля изчакайте няколко минути преди да направите запитването!",
             {
               position: "bottom-left",
               autoClose: 15000,
@@ -318,39 +317,7 @@ const Password = (props) => {
           required
         />
       </FormControl>
-      <HCaptcha
-        sitekey="10000000-ffff-ffff-ffff-000000000001"
-        size="normal"
-        languageOverride="bg"
-        onVerify={(token) => {
-          setToken(token);
-        }}
-        onError={() => {
-          toast.warn(
-            "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
-            {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            }
-          );
-        }}
-        onExpire={() => {
-          toast.warn("Потвърдете отново, че не сте робот", {
-            position: "bottom-left",
-            autoClose: 5000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-            progress: undefined,
-          });
-        }}
-      />
+
       <center>
         <Button
           onClick={updateName}

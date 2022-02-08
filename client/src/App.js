@@ -24,6 +24,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import "react-cookienotice/dist/index.css";
 import { Switch, Route, Redirect } from "react-router-dom";
+import Scrat from "./components/scrat";
 const axios = require("axios");
 axios.defaults.withCredentials = true;
 
@@ -220,6 +221,8 @@ function App() {
           path="/reset/:id"
           component={() => <ResetPassword toast={toast} />}
         />
+
+        <Route path="/scrat/:id" component={() => <Scrat toast={toast} />} />
 
         <Redirect from="/" to="/search" />
       </Switch>

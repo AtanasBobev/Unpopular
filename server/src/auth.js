@@ -11,9 +11,7 @@ const generateToken = async (
   email,
   admin = false
 ) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
-    .toString();
+  let privateKey = process.env.jwtSecret;
   let token = await jwt.sign(
     {
       Username: Username,
@@ -29,9 +27,7 @@ const generateToken = async (
   return token;
 };
 const authorizeToken = (req, res, next) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
-    .toString();
+  let privateKey = process.env.jwtSecret;
   if (req.headers.jwt == req.cookies.JWT) {
     res.status(401).send("Could not verify you!");
     return false;
@@ -48,15 +44,6 @@ const authorizeToken = (req, res, next) => {
   }
   try {
     let decoded = jwt.verify(req.headers.jwt, privateKey);
-    let decoded2 = jwt.verify(req.cookies.JWT, privateKey);
-    if (
-      decoded.Username !== decoded2.Username ||
-      decoded.user_id !== decoded2.user_id ||
-      decoded.email !== decoded2.email
-    ) {
-      res.status(401).send("Could not verify you!");
-      return false;
-    }
     req.user = decoded.Username;
     req.verified = decoded.Authorized;
     req.user_id = decoded.user_id;
@@ -73,55 +60,31 @@ const authorizeToken = (req, res, next) => {
     return err;
   }
 };
-let captcha = fs
-  .readFileSync(path.resolve(__dirname, "./keys/captcha.key"))
-  .toString();
-let cookieSecret = fs
-  .readFileSync(path.resolve(__dirname, "./keys/cookieSecret.key"))
-  .toString();
+let captcha = process.env.captcha;
+let cookieSecret = process.env.cookieSecret;
 const authorizeTokenFunc = (token, token2) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
-    .toString();
-
+  let privateKey = process.env.jwtSecret;
   try {
     let decoded = jwt.verify(token, privateKey);
     let decoded2 = jwt.verify(token2, privateKey);
     return decoded;
   } catch (err) {
+    console.log(err);
     return false;
   }
 };
 const isMailTemp = async (email) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/tempMail.key"))
-    .toString();
+  let privateKey = process.env.tempMail;
   let data = await axios.get(
     `https://www.istempmail.com/api/check/${privateKey}/${email}`
   );
   return data.data.blocked;
 };
-let chosenIndex = 0;
 const getWeatherKey = () => {
-  try {
-    let rawdata = fs.readFileSync(
-      path.resolve(__dirname, "./keys/weatherKeys.json")
-    );
-    let data = JSON.parse(rawdata);
-    if (chosenIndex !== data.keys.length - 1) {
-      chosenIndex++;
-    } else {
-      chosenIndex = 0;
-    }
-    return data.keys[chosenIndex];
-  } catch (err) {
-    return false;
-  }
+  return process.env.weatherAPI;
 };
 const adminToken = async (req, res, next) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
-    .toString();
+  let privateKey = process.env.jwtSecret;
 
   try {
     let decoded = await jwt.verify(req.headers.jwt, privateKey);
@@ -155,9 +118,7 @@ const adminToken = async (req, res, next) => {
   }
 };
 const adminTokenFunc = async (token) => {
-  let privateKey = fs
-    .readFileSync(path.resolve(__dirname, "./keys/jwt.key"))
-    .toString();
+  let privateKey = process.env.jwtSecret;
   try {
     let decoded = await jwt.verify(token, privateKey);
     if (Boolean(decoded.admin)) {

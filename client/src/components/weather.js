@@ -1,15 +1,17 @@
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import React from "react";
-import Tilt from "react-parallax-tilt";
 import moment from "moment";
 import "moment/locale/bg";
+import Tilty from "react-tilty";
+
 const Weather = (props) => {
   const formatMiliseconds = (milisecond) => {
     let date = new Date(milisecond * 1000);
     let timestr = date.toLocaleTimeString();
     return moment(timestr, ["h:mm:ss A"]).format("HH:mm");
   };
+
   return (
     <Box className="weatherWrapper">
       <center>
@@ -17,7 +19,7 @@ const Weather = (props) => {
           variant="h5"
           style={{ margin: "1vmax", fontWeight: "bold" }}
         >
-          Времето
+          Времето на мястото
         </Typography>
       </center>
       <Box className="mainWeatherWrapper">
@@ -64,8 +66,8 @@ const Weather = (props) => {
         </Box>
       </Box>
       <Box className="daily">
-        {props.data.daily.map((el) => (
-          <Tilt>
+        {props.data.daily.map((el) =>
+          window.innerWidth < window.innerHeight ? (
             <Box className="day">
               <Typography className="dayTitle">
                 {moment(Number(el.dt) * 1000)
@@ -91,8 +93,40 @@ const Weather = (props) => {
               <Typography>Пориви: {Math.round(el.wind_gust)} м/с</Typography>
               <Typography>UV-индекс: {Math.round(el.uvi)}</Typography>
             </Box>
-          </Tilt>
-        ))}
+          ) : (
+            <Tilty reverse={true} gyroscope={true} perspective={2000}>
+              <Box className="day">
+                <Typography className="dayTitle">
+                  {moment(Number(el.dt) * 1000)
+                    .locale("bg")
+                    .format("LL")}
+                </Typography>
+                <Typography>Ден: {Math.round(el.temp.day)} °C</Typography>
+                <Typography>
+                  Усеща се ден: {Math.round(el.feels_like.day)} °C
+                </Typography>
+                <Typography>Нощ: {Math.round(el.temp.night)} °C</Typography>
+                <Typography>
+                  Усеща се нощ: {Math.round(el.feels_like.night)} °C
+                </Typography>
+                <Typography>Минимална: {Math.round(el.temp.min)} °C</Typography>
+                <Typography>
+                  Максимална: {Math.round(el.temp.max)} °C
+                </Typography>
+                <Typography>Влажност: {Math.round(el.humidity)}%</Typography>
+                {el.rain && (
+                  <Typography>
+                    Валежност: {Math.round(el.rain * 10)}%
+                  </Typography>
+                )}
+                <Typography>Налягане: {Math.round(el.pressure)} hPa</Typography>
+                <Typography>Вятър: {Math.round(el.wind_speed)} м/с</Typography>
+                <Typography>Пориви: {Math.round(el.wind_gust)} м/с</Typography>
+                <Typography>UV-индекс: {Math.round(el.uvi)}</Typography>
+              </Box>
+            </Tilty>
+          )
+        )}
       </Box>
     </Box>
   );

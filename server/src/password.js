@@ -1,7 +1,6 @@
 const bcrypt = require("bcrypt");
 const pool = require("./postgre");
 let crypto = require("crypto");
-const moment = require("moment");
 
 async function encrypt(password) {
   const saltRounds = 15;

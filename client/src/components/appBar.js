@@ -38,6 +38,7 @@ import FlagRoundedIcon from "@mui/icons-material/FlagRounded";
 import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import Box from "@material-ui/core/Box";
 import jwt_decode from "jwt-decode";
+import { elastic as Menu } from "react-burger-menu";
 
 const styles = {
   root: {
@@ -59,9 +60,25 @@ const styles = {
 const TopBar = (props) => {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [adminUser, setAdminUser] = React.useState("user");
+  const [isMobile, setIsMobile] = React.useState(
+    window.innerWidth < window.innerHeight
+  );
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
+  React.useEffect(() => {
+    if (
+      location.pathname.substring(1) == "stats" ||
+      location.pathname.substring(1) == "places" ||
+      location.pathname.substring(1) == "comments" ||
+      location.pathname.substring(1) == "users" ||
+      location.pathname.substring(1) == "reports"
+    ) {
+      if (isAdmin()) {
+        setAdminUser("admin");
+      }
+    }
+  }, []);
   const isAdmin = () => {
     try {
       if (Boolean(jwt_decode(localStorage.getItem("jwt")).admin)) {
@@ -80,24 +97,23 @@ const TopBar = (props) => {
   return (
     <div className="indexed">
       <div className="indexed" className={styles.root}>
-        <AppBar color="default">
-          <Toolbar styles={styles.center}>
-            <Typography className="title flex" align="center" variant="h4">
-              <TypeWriterEffect
-                startDelay={100}
-                cursorColor="#F8F8FF"
-                hideCursorAfterText="true"
-                multiText={["#404", "Неизвестно"]}
-                multiTextDelay={1500}
-                typeSpeed={80}
-              />
-            </Typography>
+        <Typography className="title flex" align="center" variant="h4">
+          <TypeWriterEffect
+            startDelay={100}
+            cursorColor="#F8F8FF"
+            hideCursorAfterText="true"
+            multiText={["#404", "Непопулярно"]}
+            multiTextDelay={1500}
+            typeSpeed={80}
+          />
+        </Typography>
+        {isMobile ? (
+          <Menu outerContainerId={"outer-container"}>
             {adminUser == "user" ? (
-              <FadeIn delay={100} transitionDuration={1000} className="fading">
+              <div>
                 <Button
                   component={Link}
                   to="/search"
-                  className="searchButton"
                   variant="outlined"
                   size={"large"}
                   style={{ textTransform: "none" }}
@@ -117,7 +133,7 @@ const TopBar = (props) => {
                   </Button>
                 )}
                 {props.lsA() ? (
-                  <div>
+                  <div className="columns">
                     <Button
                       size={"large"}
                       style={{ textTransform: "none" }}
@@ -181,7 +197,7 @@ const TopBar = (props) => {
                     </Button>
                   </div>
                 ) : (
-                  <div>
+                  <div className="two">
                     <Button
                       startIcon={<CreateOutlinedIcon />}
                       size={"large"}
@@ -221,7 +237,7 @@ const TopBar = (props) => {
                 >
                   За проекта
                 </Button>
-              </FadeIn>
+              </div>
             ) : (
               <Box className="fading">
                 <Button
@@ -335,8 +351,270 @@ const TopBar = (props) => {
                 </ToggleButton>
               </ToggleButtonGroup>
             )}
-          </Toolbar>
-        </AppBar>
+          </Menu>
+        ) : (
+          <AppBar color="default">
+            <Toolbar styles={styles.center}>
+              <Typography className="title flex" align="center" variant="h4">
+                <TypeWriterEffect
+                  startDelay={100}
+                  cursorColor="#F8F8FF"
+                  hideCursorAfterText="true"
+                  multiText={["#404", "Непопулярно"]}
+                  multiTextDelay={1500}
+                  typeSpeed={80}
+                />
+              </Typography>
+              {adminUser == "user" ? (
+                <FadeIn
+                  delay={100}
+                  transitionDuration={1000}
+                  className="fading"
+                >
+                  <Button
+                    component={Link}
+                    to="/search"
+                    className="searchButton"
+                    variant="outlined"
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={<SearchSharpIcon />}
+                  >
+                    Търси
+                  </Button>
+                  {props.ls() && !props.lsA() && (
+                    <Button
+                      size={"large"}
+                      style={{ textTransform: "none" }}
+                      startIcon={<EmailOutlinedIcon />}
+                      component={Link}
+                      to="/verify"
+                    >
+                      Потвърди профила
+                    </Button>
+                  )}
+                  {props.lsA() ? (
+                    <div>
+                      <Button
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        startIcon={
+                          location.pathname.substring(1) == "favorite" ? (
+                            <FavoriteIcon style={{ color: "red" }} />
+                          ) : (
+                            <FavoriteBorderIcon />
+                          )
+                        }
+                        component={Link}
+                        to="/favorite"
+                      >
+                        Любими
+                      </Button>
+                      <Button
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        startIcon={
+                          location.pathname.substring(1) == "saved" ? (
+                            <BookmarkIcon style={{ color: "gold" }} />
+                          ) : (
+                            <BookmarkBorderIcon />
+                          )
+                        }
+                        component={Link}
+                        to="/saved"
+                      >
+                        Запазени
+                      </Button>
+                      <Button
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        startIcon={
+                          location.pathname.substring(1) == "profile" ? (
+                            <PersonIcon />
+                          ) : (
+                            <PersonOutlineIcon />
+                          )
+                        }
+                        component={Link}
+                        to="/profile"
+                      >
+                        Профил
+                      </Button>
+                      <Button
+                        className="uploadButton"
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        startIcon={
+                          location.pathname.substring(1) == "upload" ? (
+                            <PublishIcon />
+                          ) : (
+                            <PublishOutlinedIcon />
+                          )
+                        }
+                        component={Link}
+                        to="/upload"
+                      >
+                        Качи
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="two">
+                      <Button
+                        startIcon={<CreateOutlinedIcon />}
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        component={Link}
+                        to="/register"
+                      >
+                        Регистрация
+                      </Button>
+                      <Button
+                        startIcon={<ExploreOutlinedIcon />}
+                        size={"large"}
+                        style={{ textTransform: "none" }}
+                        component={Link}
+                        to="/login"
+                      >
+                        Влизане
+                      </Button>
+                    </div>
+                  )}
+
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "info" ? (
+                        <SentimentVerySatisfiedOutlinedIcon />
+                      ) : (
+                        <TagFacesOutlinedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/info"
+                  >
+                    За проекта
+                  </Button>
+                </FadeIn>
+              ) : (
+                <Box className="fading">
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "stats" ? (
+                        <AssessmentRoundedIcon />
+                      ) : (
+                        <BarChartRoundedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/stats"
+                  >
+                    Статистика
+                  </Button>
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "places" ? (
+                        <StorefrontRoundedIcon />
+                      ) : (
+                        <StorefrontOutlinedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/places"
+                  >
+                    Места
+                  </Button>
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "comments" ? (
+                        <ChatBubbleRoundedIcon />
+                      ) : (
+                        <ChatBubbleOutlineRoundedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/comments"
+                  >
+                    Коментари
+                  </Button>
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "users" ? (
+                        <PeopleAltRoundedIcon />
+                      ) : (
+                        <PeopleOutlineRoundedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/users"
+                  >
+                    Потребители
+                  </Button>
+                  <Button
+                    aria-controls="simple-menu"
+                    aria-haspopup="true"
+                    onClick={handleClick}
+                    size={"large"}
+                    style={{ textTransform: "none" }}
+                    startIcon={
+                      location.pathname.substring(1) == "reports" ? (
+                        <FlagRoundedIcon />
+                      ) : (
+                        <FlagOutlinedIcon />
+                      )
+                    }
+                    component={Link}
+                    to="/reports"
+                  >
+                    Нередности
+                  </Button>
+                </Box>
+              )}
+
+              {isAdmin() && (
+                <ToggleButtonGroup
+                  value={adminUser}
+                  exclusive
+                  onChange={(e, b) => b !== null && setAdminUser(b)}
+                  aria-label="text alignment"
+                >
+                  <ToggleButton value="user" aria-label="Потребителски преглед">
+                    <AccountCircleIcon />
+                  </ToggleButton>
+                  <ToggleButton
+                    value="admin"
+                    aria-label="Администраторски преглед"
+                  >
+                    <AdminPanelSettingsIcon />
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              )}
+            </Toolbar>
+          </AppBar>
+        )}
       </div>
     </div>
   );

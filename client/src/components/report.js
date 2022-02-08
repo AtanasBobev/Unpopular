@@ -6,6 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import axios from "axios";
 const Report = (props) => {
   const [text, setText] = React.useState("");
+
   const submit = () => {
     if (Number(text.length) < 20) {
       props.toast.warn(
@@ -36,7 +37,7 @@ const Report = (props) => {
     }
     axios
       .post(
-        "http://localhost:5000/report",
+        "https://unpopular-backend.herokuapp.com/report",
         {
           item_id: props.item_id,
           type: props.type,
@@ -46,7 +47,7 @@ const Report = (props) => {
       )
       .then(() => {
         props.setReportOpen(false);
-        props.toast("Докладът е изпратен усешно", {
+        props.toast("Докладът е изпратен", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -84,17 +85,19 @@ const Report = (props) => {
     <Box>
       <center>
         <TextField
-          style={{ width: "100%", marginTop: "2vmax" }}
+          style={{ width: "90%", marginLeft: "5%", marginTop: "0vmax" }}
           variant="outlined"
-          onBlur={(e) => setText(e.target.value)}
+          onChange={(e) => setText(e.target.value)}
           multiline
           rows={10}
           inputProps={{ maxLength: 500 }}
           placeholder="Опишете проблема в до 500 символа"
         />
-        <Typography style={{ textAlign: "left", margin: "0.2vmax" }}>
-          {text.length} символи
-        </Typography>
+        <center>
+          <Typography style={{ textAlign: "center", margin: "0.2vmax" }}>
+            {text.length} символи
+          </Typography>
+        </center>
         <Button
           style={{ textTransform: "none", margin: "1vmax" }}
           variant="contained"

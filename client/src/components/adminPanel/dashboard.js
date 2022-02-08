@@ -8,7 +8,8 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-
+import { toast } from "react-toastify";
+import moment from "moment";
 import jwt_decode from "jwt-decode";
 
 const axios = require("axios");
@@ -30,11 +31,19 @@ const Dashboard = () => {
   };
   React.useEffect(() => {
     if (!isAdmin) {
-      alert("Не сте администратор!");
+      toast.error("Грешка при получаването на информация", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       return false;
     }
     axios
-      .get("http://localhost:5000/stats", {
+      .get("https://unpopular-backend.herokuapp.com/stats", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
@@ -42,7 +51,15 @@ const Dashboard = () => {
         setIps(data.data.ips);
       })
       .catch((err) => {
-        alert("Грешка при получаването на информация");
+        toast.error("Грешка при получаването на информация", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       });
   }, []);
   return (
@@ -57,56 +74,124 @@ const Dashboard = () => {
     >
       <Box className="infoPanelElement blueGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["users_count"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+          }}
+        >
           Регистрирани потребители
         </Typography>
       </Box>
 
       <Box className="infoPanelElement greenGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["places"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>Качени места</Typography>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+          }}
+        >
+          Качени места
+        </Typography>
       </Box>
       <Box className="infoPanelElement yellowGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["images"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>Качени снимки</Typography>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
+          Качени снимки
+        </Typography>
       </Box>
       <Box className="infoPanelElement pinkGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["comments"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>Коментари</Typography>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
+          Коментари
+        </Typography>
       </Box>
       <Box className="infoPanelElement veryGreenGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["replies"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Отговори на коментари
         </Typography>
       </Box>
       <Box className="infoPanelElement stellarGradient">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["replies"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>Харесвания</Typography>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
+          Харесвания
+        </Typography>
       </Box>
 
       <TableContainer
@@ -315,51 +400,101 @@ const Dashboard = () => {
       <Box style={{ flexBasis: "100%" }}></Box>
       <Box className="infoPanelElement defaultContainer">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["active_reports"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Активни нередности
         </Typography>
       </Box>
       <Box className="infoPanelElement defaultContainer">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["users_unverified"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Непотвърдени профили
         </Typography>
       </Box>
       <Box className="infoPanelElement defaultContainer">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["locked_accounts"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Заключени профили
         </Typography>
       </Box>
       <Box className="infoPanelElement defaultContainer">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["active_verification_actons"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Активни действия по профили
         </Typography>
       </Box>
       <Box className="infoPanelElement defaultContainer">
         <center>
-          <Typography style={{ fontSize: "4vmax" }}>
+          <Typography
+            style={{
+              fontSize:
+                window.innerWidth < window.innerHeight ? "4vmax" : "1.2vmax",
+            }}
+          >
             {data && data["users_admins"]}
           </Typography>
         </center>
-        <Typography style={{ fontSize: "1.2vmax" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "3vmax" : "1.2vmax",
+          }}
+        >
           Администраторски профила
         </Typography>
       </Box>
@@ -386,7 +521,9 @@ const Dashboard = () => {
                   {el.user}
                 </TableCell>
                 <TableCell align="center">{el.ip}</TableCell>
-                <TableCell align="center">{el.time}</TableCell>
+                <TableCell align="center">
+                  {moment(el.time).locale("bg").format("LL")}
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>

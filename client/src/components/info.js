@@ -13,16 +13,19 @@ const Info = () => {
   let [saved, setSaved] = React.useState();
   let [comments, setComments] = React.useState();
   let [replies, setReplies] = React.useState();
+
   React.useEffect(() => {
-    axios.get("http://localhost:5000/stats").then((data) => {
-      setPlaces(Number(data.data["places"]));
-      setUsers(Number(data.data["users_count"]));
-      setImages(Number(data.data["images"]));
-      setLiked(Number(data.data["likes"]));
-      setSaved(Number(data.data["saves"]));
-      setComments(Number(data.data["comments"]));
-      setReplies(Number(data.data["replies"]));
-    });
+    axios
+      .get("https://unpopular-backend.herokuapp.com/statsUser")
+      .then((data) => {
+        setPlaces(Number(data.data["places"]));
+        setUsers(Number(data.data["users_count"]));
+        setImages(Number(data.data["images"]));
+        setLiked(Number(data.data["likes"]));
+        setSaved(Number(data.data["saves"]));
+        setComments(Number(data.data["comments"]));
+        setReplies(Number(data.data["replies"]));
+      });
   }, []);
   return (
     <div>
@@ -358,16 +361,19 @@ const Info = () => {
       <div className="backgroundInfo">
         <Box className="info">
           <center>
-            <img className="meImg" src={require("../images/me.jpg").default} />
+            <img className="meImg" src={require("../images/me.jpg")} />
           </center>
-          <Typography gutterBottom variant="h5">
+          <Typography
+            gutterBottom
+            variant={window.innerWidth < window.innerHeight ? "h6" : "h5"}
+          >
             Здравей, името ми е Атанас на {moment().diff("2004-04", "years")}{" "}
             години от София. Занимавам се от няколко години с програмиране и за
-            мен това е начин за свързване на хората по-близо. Вярвам, че всеки
-            трябва да има достъп до платформа където да разказва своята история
-            чрез местата, които е посетил. Идеята за проекта дойде миналото
-            лято, след като бях на гости и не познавах града достатъчно добре,
-            за да знам някои интересни и нетолкова комерсиализирани места.{" "}
+            мен това е начин за свързване на хората. Вярвам, че всеки трябва да
+            има достъп до платформа, където да разказва своята история чрез
+            местата, които е посетил. Идеята за проекта дойде миналото лято,
+            след като бях на гости в град, който не познавах достатъчно добре,
+            за да знам някои интересни и не толкова комерсиални места.{" "}
             <b
               onClick={() =>
                 window
@@ -376,7 +382,7 @@ const Info = () => {
               }
               style={{ color: "gold", cursor: "pointer" }}
             >
-              Неизвестно
+              Непопулярно
             </b>{" "}
             се оформи като платформа за споделяне на интересни места в различни
             градове, предлагайки на всеки достъп до единна база данни с
@@ -387,14 +393,22 @@ const Info = () => {
               <center>
                 <b>Няколко бързи факта за платформата:</b>
               </center>
-              <ul>
-                {places && <li>Качени са {places} места</li>}
-                {users && <li>Регистрирани са {users} потребители</li>}
-                {images && <li>Качени са {images} изображения</li>}
-                {liked && <li>Харесани са {liked} места</li>}
-                {saved && <li>Запазени са {saved} места</li>}
-                {comments && <li>Публикувани са {comments} коментара</li>}
-                {replies && <li>На тези коментари има {replies} отговора</li>}
+              <ul
+                style={{
+                  padding: window.innerWidth < window.innerHeight && "3vmax",
+                }}
+              >
+                {places ? <li>Качени са {places} места</li> : ""}
+                {users ? <li>Регистрирани са {users} потребители</li> : ""}
+                {images ? <li>Има {images} изображения</li> : ""}
+                {liked ? <li>Харесани са {liked} места</li> : ""}
+                {saved ? <li>Запазени са {saved} места</li> : ""}
+                {comments ? <li>Публикувани са {comments} коментари</li> : ""}
+                {replies ? (
+                  <li>На тези коментари има {replies} отговора</li>
+                ) : (
+                  ""
+                )}
               </ul>
             </Typography>
           )}
@@ -403,8 +417,9 @@ const Info = () => {
               <b>Помогни на проекта! </b>
             </Typography>
             <Typography gutterBottom variant="h6">
-              Изчислителната мощ и пространството за съхранение струват пари.
-              Помогни на проекта да просъществува с дарение.
+              Изчислителната мощ, пространството за съхранение, домейни името и
+              сертификата струват пари, които заплащам с мои лични средства.
+              Помогни на проекта да просъществува с дарение!
             </Typography>
             <center>
               <form
@@ -434,6 +449,13 @@ const Info = () => {
                 />
               </form>
             </center>
+            <Typography gutterBottom variant="h5">
+              <b>Свържи се с мен</b>
+            </Typography>
+            <Typography gutterBottom variant="h6">
+              Може да пишете за проблеми, предложения или обратна връзка на
+              unpopular.bulgaria@gmail.com
+            </Typography>
             <i>
               <div>
                 Icons made by{" "}

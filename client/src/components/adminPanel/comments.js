@@ -1,14 +1,14 @@
 import React from "react";
 import jwt_decode from "jwt-decode";
 import Comment from "./../commentsModules/comment";
-const axios = require("axios");
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import Box from "@mui/material/Box";
 import { Typography } from "@material-ui/core";
+const axios = require("axios");
+
 const Comments = () => {
   const [data, setData] = React.useState([]);
   const [replies, setReplies] = React.useState([]);
-
   const isAdmin = () => {
     try {
       if (Boolean(jwt_decode(localStorage.getItem("jwt")).admin)) {
@@ -22,7 +22,15 @@ const Comments = () => {
   };
   React.useEffect(() => {
     if (!isAdmin) {
-      alert("Не сте администратор!");
+      toast.error("Не сте администратор", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
       return false;
     }
     getComments();
@@ -31,7 +39,7 @@ const Comments = () => {
 
   const getComments = () => {
     axios
-      .get("http://localhost:5000/admin/comments", {
+      .get("https://unpopular-backend.herokuapp.com/admin/comments", {
         headers: { jwt: localStorage.getItem("jwt") },
         params: { limit: 9999 },
       })
@@ -39,22 +47,36 @@ const Comments = () => {
         setData(data.data);
       })
       .catch((err) => {
-        alert("Грешка при получаването на информация");
+        toast.error("Грешка при получаването на информация", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       });
   };
   const getReplies = () => {
     axios
-      .get("http://localhost:5000/admin/replies", {
+      .get("https://unpopular-backend.herokuapp.com/admin/replies", {
         headers: { jwt: localStorage.getItem("jwt") },
         params: { limit: 9999 },
       })
       .then((data) => {
         setReplies(data.data);
-        console.log(data);
       })
       .catch((err) => {
-        alert(err);
-        alert("Грешка при получаването на информация");
+        toast.error("Грешка при получаването на информация", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
       });
   };
   const removeReply = (id) => {
@@ -67,7 +89,7 @@ const Comments = () => {
   };
   return (
     <center>
-      <div style={{ display: "flex", justifyContent: "space-evenly" }}>
+      <div className="panel-parent">
         <Box className="side">
           <Typography style={{ fontSize: "3.5vmax", margin: "1vmax" }}>
             Коментари

@@ -12,7 +12,7 @@ const Verify = (props) => {
   const history = useHistory();
   const check = () => {
     axios
-      .get("http://localhost:5000/verified", {
+      .get("https://unpopular-backend.herokuapp.com/verified", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
@@ -43,7 +43,7 @@ const Verify = (props) => {
             }
           );
         } else if (err.response.status == 403) {
-          toast.warn("Все още не сте потвърдили акаунта си!", {
+          toast.warn("Все още не сте потвърдили акаунта си", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -67,11 +67,11 @@ const Verify = (props) => {
   };
   const sendMail = () => {
     axios
-      .get("http://localhost:5000/newMail", {
+      .get("https://unpopular-backend.herokuapp.com/newMail", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
-        toast.success("Имейла е изпратен, проверете пощата си", {
+        toast("Имейла е изпратен, проверете пощата си", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,

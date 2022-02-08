@@ -15,12 +15,13 @@ const ProfileUsername = () => {
   const [data, setData] = React.useState([]);
   const [additional, setAdditional] = React.useState({});
   const [avatar, setAvatar] = React.useState("");
+  const [admin, setAdmin] = React.useState(false);
   const [username1, setUsername] = React.useState("");
   const [loading, setLoading] = React.useState(1);
 
   React.useLayoutEffect(() => {
     axios
-      .get("http://localhost:5000/user/profile/", {
+      .get("https://unpopular-backend.herokuapp.com/user/profile/", {
         params: { username: username },
       })
       .then((data) => setData(data.data))
@@ -36,7 +37,7 @@ const ProfileUsername = () => {
         });
       });
     axios
-      .get("http://localhost:5000/user/profile/additional", {
+      .get("https://unpopular-backend.herokuapp.com/user/profile/additional", {
         params: { username: username },
       })
       .then((data) => {
@@ -49,8 +50,10 @@ const ProfileUsername = () => {
           if (data.data[0].hasOwnProperty("username")) {
             setUsername(data.data[0].username);
           }
+          setAdmin(Boolean(data.data[0].admin));
         }
-      });
+      })
+      .catch((err) => {});
   }, []);
   const ID = () => {
     try {
@@ -77,20 +80,31 @@ const ProfileUsername = () => {
               draggable="false"
               className="shadowy"
               style={{ borderRadius: "50%", width: "20vmax", height: "20vmax" }}
-              src={"http://localhost:5000/image/" + avatar}
+              src={"" + avatar}
               alt={"Имаше проблем при зареждането на аватара"}
             />
           </>
         )}
 
-        <Typography className="shadowy2" variant="h3">
+        <Typography className="shadowy2 mainTitle" variant="h3">
           {username1}
         </Typography>
         {username1 && loading == 3 ? (
-          <Typography className="shadowy2" variant="h6">
-            Присъединил се на{" "}
-            {username1 && moment(additional.date).locale("bg").format("LL")}
-          </Typography>
+          <>
+            <Typography className="shadowy2" variant="h6">
+              Присъединил се на{" "}
+              {username1 && moment(additional.date).locale("bg").format("LL")}
+            </Typography>
+            {admin && (
+              <Typography
+                className="shadowy2"
+                style={{ color: "#EEBC1D" }}
+                variant="h7"
+              >
+                Администратор
+              </Typography>
+            )}
+          </>
         ) : (
           <Box
             style={{
@@ -102,9 +116,19 @@ const ProfileUsername = () => {
               display: loading !== 3 && "none",
             }}
           >
-            <Typography variant="h2">Потребителят не е намерен</Typography>
+            <Typography
+              variant="h2"
+              style={{
+                fontSize: window.innerWidth < window.innerHeight && "7vmax",
+              }}
+            >
+              Потребителят не е намерен
+            </Typography>
             <img
-              style={{ width: "40vw", pointerEvents: "none" }}
+              style={{
+                width: window.innerWidth < window.innerHeight ? "70vw" : "40vw",
+                pointerEvents: "none",
+              }}
               src={require("./../images/404People.svg").default}
             />
           </Box>

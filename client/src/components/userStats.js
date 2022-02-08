@@ -5,18 +5,15 @@ import Typography from "@material-ui/core/Typography";
 import moment from "moment";
 
 import axios from "axios";
-const userStats = (props) => {
+const UserStats = (props) => {
   const [data, setData] = React.useState({});
   React.useLayoutEffect(() => {
     axios
-      .get("http://localhost:5000/user/achievments/", {
+      .get("https://unpopular-backend.herokuapp.com/user/achievments/", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
         setData(data.data[0]);
-      })
-      .catch((err) => {
-        console.log(err);
       });
   }, []);
   return (
@@ -181,14 +178,14 @@ const userStats = (props) => {
       <center>
         {" "}
         <Typography className="textInsight">
-          Благодарим, че сте част от Неизвестно вече{" "}
+          Благодарим, че сте част от Непопулярно вече{" "}
           {data && moment().diff(data.date, "days")} дни. За това време сте
           качили {data && data.places_count} места, написали сте{" "}
-          {data && data.comments_count} коментари и сте отговорили на{" "}
+          {data && data.comments_count} коментара и сте отговорили на{" "}
           {data.replies_count}!
         </Typography>
       </center>
     </Box>
   );
 };
-export default userStats;
+export default UserStats;

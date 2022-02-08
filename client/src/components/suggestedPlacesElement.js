@@ -18,22 +18,22 @@ const Element = (props) => {
   const [expanded, setExpanded] = React.useState(false);
   const category = (num) => {
     switch (Number(num)) {
+      case 1:
+        return "Сграда";
+        break;
       case 2:
-        return "Заведение";
+        return "Гледка";
         break;
       case 3:
-        return "Нощно заведение";
+        return "Екотуризъм";
         break;
       case 4:
-        return "Магазин";
+        return "Изкуство";
         break;
       case 5:
-        return "Пътека";
+        return "Заведение";
         break;
       case 6:
-        return "Място";
-        break;
-      case 7:
         return "Друго";
         break;
       default:
@@ -94,13 +94,25 @@ const Element = (props) => {
 
   const rejectPlace = () => {
     axios
-      .delete("http://localhost:5000/place/suggested/rejected", {
-        headers: { jwt: localStorage.getItem("jwt") },
-        data: {
-          suggestions_id: props.suggestions_id,
-        },
-      })
+      .delete(
+        "https://unpopular-backend.herokuapp.com/place/suggested/rejected",
+        {
+          headers: { jwt: localStorage.getItem("jwt") },
+          data: {
+            suggestions_id: props.suggestions_id,
+          },
+        }
+      )
       .then(() => {
+        props.toast("Предложението е изтрито", {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        });
         props.deleteMe(props.suggestions_id);
       })
       .catch(() => {
@@ -119,7 +131,7 @@ const Element = (props) => {
   const updatePlace = () => {
     axios
       .post(
-        "http://localhost:5000/place/suggested/accepted",
+        "https://unpopular-backend.herokuapp.com/place/suggested/accepted",
         {
           place_id: props.place_id,
           suggestions_id: props.suggestions_id,
@@ -130,7 +142,7 @@ const Element = (props) => {
       )
       .then(() => {
         props.deleteMe(props.suggestions_id);
-        props.toast("Предложението е прието успешно", {
+        props.toast("Предложението е прието", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -167,7 +179,7 @@ const Element = (props) => {
             <Table aria-label="Таблица с промени">
               <TableHead>
                 <TableRow>
-                  <TableCell>Категория</TableCell>
+                  <TableCell>*</TableCell>
                   <TableCell>Оригинал</TableCell>
                   <TableCell>Промяна</TableCell>
                 </TableRow>

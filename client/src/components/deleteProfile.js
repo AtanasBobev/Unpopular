@@ -10,9 +10,15 @@ import IconButton from "@mui/material/IconButton";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ToggleIcon from "material-ui-toggle-icon";
+import Typography from "@material-ui/core/Typography";
+
+import { useHistory } from "react-router-dom";
+
 import axios from "axios";
 
 const Delete = (props) => {
+  const history = useHistory();
+
   const [password, setPassword] = React.useState();
   const [token, setToken] = React.useState();
   const [passwordShow, setShowPassword] = React.useState(false);
@@ -31,13 +37,14 @@ const Delete = (props) => {
     }
     axios
       .request({
-        url: "http://localhost:5000/user/delete",
+        url: "https://unpopular-backend.herokuapp.com/user/delete",
         method: "DELETE",
         data: { password: password },
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then(() => {
-        props.setDelete(false);
+        localStorage.removeItem("jwt");
+        history.push("/search");
         props.toast("Заявката е изпратена. Проверете си имейла", {
           position: "bottom-left",
           autoClose: 5000,
@@ -47,6 +54,7 @@ const Delete = (props) => {
           draggable: true,
           progress: undefined,
         });
+        props.setDelete(false);
       })
       .catch((err) => {
         if (err.response.status == 401) {
@@ -74,6 +82,11 @@ const Delete = (props) => {
   };
   return (
     <Box>
+      <Typography>
+        Изтриването на профила води и до изтриването на всички места, коментари,
+        отговори асоциирани с него, данни на потребителя, така както и негови
+        коментари. Действието е безвъзвратно!
+      </Typography>
       <Input
         inputProps={{ maxLength: 100 }}
         gutterBottom
@@ -98,7 +111,7 @@ const Delete = (props) => {
         }
       ></Input>
       <HCaptcha
-        sitekey="10000000-ffff-ffff-ffff-000000000001"
+        sitekey="f21dbfcd-0f79-42dd-ac97-2a7b6b63980a"
         size="normal"
         languageOverride="bg"
         onVerify={(token) => {

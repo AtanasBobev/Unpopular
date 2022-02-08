@@ -20,7 +20,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 const moment = require("moment");
@@ -38,7 +37,6 @@ const isAdmin = () => {
 };
 const AddComment = (props) => {
   const [content, setContent] = React.useState("");
-  const [token, setToken] = React.useState();
 
   const verify = () => {
     try {
@@ -76,25 +74,13 @@ const AddComment = (props) => {
       );
       return false;
     }
-    if (!token) {
-      props.toast.warn("Не сте потвърдили, че не сте робот", {
-        position: "bottom-left",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      return false;
-    }
+
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/comment`,
+        url: `https://unpopular-backend.herokuapp.com/comment`,
         headers: {
           jwt: localStorage.getItem("jwt"),
-          token: token,
         },
         data: {
           place_id: props.place_id,
@@ -168,9 +154,11 @@ const AddComment = (props) => {
           disabled={!verify()}
           multiline
           variant="outlined"
-          style={{ width: "80%" }}
-          inputProps={{ maxLength: 500 }}
-          onBlur={(e) => setContent(e.target.value)}
+          style={{
+            width: window.innerWidth < window.innerHeight ? "100%" : "80%",
+          }}
+          inputProps={{ maxLength: 500, fontSize: 40 }}
+          onChange={(e) => setContent(e.target.value)}
         />
         <Button
           size="large"
@@ -184,7 +172,13 @@ const AddComment = (props) => {
         </Button>
       </Box>
 
-      <Box style={{ display: "flex", justifyContent: "space-between" }}>
+      <Box
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          flexDirection: window.innerWidth < window.innerHeight && "column",
+        }}
+      >
         {content ? (
           <Typography style={{ color: content.length > 500 && "red" }}>
             {content.length}/500 символа
@@ -193,7 +187,7 @@ const AddComment = (props) => {
           ""
         )}
 
-        {props.data.length ? (
+        {props.data.length >= 2 ? (
           <FormControl variant="outlined">
             <Select
               onChange={(e) => {
@@ -213,41 +207,6 @@ const AddComment = (props) => {
           </FormControl>
         ) : (
           ""
-        )}
-        {verify() && (
-          <HCaptcha
-            sitekey="10000000-ffff-ffff-ffff-000000000001"
-            size="normal"
-            languageOverride="bg"
-            onVerify={(token) => {
-              setToken(token);
-            }}
-            onError={() => {
-              props.toast.warn(
-                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
-                {
-                  position: "bottom-left",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                }
-              );
-            }}
-            onExpire={() => {
-              props.toast.warn("Потвърдете отново, че не сте робот", {
-                position: "bottom-left",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-            }}
-          />
         )}
       </Box>
     </Box>

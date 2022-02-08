@@ -142,6 +142,7 @@ const MapCard = (props) => {
             metaWheelZoomWarning={
               "Използвайте ctrl+scroll, за да промените мащаба"
             }
+            twoFingerDragWarning={"Използвайте два пръста, за да скролнете"}
             center={props.location ? props.location : center}
             zoom={7}
             width={"70vw"}
@@ -152,7 +153,6 @@ const MapCard = (props) => {
               <Marker anchor={props.location} color={"red"} />
             )}
             {markersChecked &&
-              props.location &&
               props.queryData.length &&
               props.queryData.map((el) => (
                 <Marker
@@ -181,6 +181,7 @@ const MapCard = (props) => {
                         user_id={el[1][0].user_id}
                         date={el[1][0].date}
                         idData={el[1][0].place_id}
+                        views={el[1][0].views
                         title={el[1][0].title}
                         description={el[1][0].description}
                         price={el[1][0].price}
@@ -222,6 +223,7 @@ const MapCard = (props) => {
                           username={el[0].username}
                           user_id={el[0].user_id}
                           idData={el[0].place_id}
+                          views={el[0].views}
                           title={el[0].title}
                           description={el[0].description}
                           price={el[0].price}
@@ -287,7 +289,7 @@ const MapCard = (props) => {
               marginLeft: "1vmax",
             }}
           ></div>
-          <Typography>Заведение</Typography>
+          <Typography>Сграда</Typography>
           <div
             style={{
               height: "1vmax",
@@ -298,7 +300,7 @@ const MapCard = (props) => {
               marginLeft: "1vmax",
             }}
           ></div>
-          <Typography>Нощно заведение</Typography>
+          <Typography>Гледка</Typography>
           <div
             style={{
               height: "1vmax",
@@ -309,7 +311,7 @@ const MapCard = (props) => {
               marginLeft: "1vmax",
             }}
           ></div>
-          <Typography>Магазин</Typography>
+          <Typography>Екотуризъм</Typography>
           <div
             style={{
               height: "1vmax",
@@ -320,7 +322,7 @@ const MapCard = (props) => {
               marginLeft: "1vmax",
             }}
           ></div>
-          <Typography>Пътека</Typography>
+          <Typography>Изкуство</Typography>
           <div
             style={{
               height: "1vmax",

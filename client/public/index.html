@@ -6,8 +6,8 @@
   <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#000000" />
-  <meta name="Неизвестно" content="Платформа за споделяне на неверотяни места в България" />
-  <meta property="og:title" content="Неизвестно" />
+  <meta name="Непопулярно" content="Платформа за споделяне на неверотяни места в България" />
+  <meta property="og:title" content="Непопулярно" />
   <meta property="og:image" content="%PUBLIC_URL%/favicon.svg" />
   <meta property="og:description" content="Платформа за споделяна на невероятни места в България" />
   <meta name="googlebot" content="notranslate" />
@@ -16,40 +16,44 @@
   <meta name="language" content="Bulgarian">
   <meta http-equiv="content-language" content="bg">
   <meta name="og:image" content="%PUBLIC_URL%/favicon.svg" />
-  <meta name="og:site_name" content="Неизвестно" />
+  <meta name="og:site_name" content="Непопулярно" />
   <meta name="og:country-name" content="Bulgaria" />
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta content="yes" name="apple-touch-fullscreen" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="format-detection" content="telephone=no">
-  <meta name="twitter:title" content="Неизвестно">
+  <meta name="twitter:title" content="Непопулярно">
   <meta name="twitter:description" content="Платформа за споделяна на невероятни места в България">
   <meta name="twitter:image" content="%PUBLIC_URL%/favicon.svg">
   <meta name="twitter:image:alt" content="Ела на сайта!">
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8; X-Content-Type-Options=nosniff" http-equiv="Content-Type" />
 
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-  <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-  <title>Неизвестно</title>
+  <title>Непопулярно</title>
 </head>
 
 <body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <noscript>Няма как да работи без Javascript</noscript>
   <div id="root"></div>
   <script>
+    console.log('    %c ',
+      'font-size:700px; background:url(https://www.memecreator.org/static/images/memes/4761972.jpg) center center no-repeat;'
+    );
+    console.log(
+      "%cПомогни на проекта в GitHub или с дарение",
+      "color: gold; font-size: 35px;"
+    );
+    const host = "unpopular-bulgaria.com";
+    if ((host == window.location.host) && (window.location.protocol != "https:")) {
+      window.location.protocol = "https";
+    }
     window.onblur = function () {
       document.title = "Хей, къде отиде :)";
     };
 
     window.onfocus = function () {
-      document.title = "Неизвестно";
+      document.title = "Непопулярно";
     };
   </script>
 </body>

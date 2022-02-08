@@ -10,6 +10,8 @@ const {
   captcha,
   cookieSecret,
 } = require("./src/auth");
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
 const server = express();
 const pool = require("./src/postgre");
 const sendEmail = require("./src/email");
@@ -33,15 +35,29 @@ const sendMail = require("./src/email");
 const isPointInBulgaria = require("./src/isPointInBulgaria");
 const passwordValidator = require("password-validator");
 const { verify } = require("hcaptcha");
-var helmet = require("helmet");
+const helmet = require("helmet");
 config = {
-  allowedTags: ["b", "i", "em", "strong", "a"],
-  allowedAttributes: { a: ["href"] },
-  allowedIframeHostnames: ["www.youtube.com"],
+  allowedTags: [],
+  allowedAttributes: {},
+  allowedIframeHostnames: [],
 };
 const secret = captcha;
 const sanitizeReqBody = sanitizer(config);
 const rateLimit = require("express-rate-limit");
+
+cloudinary.config({
+  cloud_name: process.env.cloud_name,
+  api_key: process.env.api_key,
+  api_secret: process.env.api_secret,
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: process.env.folder_upload,
+  },
+  allowedFormats: ["jpg", "png"],
+});
 
 const limiter = rateLimit({
   windowMs: 60 * 1000, // 1 minute
@@ -80,52 +96,25 @@ schema
     "Bulgaria",
     "bulgaria",
   ]);
-const storage = multer.diskStorage({
-  destination: "./uploads/",
-  filename: function (req, file, cb) {
-    crypto.pseudoRandomBytes(32, function (err, raw) {
-      if (err) return cb(err);
 
-      cb(null, raw.toString("hex") + "." + mime.extension(file.mimetype));
-    });
-  },
-});
+const upload = multer({ storage: storage });
 
-const upload = multer({
-  storage: storage,
-  fileFilter: function (req, file, callback) {
-    let ext = path.extname(file.originalname);
-    if (ext !== ".png" && ext !== ".jpg" && ext !== ".jpeg") {
-      return callback(new Error("Only images are allowed"));
-    }
-    callback(null, true);
-  },
-  limits: { fileSize: 3000000 },
-});
-let statData;
-setInterval(() => {
-  pool.query(
-    `SELECT (SELECT COUNT(*) as users_count FROM users),
-  (SELECT COUNT(*) as places FROM places),
-  (SELECT COUNT(*) as comments FROM comments),
-  (SELECT COUNT(*) as replies FROM comments_replies),
-  (SELECT COUNT(*) as images FROM images),
-  (SELECT COUNT(*) as likes FROM "favoritePlaces"),
-  (SELECT COUNT(*) as saves FROM "savedPlaces")
-  FROM users`,
-    (err, data) => {
-      if (err) {
-        return false;
-      }
-      statData = data.rows[0];
-    }
-  );
-}, 1000 * 60);
 server.use(helmet());
 server.use(cookieParser(cookieSecret));
 server.use(bodyParser.urlencoded({ extended: false }));
 server.use(bodyParser.json({ limit: "10kb" }));
-server.use(cors({ credentials: true, origin: "http://localhost:3000" }));
+server.use(
+  cors({
+    origin: [
+      "https://unpopular-bulgaria.com",
+      "https://unpopular-bulgaria.com",
+      "https://www.unpopular-bulgaria.com",
+      "www.unpopular-bulgaria.com",
+      "unpopular-bulgaria.com",
+    ],
+    credentials: true,
+  })
+);
 server.use(limiter);
 
 server.use(sanitizeReqBody);
@@ -157,10 +146,35 @@ const groupBy = function (xs, key) {
   }, {});
 };
 
+server.get("/statsUser", (req, res) => {
+  pool.query(
+    `SELECT (SELECT COUNT(*) as users_count FROM users),
+  (SELECT COUNT(*) as places FROM places),
+  (SELECT COUNT(*) as comments FROM comments),
+  (SELECT COUNT(*) as replies FROM comments_replies),
+  (SELECT COUNT(*) as images FROM images),
+  (SELECT COUNT(*) as likes FROM "favoritePlaces"),
+  (SELECT COUNT(*) as saves FROM "savedPlaces")
+  FROM users`,
+    (err, data) => {
+      if (err) {
+        return false;
+      }
+      res.status(200).send(data.rows[0]);
+    }
+  );
+});
+
 //Admin endpoints
 server.get("/admin/complains", adminToken, (req, res) => {
+  let order = "DESC";
+  if (req.query.order == 2) {
+    order = "ASC";
+  }
   pool.query(
-    "SELECT * FROM reported_items  WHERE priority=0 ORDER BY date LIMIT $1 ",
+    "SELECT * FROM reported_items WHERE priority=0 ORDER BY date " +
+      order +
+      " LIMIT $1",
     [req.query.limit],
     (err, data) => {
       if (err) {
@@ -173,8 +187,20 @@ server.get("/admin/complains", adminToken, (req, res) => {
 });
 
 server.get("/admin/featured/complains", adminToken, (req, res) => {
+  let order = "priority";
+  let position = " DESC";
+  if (req.query.order == 2) {
+    order = "date";
+    position = " DESC";
+  } else if (req.query.order == 3) {
+    order = "date";
+    position = " ASC";
+  }
   pool.query(
-    "SELECT * FROM reported_items WHERE priority>0 ORDER BY priority LIMIT $1",
+    "SELECT * FROM reported_items WHERE priority>0 ORDER BY " +
+      order +
+      position +
+      " LIMIT $1",
     [req.query.limit],
     (err, data) => {
       if (err) {
@@ -264,9 +290,9 @@ server.get("/user/replies", adminToken, (req, res) => {
   FROM "comments_replies"
   LEFT JOIN users ON users.id = $2
   LEFT JOIN replies_actions ON replies_actions.user_id=$2 AND comments_replies."id"=replies_actions."action_id"
-  WHERE comments_replies.user_id=$2 AND users.id=$2 AND replies_actions.user_id=$2
+  WHERE comments_replies.user_id=$2
   ORDER BY "comments_replies".date  DESC LIMIT $1 `,
-    [Number(req.query.limit), req.user_id],
+    [Number(req.query.limit), Number(req.query.id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error!");
@@ -276,7 +302,6 @@ server.get("/user/replies", adminToken, (req, res) => {
     }
   );
 });
-server.get("/users/places", adminToken, (req, res) => {});
 
 server.get("/users", adminToken, (req, res) => {
   pool.query(
@@ -417,21 +442,13 @@ server.get("/admin/comments", adminToken, (req, res) => {
     users.username,
     "comments".score AS "comment_score",
     "comments"."content" AS "comment_content",
-    COMMENTS_REPLIES."content" AS "reply_content",
     "comments".DATE AS "comment_date",
     "comments"."id" AS "comments_id",
-    comments_replies."id" AS "replies_id",
-    comments_replies.SCORE AS "reply_score",
-    COMMENTS_REPLIES."date" AS "reply_date",
-    (SELECT count(*) from comments_replies where relating="comments"."id") AS "replies_count",
-    replies_actions.action AS "replies_actions",
     comments_actions.action AS "comments_actions"
   FROM "comments"
-  LEFT JOIN COMMENTS_REPLIES ON COMMENTS_REPLIES.RELATING = "comments".ID
   LEFT JOIN users ON users.id = "comments".user_id
-  LEFT JOIN replies_actions on replies_actions.user_id=comments.user_id AND replies_actions."reply_id"=comments_replies."id"
   LEFT JOIN comments_actions on comments_actions.user_id=comments.user_id AND comments_actions.comment_id="comments"."id"
-  WHERE ("comments".visible=true OR comments_replies.visible=true) ORDER BY comments.date DESC LIMIT $1`,
+  WHERE ("comments".visible=true) ORDER BY comments.date DESC LIMIT $1`,
     [Number(req.query.limit)],
     (err, data) => {
       if (err) {
@@ -475,7 +492,7 @@ server.get("/admin/replies", adminToken, (req, res) => {
 server.post("/report", authorizeToken, (req, res) => {
   if (
     !(Number(req.body.item_id) &&
-      req.body.type &&
+      Number(req.body.type) &&
       req.body.reason !== undefined,
     typeof req.body.reason == "string")
   ) {
@@ -490,7 +507,7 @@ server.post("/report", authorizeToken, (req, res) => {
       req.body.type,
       req.body.reason.substring(0, 500),
       new Date(),
-      req.user_id,
+      Number(req.user_id),
     ],
     (err, data) => {
       if (err) {
@@ -517,7 +534,7 @@ server.post("/save", authorizeToken, (req, res) => {
   pool.query(
     `INSERT INTO public."savedPlaces"(user_id, place_id, date) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
     [
-      req.user_id,
+      Number(req.user_id),
       Number(req.body.place_id),
       new Date(Date.now() + 1000 * 60 * -new Date().getTimezoneOffset())
         .toISOString()
@@ -566,10 +583,6 @@ server.post("/unsave", authorizeToken, async (req, res) => {
   );
 });
 
-server.get("/stats", (req, res) => {
-  res.status(200).send(statData);
-});
-
 server.get("/weather", (req, res) => {
   if (!(req.query.latitude && req.query.longtitude)) {
     res.status(400).send("Latitude and longtitude parameters are required!");
@@ -602,7 +615,7 @@ server.post("/like", throttle({ rate: "5/s" }), authorizeToken, (req, res) => {
   }
   pool.query(
     "SELECT COUNT(*) FROM places WHERE user_id=$1 AND place_id = $2",
-    [req.user_id, req.body.place_id],
+    [Number(req.user_id), req.body.place_id],
     async (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -612,7 +625,7 @@ server.post("/like", throttle({ rate: "5/s" }), authorizeToken, (req, res) => {
         pool.query(
           `INSERT INTO public."favoritePlaces"(user_id, place_id, date) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING`,
           [
-            req.user_id,
+            Number(req.user_id),
             Number(req.body.place_id),
             new Date(Date.now() + 1000 * 60 * -new Date().getTimezoneOffset())
               .toISOString()
@@ -653,7 +666,7 @@ server.post(
         .send("Your account is unauthorized! Verify your account!");
       return false;
     }
-    let user_id = req.user_id;
+    let user_id = Number(req.user_id);
 
     pool.query(
       `DELETE FROM "favoritePlaces" WHERE user_id=$1 AND place_id=$2`,
@@ -678,12 +691,30 @@ server.post("/search", throttle({ rate: "3/s" }), async (req, res) => {
     res.status(400).send("Not enough data was provided.");
     return false;
   }
+  let order = " DESC";
   let sortBy;
-  if (!req.body.sort) {
-    sortBy = "likednumber";
-  } else {
-    sortBy = "date";
+  switch (Number(req.body.sort)) {
+    case 1:
+      sortBy = "likednumber";
+      order = " DESC";
+      break;
+    case 2:
+      sortBy = "likednumber";
+      order = " ASC";
+      break;
+    case 3:
+      sortBy = "date";
+      order = " DESC";
+      break;
+    case 4:
+      sortBy = "date";
+      order = " ASC";
+      break;
+    default:
+      sortBy = "likednumber";
+      order = " DESC";
   }
+
   if (
     req.body.limit < 0 ||
     req.body.limit > 1000000 ||
@@ -717,7 +748,7 @@ server.post("/search", throttle({ rate: "3/s" }), async (req, res) => {
     category = "category";
   } else {
     categoryFormat = "%L";
-    category = req.body.category;
+    category = Number(req.body.category) - 1;
   }
   if (req.body.price == 1) {
     priceFormat = "%s";
@@ -749,14 +780,20 @@ server.post("/search", throttle({ rate: "3/s" }), async (req, res) => {
     userFormat = "%s";
   }
   let sql = format(
-    `SELECT places.place_id,user_id,username,avatar,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=` +
+    `SELECT places.place_id,user_id,views,username,avatar,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=` +
       userFormat +
       ` LIMIT  %s) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=` +
       userFormat +
       ` LIMIT %s ) THEN 'true' ELSE 'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
 FROM "favoritePlaces"
 WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID)
-FROM PLACES ORDER BY likednumber DESC, places.date DESC LIMIT %s OFFSET %s) places
+FROM PLACES ORDER BY ` +
+      sortBy +
+      " " +
+      order +
+      `, places.date ` +
+      order +
+      ` LIMIT %s OFFSET %s) places
 LEFT JOIN users ON users.id = places.user_id
 LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) SIMILAR TO  LOWER(Concat('%',%L,'%'))  AND LOWER(placelocation) = LOWER(` +
       placelocationFormat +
@@ -780,7 +817,7 @@ LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) S
       accessibilityFormat +
       " ORDER BY " +
       sortBy +
-      " DESC",
+      order,
     user_id,
     req.body.limit,
     user_id,
@@ -805,7 +842,6 @@ LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) S
       res.status(500).send("Internal server error.");
       return false;
     }
-
     let copyObj = data.rows;
     //Handle corrupted records
     for (const obj of copyObj) {
@@ -813,7 +849,8 @@ LEFT JOIN images ON images.place_id = places.place_id WHERE LOWER(description) S
         copyObj.place_id = Math.random();
       }
     }
-    let final = groupBy(copyObj, "place_id");
+    let final = groupBy(copyObj, "title");
+
     let finalArray = [];
     //Turn the newly created object of objects into an array of objects for front-end manipulation
     Object.keys(final).forEach(function (key) {
@@ -846,7 +883,7 @@ server.post("/searchCount", async (req, res) => {
     category = "category";
   } else {
     categoryFormat = "%L";
-    category = req.body.category;
+    category = Number(req.body.category) - 1;
   }
   if (req.body.price == 1) {
     priceFormat = "%s";
@@ -919,7 +956,7 @@ server.post("/searchCount", async (req, res) => {
 server.get("/count", authorizeToken, (req, res) => {
   pool.query(
     "SELECT COUNT(*) FROM places WHERE user_id=$1",
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -938,6 +975,26 @@ server.get("/image/:image", (req, res) => {
   res.sendFile("/uploads/" + req.params.image, { root: __dirname }, () => {});
 });
 
+server.post("/places/views", throttle({ rate: "2/s" }), (req, res) => {
+  if (typeof Number(req.body.place_id) !== "number") {
+    res.status(400).send("Not enough data provided");
+    return false;
+  }
+  pool.query(
+    `UPDATE places 
+  SET views = views + 1
+WHERE place_id = $1`,
+    [req.body.place_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send("Done");
+    }
+  );
+});
+
 server.get("/places/liked/saved", authorizeToken, (req, res) => {
   if (!req.query.place_id) {
     res.status(400).send("Invalid data");
@@ -948,16 +1005,16 @@ server.get("/places/liked/saved", authorizeToken, (req, res) => {
     CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = $2 AND user_id=$1)
         THEN 'true' ELSE 'false' END AS liked,
     CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = $2 AND user_id=$1)
-        THEN 'true' ELSE 'false' END AS saved,
+        THEN 'true' ELSE 'false' END AS saved,views,
         (SELECT COUNT(*) AS LIKEDNUMBER
         FROM "favoritePlaces"
-        WHERE "favoritePlaces".PLACE_ID = $2)
+        WHERE "favoritePlaces".PLACE_ID = $2),views
         FROM PLACES
         JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
         JOIN "favoritePlaces" ON PLACES.PLACE_ID = "favoritePlaces".PLACE_ID
         LEFT JOIN users ON users.id = places.user_id
         WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
-    [req.user_id, req.query.place_id],
+    [Number(req.user_id), req.query.place_id],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -973,9 +1030,9 @@ server.post(
   throttle({ rate: "2/s" }),
   hcverify,
   authorizeToken,
-  upload.array("images", 3),
+  upload.array("images", 5),
   (req, res) => {
-    let imagesSrc = req.files.map((file) => file.filename);
+    let imagesSrc = req.files.map((file) => [file.path, file.filename]);
     if (
       !(
         req.body.name &&
@@ -1005,9 +1062,9 @@ server.post(
       return false;
     }
     pool.query(
-      "INSERT INTO places (user_id, title, description, visible, score, placelocation, category, price, accessibility, date, dangerous,city) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+      "INSERT INTO places (user_id, title, description, visible, score, placelocation, category, price, accessibility, date, dangerous,city,views) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,$13)",
       [
-        req.user_id,
+        Number(req.user_id),
         req.body.name,
         req.body.description,
         true,
@@ -1019,6 +1076,7 @@ server.post(
         new Date(),
         req.body.dangerous,
         req.body.city,
+        0,
       ],
       (err) => {
         if (err) {
@@ -1040,10 +1098,11 @@ server.post(
             }
             imagesSrc.forEach((el) => {
               pool.query(
-                "INSERT INTO images (place_id,url,date) VALUES ($1,$2,$3)",
-                [data.rows[0].place_id, el, new Date()],
+                "INSERT INTO images (place_id,url,public_id,date) VALUES ($1,$2,$3,$4)",
+                [data.rows[0].place_id, el[0], el[1], new Date()],
                 (err) => {
                   if (err) {
+                    console.log(err, el[0], el[1]);
                     return false;
                   }
                 }
@@ -1060,10 +1119,10 @@ server.put(
   "/place",
   authorizeToken,
   throttle({ rate: "2/s" }),
-  upload.array("images", 3),
+  upload.array("images", 5),
   hcverify,
   async (req, res) => {
-    let imagesSrc = req.files.map((file) => file.filename);
+    let imagesSrc = req.files.map((file) => [file.path, file.filename]);
     if (
       !(
         req.body.name &&
@@ -1084,7 +1143,7 @@ server.put(
     //Verify that the user owns the place
     let owns = await pool.query(
       "SELECT COUNT(*) FROM places WHERE user_id=$1 AND place_id=$2",
-      [req.user_id, req.body.place_id]
+      [Number(req.user_id), req.body.place_id]
     );
     let b = await !adminTokenFunc(req.headers.jwt);
     if (!Number(owns.rows[0].count) && b) {
@@ -1121,24 +1180,26 @@ server.put(
             if (req.body.newImages == "true") {
               //Delete the old images from the filesystem
               let images = await pool.query(
-                "SELECT url FROM images WHERE place_id=$1",
+                "SELECT url,public_id FROM images WHERE place_id=$1",
                 [req.body.place_id]
               );
               //Remove all the images related to the place if there are any
               if (images.rows.length) {
                 images.rows.forEach((el) => {
-                  fs.unlink("./uploads/" + el.url, () => {});
+                  cloudinary.uploader.destroy(el.public_id, function (result) {
+                    console.log(result);
+                  });
                 });
               }
               //Delete the old images from the database
               await pool.query("DELETE FROM images WHERE place_id=$1", [
-                data.rows[0].place_id,
+                req.body.place_id,
               ]);
               //Upload the new images/if none, the forEach would be skipped
               imagesSrc.forEach((el) => {
                 pool.query(
-                  "INSERT INTO images (place_id,url,date) VALUES ($1,$2,$3)",
-                  [data.rows[0].place_id, el, new Date()],
+                  "INSERT INTO images (place_id,url,public_id,date) VALUES ($1,$2,$3,$4)",
+                  [req.body.place_id, el[0], el[1], new Date()],
                   (err) => {
                     if (err) {
                       return false;
@@ -1197,7 +1258,7 @@ server.put("/place/suggest", authorizeToken, hcverify, async (req, res) => {
       req.body.accessibility,
       req.body.city,
       req.body.dangerous,
-      req.user_id,
+      Number(req.user_id),
       req.body.user_id,
     ],
     async (err, data) => {
@@ -1211,7 +1272,7 @@ server.put("/place/suggest", authorizeToken, hcverify, async (req, res) => {
       ]);
       sendMail(
         `Предложение`,
-        `Направено бе предложение за редакция на едно от местата, което Вие сте създали с име ${req.body.name}. Влезнете в профила си, за да одобрите или премахнете промяната: http://localhost:3000`,
+        `Направено бе предложение за редакция на едно от местата, което Вие сте създали с име ${req.body.name}. Влезнете в профила си, за да одобрите или премахнете промяната: https://unpopular-bulgaria.com`,
         emailQuery.rows[0].email
       );
       res.status(200).send("Place suggested successfully!");
@@ -1243,7 +1304,7 @@ server.post("/place/suggested/accepted", authorizeToken, (req, res) => {
   }
   pool.query(
     `SELECT COUNT(*) FROM suggested_places JOIN places ON places.place_id=suggested_places.place_id WHERE suggested_places.place_id=$1 AND created_user_id=$2 AND suggested_places.id=$3 `,
-    [req.body.place_id, req.user_id, req.body.suggestions_id],
+    [req.body.place_id, Number(req.user_id), req.body.suggestions_id],
     async (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1279,16 +1340,67 @@ WHERE places.place_id=suggested_places.place_id AND suggested_places.id=$1`,
 
 server.get("/place/suggested", authorizeToken, async (req, res) => {
   pool.query(
-    `SELECT places.place_id,places.title,places.description,places.placelocation,places.category,places.price,places.accessibility,places.dangerous,places.city,places.dangerous,places.user_id,suggested_places.title as "suggested_places_title",suggested_places.description AS "suggested_places_description",suggested_places.placelocation AS "suggested_places_placelocation",suggested_places.category AS "suggested_places_category",suggested_places.category AS "suggested_places_category", suggested_places.price AS "suggested_places_price", suggested_places.accessibility AS "suggested_places_accessibility", suggested_places.city AS "suggested_places_city", suggested_places.dangerous AS "suggested_places_dangerous",suggested_places.id,suggested_places.suggested_user_id FROM places 
+    `SELECT places.place_id,places.title,views,places.description,places.placelocation,places.category,places.price,places.accessibility,places.dangerous,places.city,places.dangerous,places.user_id,suggested_places.title as "suggested_places_title",suggested_places.description AS "suggested_places_description",suggested_places.placelocation AS "suggested_places_placelocation",suggested_places.category AS "suggested_places_category",suggested_places.category AS "suggested_places_category", suggested_places.price AS "suggested_places_price", suggested_places.accessibility AS "suggested_places_accessibility", suggested_places.city AS "suggested_places_city", suggested_places.dangerous AS "suggested_places_dangerous",suggested_places.id,suggested_places.suggested_user_id FROM places 
     JOIN suggested_places ON places.place_id=suggested_places.place_id
     WHERE user_id=$1 AND created_user_id=$1 LIMIT 999`,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500);
         return false;
       }
       res.status(200).send(data.rows);
+    }
+  );
+});
+
+server.get("/comment", adminToken, (req, res) => {
+  pool.query(
+    `SELECT PLACE_ID,
+    "comments".USER_ID, avatar,
+    users.username,
+    "comments".score AS "comment_score",
+    "comments"."content" AS "comment_content",
+    COMMENTS_REPLIES."content" AS "reply_content",
+    "comments".DATE AS "comment_date",
+    "comments"."id" AS "comments_id",
+    comments_replies."id" AS "replies_id",
+    comments_replies.SCORE AS "reply_score",
+    COMMENTS_REPLIES."date" AS "reply_date",
+    (SELECT count(*) from comments_replies where relating="comments"."id") AS "replies_count",
+    replies_actions.action AS "replies_actions",
+    comments_actions.action AS "comments_actions"
+  FROM "comments"
+  LEFT JOIN COMMENTS_REPLIES ON COMMENTS_REPLIES.RELATING = "comments".ID
+  LEFT JOIN users ON users.id = "comments".user_id
+  LEFT JOIN replies_actions on replies_actions.user_id=$2 AND replies_actions."reply_id"=comments_replies."id"
+  LEFT JOIN comments_actions on comments_actions.user_id=$2 AND comments_actions.comment_id="comments"."id"
+  WHERE ("comments".visible=true OR comments_replies.visible=true) AND comments.id=$1 ORDER BY comments.date DESC LIMIT 1`,
+    [req.query.id, req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0]);
+    }
+  );
+});
+
+server.get("/replyData", adminToken, (req, res) => {
+  pool.query(
+    `	SELECT content,comments_replies.date,avatar,score,comments_replies.user_id,comments_replies.id,username,replies_actions.action AS "replies_actions"
+    FROM comments_replies
+    JOIN users ON users.id=user_id
+    LEFT JOIN replies_actions on replies_actions.user_id=$2 AND replies_actions."reply_id"=comments_replies."id"
+     WHERE comments_replies.id=$1`,
+    [req.query.id, req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      res.status(200).send(data.rows[0]);
     }
   );
 });
@@ -1301,7 +1413,7 @@ server.delete("/place", authorizeToken, async (req, res) => {
   //Check if the user has access to modify the place in any way(is he the owner)
   let allowedQuery = await pool.query(
     "SELECT COUNT(*) FROM places WHERE place_id=$1 AND user_id=$2",
-    [req.body.place_id, req.user_id]
+    [req.body.place_id, Number(req.user_id)]
   );
   let b = await !adminTokenFunc(req.headers.jwt);
   if (!Number(allowedQuery.rows[0].count) && b) {
@@ -1310,13 +1422,16 @@ server.delete("/place", authorizeToken, async (req, res) => {
   }
   //After the previous if, the user has accesss
   //Get all the images related to the place
-  let images = await pool.query("SELECT url FROM images WHERE place_id=$1", [
-    req.body.place_id,
-  ]);
+  let images = await pool.query(
+    "SELECT url,public_id FROM images WHERE place_id=$1",
+    [req.body.place_id]
+  );
   //Remove all the images related to the place if there are any
   if (images.rows.length) {
     images.rows.forEach((el) => {
-      fs.unlink("./uploads/" + el.url, () => {});
+      cloudinary.uploader.destroy(el.public_id, function (result) {
+        console.log(result);
+      });
     });
   }
   //Remove the images references on the database
@@ -1344,6 +1459,9 @@ server.delete("/place", authorizeToken, async (req, res) => {
   res.status(200).send("Place deleted");
 
   setTimeout(async () => {
+    await pool.query("DELETE FROM notes WHERE place_id=$1", [
+      req.body.place_id,
+    ]);
     await pool.query("DELETE FROM comments WHERE place_id=$1", [
       req.body.place_id,
     ]);
@@ -1462,7 +1580,7 @@ WHERE places.PLACE_ID = $1
         dangerous: dangerous(Number(data.rows[0].dangerous)),
         date: data.rows[0].date,
         images_urls: data.rows.length
-          ? data.rows.map((el) => "localhost:5000/image/" + el.url)
+          ? data.rows.map((el) => el.url)
           : "No image data",
       };
       const json = JSON.stringify(finalData);
@@ -1475,17 +1593,33 @@ WHERE places.PLACE_ID = $1
   );
 });
 
+server.get("/all/notes", authorizeToken, (req, res) => {
+  pool.query(
+    "SELECT notes AS Записка,title AS Заглавие FROM notes JOIN places ON places.place_id = notes.place_id WHERE notes.user_id=$1",
+    [req.user_id],
+    async (err, result) => {
+      if (err) {
+        res.status(500).send("Internal server error");
+        return false;
+      }
+      let data = JSON.stringify({ Записки: [result.rows] });
+      res.send(data).status(200);
+    }
+  );
+});
+
 server.get("/user/data", authorizeToken, async (req, res) => {
   let userPlaces = await pool.query(
-    `SELECT user_id,email,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
-FROM places
-LEFT JOIN images on images.place_id = places.place_id
-RIGHT JOIN users on id=places.user_id
-WHERE places.user_id = $1`,
-    [req.user_id]
+    `SELECT note,places.user_id,email,places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,url,username,avatar
+    FROM places
+    LEFT JOIN images on images.place_id = places.place_id
+    LEFT JOIN notes on notes.place_id = places.place_id
+    JOIN users on id=places.user_id
+    WHERE places.user_id = $1`,
+    [Number(req.user_id)]
   );
 
-  let data = groupBy(userPlaces.rows, "place_id");
+  let data = groupBy(userPlaces.rows, "title");
   data = Object.keys(data).map((key) => data[key]);
   if (!data.length) {
     res.status(200).send("You have no saved data");
@@ -1493,22 +1627,22 @@ WHERE places.user_id = $1`,
   }
   const category = (num) => {
     switch (Number(num)) {
+      case 1:
+        return "Сграда";
+        break;
       case 2:
-        return "Заведение";
+        return "Гледка";
         break;
       case 3:
-        return "Нощно заведение";
+        return "Екотуризъм";
         break;
       case 4:
-        return "Магазин";
+        return "Изкуство";
         break;
       case 5:
-        return "Пътека";
+        return "Заведение";
         break;
       case 6:
-        return "Място";
-        break;
-      case 7:
         return "Друго";
         break;
       default:
@@ -1517,6 +1651,9 @@ WHERE places.user_id = $1`,
   };
   const price = (num) => {
     switch (Number(num)) {
+      case 1:
+        return "Не се отнася";
+        break;
       case 2:
         return "Ниска";
         break;
@@ -1550,19 +1687,23 @@ WHERE places.user_id = $1`,
   };
   const dangerous = (num) => {
     switch (Number(num)) {
-      case 2:
+      case 1:
         return "Не е опасно";
         break;
-      case 3:
+      case 2:
         return "Малко опасно";
         break;
-      case 4:
+      case 3:
         return "Висока опасност";
         break;
       default:
         return "Без дефиниция";
     }
   };
+  let notes = await pool.query(
+    "SELECT note,title from notes JOIN places ON places.place_id = notes.place_id  WHERE notes.user_id=$1",
+    [req.user_id]
+  );
   let archivedData = await Promise.all(
     data.map(async (el) => {
       const finalData = {
@@ -1574,67 +1715,58 @@ WHERE places.user_id = $1`,
         accessibility: accessibility(Number(el[0].accecssibility)),
         dangerous: dangerous(Number(el[0].dangerous)),
         date: el[0].date,
+        note: el[0].note ? el[0].note : "",
         url: el[0].url
           ? el.map((url) => url.url)
-          : "No images are provided for this place",
+          : "Не сте качили снимки за това място",
       };
       return {
         data: JSON.stringify(finalData),
-        name: `${el[0].place_id}.json`,
+        name: `${el[0].title}.json`,
       };
     })
   );
+
   data.forEach((el) => {
     el.map((image) => {
       archivedData.push({
-        data: "./uploads/" + image.url,
+        data: image.url,
         type: "file",
-        name: image.url,
+        name: "ImageUrl.json",
       });
     });
   });
+
   let name = `${Math.round(Math.random() * 10000)}.zip`;
   await archive(archivedData, {
     format: "zip",
     output: name,
   });
-  await res.status(200).sendFile(`${__dirname}/${name}`);
-  await sendMail(
-    "Вашите данни",
-    "Здравейте, по-долу са прикачени Вашите данни. ",
-    userPlaces.rows[0].email,
-    [
-      {
-        filename: name,
-        path: `${__dirname}/${name}`,
-        cid: "uniq-mailtrap.png",
-      },
-    ]
-  );
-  setTimeout(() => {
-    fs.unlinkSync(`${__dirname}/${name}`, (err) => {
-      if (err) {
-      }
-    });
-  }, 20000);
+  res.status(200).sendFile(`${__dirname}/${name}`);
 });
 
 server.get("/user/preview", (req, res) => {
-  if (!req.query.username) {
+  if (!req.query.username && !req.query.user_id) {
     res.status(400).send("Invalid data");
     return false;
   }
+  if (!Number(req.query.user_id)) {
+    req.query.user_id = 0;
+  }
+  if (typeof req.query.username !== "string") {
+    req.query.username = "";
+  }
   pool.query(
-    `SELECT COUNT(*) FROM places
-  LEFT JOIN users on users.id=places.user_id
-  WHERE username=$1`,
-    [req.query.username],
+    `SELECT COUNT(*),(SELECT avatar FROM users WHERE username=$1 OR id=$2),(SELECT username FROM users WHERE username=$1 OR id=$2) FROM places
+    LEFT JOIN users on users.id=places.user_id
+    WHERE username=$1 OR id=$2`,
+    [req.query.username, req.query.user_id],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
         return false;
       }
-      res.status(200).send(data.rows[0].count);
+      res.status(200).send(data.rows[0]);
     }
   );
 });
@@ -1647,7 +1779,7 @@ server.get("/place/specific", async (req, res) => {
   let user_format = "%L",
     user_id;
 
-  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt)) {
+  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt, req.cookies.JWT)) {
     user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
     user_id = user_id.user_id;
   } else {
@@ -1668,7 +1800,7 @@ server.get("/place/specific", async (req, res) => {
 	ACCESSIBILITY,
 	PLACES.DATE,
 	DANGEROUS,
-	URL, username,avatar,
+	URL, username,avatar,views,
 	IMAGE_ID,
 	(SELECT COUNT(*) AS LIKEDNUMBER
 		FROM "favoritePlaces"
@@ -1708,7 +1840,7 @@ WHERE places.place_id=$1`,
       res.status(500).send("Internal server error");
       return false;
     }
-    let final = groupBy(data.rows, "place_id");
+    let final = groupBy(data.rows, "title");
     let finalArray = [];
     //Turn the newly created object of objects into an array of objects for front-end manipulation
     Object.keys(final).forEach(function (key) {
@@ -1721,7 +1853,7 @@ WHERE places.place_id=$1`,
 server.get("/user/achievments", authorizeToken, (req, res) => {
   pool.query(
     `SELECT date,(SELECT COUNT(*) AS "places_count" FROM places WHERE user_id=$1), (SELECT COUNT(*)  AS "comments_count" FROM comments WHERE user_id=$1), (SELECT COUNT(*) AS  "replies_count" FROM comments_replies WHERE user_id=$1) from users WHERE id=$1`,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error!");
@@ -1750,7 +1882,7 @@ server.get("/userLikedPlaces", authorizeToken, (req, res) => {
     ACCESSIBILITY,
     PLACES.DATE,
     DANGEROUS,
-    URL,
+    URL,views,
     IMAGE_ID,
    CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1)
 THEN 'true' ELSE 'false' END AS liked,
@@ -1768,7 +1900,7 @@ ELSE 'false' END as saved,
   LEFT JOIN users ON users.id = places.user_id
   WHERE "favoritePlaces".USER_ID = $1  ORDER BY "favoritePlaces".date DESC
   `,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1781,7 +1913,7 @@ ELSE 'false' END as saved,
           copyObj.place_id = Math.random();
         }
       }
-      let final = groupBy(copyObj, "place_id");
+      let final = groupBy(copyObj, "title");
       let finalArray = [];
       //Turn the newly created object of objects into an array of objects for front-end manipulation
       Object.keys(final).forEach(function (key) {
@@ -1796,7 +1928,7 @@ ELSE 'false' END as saved,
 server.get("/user/count/likedPlaces", authorizeToken, (req, res) => {
   pool.query(
     `SELECT COUNT(*) FROM "favoritePlaces" WHERE user_id=$1`,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1809,7 +1941,7 @@ server.get("/user/count/likedPlaces", authorizeToken, (req, res) => {
 server.get("/user/count/savedPlaces", authorizeToken, (req, res) => {
   pool.query(
     `SELECT COUNT(*) FROM "savedPlaces" WHERE user_id=$1`,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1834,10 +1966,10 @@ server.get("/userSavedPlaces", authorizeToken, (req, res) => {
 	PLACELOCATION,
 	CATEGORY,
 	PRICE,
-	ACCESSIBILITY,
+	ACCESSIBILITY,views,
 	PLACES.DATE,
 	DANGEROUS,
-	URL,
+	URL,views,
 	IMAGE_ID,
   CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1)
 THEN 'true' ELSE 'false' END AS liked,
@@ -1855,7 +1987,7 @@ JOIN "savedPlaces" ON PLACES.PLACE_ID = "savedPlaces".PLACE_ID
 LEFT JOIN IMAGES ON IMAGES.PLACE_ID = PLACES.PLACE_ID
 LEFT JOIN users ON users.id = places.user_id
 WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
-    [req.user_id],
+    [Number(req.user_id)],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1868,7 +2000,7 @@ WHERE "savedPlaces".USER_ID = $1  ORDER BY "savedPlaces".date DESC`,
           copyObj.place_id = Math.random();
         }
       }
-      let final = groupBy(copyObj, "place_id");
+      let final = groupBy(copyObj, "title");
       let finalArray = [];
       //Turn the newly created object of objects into an array of objects for front-end manipulation
       Object.keys(final).forEach(function (key) {
@@ -1884,9 +2016,13 @@ server.post("/user/places", authorizeToken, async (req, res) => {
     res.status(400).send("Invalid data sent");
     return false;
   }
-  let b = await !adminTokenFunc(req.headers.jwt);
+  let b = (await adminTokenFunc(req.headers.jwt)) !== false;
+  if (req.body.admin && !b) {
+    res.status(400).send("Invalid data sent");
+    return false;
+  }
   pool.query(
-    `SELECT places.place_id,avatar,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2) THEN 'true' ELSE 
+    `SELECT places.place_id,avatar,views,places.user_id,city,title,description,visible,score,placelocation,category,price,accessibility,places.date,dangerous,url,image_id,(SELECT COUNT(*) AS likednumber FROM "favoritePlaces" WHERE "favoritePlaces".place_id=places.place_id), CASE WHEN EXISTS (select * from "favoritePlaces" where "favoritePlaces".place_id = places.place_id AND user_id=$1 LIMIT  $2) THEN 'true' ELSE 'false' END AS liked, CASE WHEN EXISTS (select * from "savedPlaces" where "savedPlaces".place_id = places.place_id AND user_id=$1 LIMIT $2) THEN 'true' ELSE 
     'false' END as saved FROM (SELECT *,(SELECT COUNT(*) AS LIKEDNUMBER
     FROM "favoritePlaces"
     WHERE "favoritePlaces".PLACE_ID = PLACES.PLACE_ID)
@@ -1895,7 +2031,7 @@ server.post("/user/places", authorizeToken, async (req, res) => {
     LEFT JOIN users ON places.user_id = users.id
     WHERE users.id::varchar=$1::varchar OR users.username::varchar=$1::varchar
     ORDER BY likednumber DESC`,
-    [!b ? req.user_id : req.body.admin, req.body.limit],
+    [Number(req.body.admin) ? req.body.admin : req.user_id, req.body.limit],
     (err, data) => {
       if (err) {
         res.status(500).send("Internal server error");
@@ -1916,7 +2052,7 @@ server.post("/user/places", authorizeToken, async (req, res) => {
           return rv;
         }, {});
       };
-      let final = groupBy(copyObj, "place_id");
+      let final = groupBy(copyObj, "title");
       let finalArray = [];
       //Turn the newly created object of objects into an array of objects for front-end manipulation
       Object.keys(final).forEach(function (key) {
@@ -1931,21 +2067,27 @@ server.post("/user/places", authorizeToken, async (req, res) => {
 server.post(
   "/user/avatar",
   authorizeToken,
-  hcverify,
-  upload.array("images", 1),
+  upload.single("images"),
   async (req, res) => {
-    let imagesSrc = req.files.map((file) => file.filename);
-    if (!imagesSrc[0]) {
+    if (req.files) {
       res.status(500).send("We couldn't save the avatar");
       return false;
     }
-    let previous = await pool.query("SELECT avatar FROM users WHERE id=$1", [
-      req.user_id,
-    ]);
-    fs.unlink("./uploads/" + previous.rows[0].avatar, () => {});
+    let previous = await pool.query(
+      "SELECT avatar_public_id FROM users WHERE id=$1",
+      [Number(req.user_id)]
+    );
+    if (previous.rows[0].avatar_public_id) {
+      cloudinary.uploader.destroy(
+        previous.rows[0].avatar_public_id,
+        function (result) {
+          console.log(result);
+        }
+      );
+    }
     pool.query(
-      "UPDATE users SET avatar = $1 WHERE id=$2",
-      [imagesSrc[0], req.user_id],
+      "UPDATE users SET avatar = $1, avatar_public_id = $3 WHERE id=$2",
+      [req.file.path, Number(req.user_id), req.file.filename],
       (err) => {
         if (err) {
           res.status(500).send("We couldn't save the avatar");
@@ -1966,16 +2108,56 @@ server.delete("/admin/delete", adminToken, async (req, res) => {
     "SELECT place_id from places WHERE user_id=$1",
     [req.headers.id]
   );
+  await pool.query(
+    `DELETE FROM suggested_places WHERE suggested_user_id=$1 OR created_user_id=$1`,
+    [Number(req.headers.id)]
+  );
+
+  await pool.query(`DELETE FROM "savedPlaces" WHERE user_id=$1`, [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query(`DELETE FROM "favoritePlaces" WHERE user_id=$1`, [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query("DELETE FROM notes WHERE user_id=$1", [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query("DELETE FROM replies_actions WHERE user_id=$1", [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query("DELETE FROM comments_replies WHERE user_id=$1", [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query("DELETE FROM comments_actions WHERE user_id=$1", [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query("DELETE FROM comments WHERE user_id=$1", [
+    Number(req.headers.id),
+  ]);
+
+  await pool.query(
+    "DELETE FROM verification_actions WHERE user_id=$1 AND type='user-delete'",
+    [Number(req.headers.id)]
+  );
+
   let counter = userPlaces.rows.length;
   userPlaces.rows.forEach(async (el) => {
     counter--;
     let images = await pool.query("SELECT url FROM images WHERE place_id=$1", [
-      el.place_id,
+      Number(el.place_id),
     ]);
     //Remove all the images related to the place if there are any
     if (images.rows.length) {
       images.rows.forEach((el) => {
-        fs.unlink("./uploads/" + el.url, () => {});
+        cloudinary.uploader.destroy(el.public_id, function (result) {
+          console.log(result);
+        });
       });
     }
     //Remove the images references on the database
@@ -1985,6 +2167,7 @@ server.delete("/admin/delete", adminToken, async (req, res) => {
       "SELECT id FROM comments WHERE place_id=$1",
       [el.place_id]
     );
+
     //Delete these comments if there are any
     if (comments_ids.rows.length) {
       comments_ids.rows.forEach(async (el) => {
@@ -2000,31 +2183,49 @@ server.delete("/admin/delete", adminToken, async (req, res) => {
         ]);
       });
     }
+
     await pool.query("DELETE FROM comments WHERE place_id=$1", [el.place_id]);
+
     await pool.query(`DELETE FROM "savedPlaces" WHERE place_id=$1`, [
       el.place_id,
     ]);
     await pool.query(`DELETE FROM "favoritePlaces" WHERE place_id=$1 `, [
       el.place_id,
     ]);
-    await pool.query("DELETE FROM places WHERE place_id=$1", [el.place_id]);
+
+    await pool.query("DELETE FROM places WHERE place_id=$1", [
+      Number(el.place_id),
+    ]);
     if (!counter) {
-      await pool.query(`DELETE FROM "savedPlaces" WHERE user_id=$2`, [
-        req.headers.id,
+      await pool.query("DELETE FROM notes WHERE user_id=$1", [
+        Number(req.headers.id),
       ]);
+
+      await pool.query(`DELETE FROM "savedPlaces" WHERE user_id=$1`, [
+        Number(req.headers.id),
+      ]);
+
       await pool.query("DELETE FROM reported_items WHERE user_id=$1", [
-        req.headers.id,
+        Number(req.headers.id),
       ]);
-      await pool.query("DELETE FROM places WHERE user_id=$1", [req.user_id]);
-      setTimeout(async () => {
-        await pool.query("DELETE FROM users WHERE id=$1", [req.user_id]);
-      }, 0);
-      res
-        .status(200)
-        .send(
-          "User profile and all corresponsing data have been deleted successfully!"
-        );
-      return false;
+
+      await pool.query("DELETE FROM places WHERE user_id=$1", [
+        Number(req.headers.id),
+      ]);
+      await pool.query(
+        "DELETE FROM suggested_places WHERE suggested_user_id=$1",
+        Number(req.headers.id)
+      );
+      console.log("16");
+
+      await pool.query(
+        "DELETE FROM suggested_places WHERE created_user_id=$1",
+        Number(req.headers.id)
+      );
+      await pool.query("DELETE FROM verification_actions WHERE user_id=$1", [
+        Number(req.headers.id),
+      ]);
+      await pool.query("DELETE FROM users WHERE id=$1", [Number(req.user_id)]);
     }
   });
   //Assuming no places
@@ -2048,7 +2249,6 @@ server.delete("/admin/delete", adminToken, async (req, res) => {
         ]);
       });
     }
-
     await pool.query("DELETE FROM replies_actions WHERE user_id=$1", [
       req.headers.id,
     ]);
@@ -2064,10 +2264,20 @@ server.delete("/admin/delete", adminToken, async (req, res) => {
     await pool.query(`DELETE FROM "favoritePlaces" WHERE  user_id=$1`, [
       req.headers.id,
     ]);
+
     await pool.query("DELETE FROM reported_items WHERE user_id=$1", [
       req.headers.id,
     ]);
     await pool.query("DELETE FROM comments WHERE user_id=$1", [req.headers.id]);
+
+    await pool.query("DELETE FROM verification_actions WHERE user_id=$1", [
+      req.headers.id,
+    ]);
+
+    await pool.query(
+      "DELETE FROM suggested_places WHERE suggested_user_id=$1 OR created_user_id=$1",
+      [req.headers.id]
+    );
 
     await pool.query("DELETE FROM places WHERE user_id=$1", [req.headers.id]);
     setTimeout(async () => {
@@ -2094,14 +2304,41 @@ server.get("/user/delete/:id", (req, res) => {
         res.status(500).send("Internal server error");
         return false;
       }
-      if (!Number(data.rowCount)) {
+      if (!Number(data.rowCount) || !Number(data.rows[0].user_id)) {
         res.status(400).send("Грешен код");
         return false;
       }
       await pool.query(
+        `DELETE FROM suggested_places WHERE suggested_user_id=$1 OR created_user_id=$1`,
+        [Number(data.rows[0].user_id)]
+      );
+      await pool.query(`DELETE FROM "savedPlaces" WHERE user_id=$1`, [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query(`DELETE FROM "favoritePlaces" WHERE user_id=$1`, [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query("DELETE FROM notes WHERE user_id=$1", [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query("DELETE FROM replies_actions WHERE user_id=$1", [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query("DELETE FROM comments_replies WHERE user_id=$1", [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query("DELETE FROM comments_actions WHERE user_id=$1", [
+        Number(data.rows[0].user_id),
+      ]);
+      await pool.query("DELETE FROM comments WHERE user_id=$1", [
+        Number(data.rows[0].user_id),
+      ]);
+
+      await pool.query(
         "DELETE FROM verification_actions WHERE user_id=$1 AND type='user-delete'",
         [data.rows[0].user_id]
       );
+
       const userPlaces = await pool.query(
         "SELECT place_id from places WHERE user_id=$1",
         [data.rows[0].user_id]
@@ -2130,7 +2367,9 @@ server.get("/user/delete/:id", (req, res) => {
         //Remove all the images related to the place if there are any
         if (images.rows.length) {
           images.rows.forEach((el) => {
-            fs.unlink("./uploads/" + el.url, () => {});
+            cloudinary.uploader.destroy(el.public_id, function (result) {
+              console.log(results);
+            });
           });
         }
         //Remove the images references on the database
@@ -2168,13 +2407,39 @@ server.get("/user/delete/:id", (req, res) => {
         ]);
         await pool.query("DELETE FROM places WHERE place_id=$1", [el.place_id]);
         if (!counter) {
+          await pool.query("DELETE FROM notes WHERE user_id=$1", [
+            Number(data.rows[0].user_id),
+          ]);
+
           await pool.query("DELETE FROM reported_items WHERE user_id=$1", [
-            req.user_id,
+            Number(data.rows[0].user_id),
           ]);
           await pool.query("DELETE FROM places WHERE user_id=$1", [
-            req.user_id,
+            Number(data.rows[0].user_id),
           ]);
-          await pool.query("DELETE FROM users WHERE id = $1", [req.user_id]);
+          await pool.query(
+            "DELETE FROM verification_actions WHERE user_id=$1",
+            [Number(data.rows[0].user_id)]
+          );
+
+          await pool.query(
+            "DELETE FROM suggested_places WHERE suggested_user_id=$1",
+            [Number(data.rows[0].user_id)]
+          );
+
+          await pool.query(
+            "DELETE FROM suggested_places WHERE created_user_id=$1",
+            [Number(data.rows[0].user_id)]
+          );
+          await pool.query("DELETE FROM comments_actions WHERE user_id=$1", [
+            Number(data.rows[0].user_id),
+          ]);
+          await pool.query("DELETE FROM comments WHERE user_id=$1", [
+            Number(data.rows[0].user_id),
+          ]);
+          await pool.query("DELETE FROM users WHERE id = $1", [
+            Number(data.rows[0].user_id),
+          ]);
           res
             .status(200)
             .send(
@@ -2219,14 +2484,14 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
           }
           await pool.query(
             "DELETE FROM verification_actions WHERE user_id=$1 AND type='user-delete'",
-            [req.user_id]
+            [Number(req.user_id)]
           );
           let token = genToken(100);
           pool.query(
             `INSERT INTO public.verification_actions(
             user_id, type, url, date)
             VALUES ($1, $2, $3, $4)`,
-            [req.user_id, "user-delete", token, new Date()],
+            [Number(req.user_id), "user-delete", token, new Date()],
             (err) => {
               if (err) {
                 res.status(500).send("Internal server error");
@@ -2234,7 +2499,7 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
               }
               sendMail(
                 `Изтриване на профил`,
-                `Поискали сте изтриване на профила. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/delete/${token} Променете си паролата ако не сте поисквали действието.`,
+                `Поискали сте изтриване на профила. Натиснете линка, за да потвърдите: https://unpopular-bulgaria.com/scrat/user/delete/${token} Променете си паролата ако не сте поисквали действието.`,
                 req.email
               );
               res.status(200).send("Delete request submitted successfully");
@@ -2246,7 +2511,7 @@ server.delete("/user/delete", authorizeToken, (req, res) => {
   );
 });
 
-server.post("/register", hcverify, async (req, res) => {
+server.post("/register", throttle({ rate: "2/s" }), async (req, res) => {
   if (
     !(
       req.body.username &&
@@ -2274,7 +2539,7 @@ server.post("/register", hcverify, async (req, res) => {
   let token = genToken(100);
   encrypt(req.body.password).then((hash) => {
     pool.query(
-      "INSERT INTO users (username, email, date, hash, verified, emailsent,admin) VALUES ($1, $2, $3, $4, $5, $6,false)",
+      "INSERT INTO users (username, email, date, hash, verified, emailsent, admin) VALUES ($1, $2, $3, $4, $5, $6, false)",
       [req.body.username, req.body.email, new Date(), hash, token, new Date()],
       async (err) => {
         if (err) {
@@ -2299,18 +2564,18 @@ server.post("/register", hcverify, async (req, res) => {
                 false,
                 data.rows[0].id,
                 req.body.email,
-                Boolean(data.rows[0].admin)
+                Boolean(data.rows[0].admin) == true
               );
               let jwtToken2 = await generateToken(
                 req.body.username,
                 false,
                 data.rows[0].id,
                 req.body.email,
-                Boolean(data.rows[0].admin)
+                Boolean(data.rows[0].admin) == true
               );
               sendEmail(
                 "Потвърдете вашия акаунт",
-                `Натиснете линка, за да потвърдите акаунта си: https://unknown-backend.herokuapp.com/verify/${token}`,
+                `Натиснете линка, за да потвърдите акаунта си: https://unpopular-bulgaria.com/scrat/verify/${token}`,
                 req.body.email
               );
               res
@@ -2318,7 +2583,8 @@ server.post("/register", hcverify, async (req, res) => {
                 .cookie("JWT", jwtToken2, {
                   expire: 1000 * 60 * 60 * 24 * 30 * 9,
                   httpOnly: true,
-                  secure: false,
+                  secure: true,
+                  sameSite: "none",
                 })
                 .send({ jwt: jwtToken });
               return false;
@@ -2340,15 +2606,15 @@ server.get("/verify/:id", (req, res) => {
         return false;
       }
       if (data.rowCount == 0) {
-        res.status(401).send("Линкът е грешен");
+        res.status(401).send("Грешен код");
       } else {
-        res.status(401).send("Акаунтът е потвърден");
+        res.status(200).send("Акаунтът е потвърден");
       }
     }
   );
 });
-server.get("/verified", (req, res) => {
-  const userData = authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
+server.get("/verified", async (req, res) => {
+  const userData = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
   if (!userData) {
     res.status(401).send("No jwt provided!");
     return false;
@@ -2385,7 +2651,8 @@ server.get("/verified", (req, res) => {
           .cookie("JWT", jwtToken2, {
             expire: 1000 * 60 * 60 * 24 * 30 * 9,
             httpOnly: true,
-            secure: false,
+            secure: true,
+            sameSite: "none",
           })
           .send({ jwt: jwtToken });
         return false;
@@ -2400,7 +2667,7 @@ server.get("/newMail", async (req, res) => {
   let user = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
   pool.query(
     "SELECT email,emailsent,verified FROM users where id=$1",
-    [user.user_id],
+    [Number(user.user_id)],
     (err, data) => {
       if (err) {
         //
@@ -2416,11 +2683,14 @@ server.get("/newMail", async (req, res) => {
         return false;
       }
       let a = moment(new Date()); //now
-      let b = moment(data.rows[0].emailsent); // past email sent
-      if (a.diff(b, "minutes") >= 2) {
+      let b = moment(
+        data.rows[data.rows.length - 1].emailsent.replace(/['"]+/g, "")
+      ); // past email sent
+      console.log(a.diff(b, "minutes"));
+      if (a.diff(b, "minutes") >= 2 || a.diff(b, "minutes") == NaN) {
         sendEmail(
           "Потвърдете вашия акаунт",
-          `Натиснете линка, за да потвърдите акаунта си https://unknown-backend.herokuapp.com/verify/` +
+          `Натиснете линка, за да потвърдите акаунта си https://unpopular-bulgaria.com/scrat/verify/` +
             data.rows[0].verified,
           data.rows[0].email
         );
@@ -2445,7 +2715,7 @@ server.get("/newMail", async (req, res) => {
     }
   );
 });
-server.post("/login", hcverify, async (req, res) => {
+server.post("/login", throttle({ rate: "2/s" }), async (req, res) => {
   //Validating request
   if (
     !(
@@ -2489,7 +2759,12 @@ server.post("/login", hcverify, async (req, res) => {
         );
 
         let a = moment(new Date()); //now
-        let b = moment(date.rows[0].date); // past email sent
+        let b;
+        if (date.rows.length) {
+          b = moment(date.rows[0].date); // past email sent
+        } else {
+          b = moment.unix(0).format();
+        }
         if (a.diff(b, "minutes") < 3) {
           res.status(425).send("Email has already been sent");
           return false;
@@ -2503,21 +2778,23 @@ server.post("/login", hcverify, async (req, res) => {
           `SELECT verification_actions.url FROM verification_actions LEFT JOIN users on user_id=id WHERE username=$1 AND type='account-lock'`,
           [req.body.username]
         );
-        let email = await pool.query(
-          "SELECT email FROM users WHERE username=$1",
-          [req.body.username]
-        );
-        res.status(403).send("Profile locked");
-        sendMail(
-          `Профилът Ви беше заключен`,
-          `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unknown-backend.herokuapp.com/user/unblock/${
-            url.rows[data.rows.length - 1].url
-          } IP адресите, от е имало опити за влизане са ${ip.filter(
-            onlyUnique
-          )}`,
-          email.rows[0].email
-        );
-        return false;
+        if (url.rows.length) {
+          let email = await pool.query(
+            "SELECT email FROM users WHERE username=$1",
+            [req.body.username]
+          );
+          res.status(403).send("Profile locked");
+          sendMail(
+            `Профилът Ви беше заключен`,
+            `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unpopular-bulgaria.com/scrat/user/unblock/${
+              url.rows[data.rows.length - 1].url
+            } IP адресите, от е имало опити за влизане са ${ip.filter(
+              onlyUnique
+            )}`,
+            email.rows[0].email
+          );
+          return false;
+        }
       }
       if (Number(unsuccessfulAttempts.rows[0].count) > 5) {
         //Account is locked
@@ -2554,7 +2831,7 @@ server.post("/login", hcverify, async (req, res) => {
             }
             sendMail(
               `Профилът Ви беше заключен`,
-              `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unknown-backend.herokuapp.com/user/unblock/${token} IP адресите, от е имало опити за влизане са ${ip}`,
+              `Профилът Ви беше заключен поради над 5 неуспешни опита за влизане. Натиснете линка, за да го отключите: https://unpopular-bulgaria.com/scrat/user/unblock/${token} IP адресите, от е имало опити за влизане са ${ip}`,
               email.rows[0].email
             );
           }
@@ -2572,12 +2849,13 @@ server.post("/login", hcverify, async (req, res) => {
           }
           //Passwords do not match
           if (!result) {
-            pool.query(
+            let b = await pool.query(
               `INSERT INTO public.login_attempts(
               "user", ip, "time")
               VALUES ($1, $2, $3)`,
               [req.body.username, req.ip, new Date()]
             );
+            console.log(b);
             res.status(401).send("Wrong password");
             return false;
           }
@@ -2590,7 +2868,7 @@ server.post("/login", hcverify, async (req, res) => {
             [user_id.rows[0].id]
           );
           pool.query(
-            "SELECT verified,id,email,admin FROM users where username=$1 OR email=$1 AND locked=false",
+            "SELECT verified,id,email,admin,username FROM users where username=$1 OR email=$1 AND locked=false",
             [req.body.username],
             async (err, data) => {
               if (err) {
@@ -2602,14 +2880,14 @@ server.post("/login", hcverify, async (req, res) => {
               }
               if (data.rows[0].verified == "true") {
                 let jwtToken = await generateToken(
-                  req.body.username,
+                  data.rows[0].username,
                   true,
                   data.rows[0].id,
                   data.rows[0].email,
                   Boolean(data.rows[0].admin)
                 );
                 let jwtToken2 = await generateToken(
-                  req.body.username,
+                  data.rows[0].username,
                   true,
                   data.rows[0].id,
                   data.rows[0].email,
@@ -2619,8 +2897,9 @@ server.post("/login", hcverify, async (req, res) => {
                   .status(200)
                   .cookie("JWT", jwtToken2, {
                     expire: 1000 * 60 * 60 * 24 * 30 * 9,
-                    httpOnly: true,
-                    secure: false,
+                    httpOnly: false,
+                    secure: true,
+                    sameSite: "none",
                   })
                   .send({ jwt: jwtToken });
               } else {
@@ -2642,7 +2921,8 @@ server.post("/login", hcverify, async (req, res) => {
                   .cookie("JWT", jwtToken2, {
                     expire: 1000 * 60 * 60 * 24 * 30 * 9,
                     httpOnly: true,
-                    secure: false,
+                    secure: true,
+                    sameSite: "none",
                   })
                   .send({ jwt: jwtToken });
               }
@@ -2653,7 +2933,101 @@ server.post("/login", hcverify, async (req, res) => {
     }
   );
 });
-server.get("/avatar", authorizeToken, (req, res) => {
+
+server.post("/note", authorizeToken, throttle({ rate: "2/s" }), (req, res) => {
+  if (!req.body.place_id || req.body.value.lenght > 5000) {
+    res.status(400).send("Invalid data sent");
+    return false;
+  }
+  pool.query(
+    "SELECT FROM notes WHERE user_id=$1 AND place_id=$2",
+    [req.user_id, req.body.place_id],
+    async (err, data) => {
+      if (err) {
+        res.status(500);
+        return false;
+      }
+      if (Number(data.rowCount)) {
+        let action = await pool.query(
+          `UPDATE public.notes
+        SET note=$3
+        WHERE user_id=$1 AND place_id=$2`,
+          [req.user_id, req.body.place_id, req.body.value.substring(0, 5000)]
+        );
+      } else {
+        pool.query(
+          `INSERT INTO public.notes(
+            user_id, place_id, note)
+            VALUES ($1, $2, $3);`,
+          [req.user_id, req.body.place_id, req.body.value.substring(0, 5000)]
+        );
+      }
+      res.status(200).send("Data updates");
+    }
+  );
+});
+
+server.get("/notes", authorizeToken, throttle({ rate: "2/s" }), (req, res) => {
+  pool.query(
+    "SELECT places.place_id,title FROM notes LEFT JOIN places on places.place_id = notes.place_id WHERE notes.user_id=$1",
+    [req.user_id],
+    (err, data) => {
+      if (err) {
+        res.status(500);
+        return false;
+      }
+      res.status(200).send(data.rows);
+    }
+  );
+});
+
+server.delete(
+  "/note",
+  authorizeToken,
+  throttle({ rate: "2/s" }),
+  (req, res) => {
+    if (!Number(req.body.place_id)) {
+      res.status(400).send("Invalid data");
+      return false;
+    }
+    pool.query(
+      "DELETE FROM notes WHERE place_id=$1 AND user_id=$2",
+      [req.body.place_id, req.user_id],
+      (err, data) => {
+        if (err) {
+          res.status(500);
+          return false;
+        }
+        res.status(200).send("Note deleted");
+      }
+    );
+  }
+);
+
+server.post(
+  "/noteData",
+  authorizeToken,
+  throttle({ rate: "2/s" }),
+  (req, res) => {
+    if (!Number(req.body.place_id)) {
+      res.status(400).send("Invalid data");
+      return false;
+    }
+    pool.query(
+      "SELECT note FROM notes WHERE user_id=$1 AND place_id=$2",
+      [req.user_id, req.body.place_id],
+      (err, data) => {
+        if (err) {
+          res.status(500).send("Internal server error");
+          return false;
+        }
+        res.status(200).send(data.rows);
+      }
+    );
+  }
+);
+
+server.get("/avatar", throttle({ rate: "2/s" }), authorizeToken, (req, res) => {
   pool.query(
     "SELECT avatar FROM users WHERE username=$1",
     [req.user],
@@ -2670,9 +3044,16 @@ server.get("/avatar", authorizeToken, (req, res) => {
     }
   );
 });
-server.delete("/avatar/delete", authorizeToken, (req, res) => {
+server.delete("/avatar/delete", authorizeToken, async (req, res) => {
+  let data = await pool.query(
+    "SELECT avatar_public_id FROM users WHERE username=$1",
+    [req.user]
+  );
+  cloudinary.uploader.destroy(data.rows[0].avatar_public_id, function (result) {
+    console.log(result);
+  });
   pool.query(
-    "UPDATE users SET avatar='' WHERE username=$1",
+    "UPDATE users SET avatar='', avatar_public_id='' WHERE username=$1",
     [req.user],
     (err, data) => {
       if (err) {
@@ -2685,7 +3066,7 @@ server.delete("/avatar/delete", authorizeToken, (req, res) => {
 });
 // Comments/Replies endpoints
 
-server.post("/comment", hcverify, authorizeToken, (req, res) => {
+server.post("/comment", authorizeToken, (req, res) => {
   if (
     !req.body.comment &&
     req.body.place_id &&
@@ -2694,15 +3075,12 @@ server.post("/comment", hcverify, authorizeToken, (req, res) => {
     res.status(400).send("Not enough data was provided!");
     return false;
   }
-  if (!req.headers.token) {
-    res.status(401).send("No token was provided!");
-    return false;
-  }
+
   pool.query(
     "INSERT INTO public.comments(place_id, user_id, content, date, visible, score) VALUES ($1,$2,$3,$4,$5,$6)",
     [
       Number(req.body.place_id),
-      req.user_id,
+      Number(req.user_id),
       req.body.comment.substring(0, 500),
       new Date(),
       true,
@@ -2721,21 +3099,18 @@ server.post("/comment", hcverify, authorizeToken, (req, res) => {
     }
   );
 });
-server.post("/reply", hcverify, authorizeToken, (req, res) => {
+server.post("/reply", authorizeToken, (req, res) => {
   if (!(req.body.comment && req.body.relating)) {
     res.status(400).send("Not enough data was provided!");
     return false;
   }
-  if (!req.headers.token) {
-    res.status(401).send("Token is required");
-    return false;
-  }
+
   pool.query(
     "INSERT INTO public.comments_replies(relating, content, user_id, date, visible, score) VALUES ($1,$2,$3,$4,$5,$6)",
     [
       Number(req.body.relating),
       req.body.comment.substring(0, 500),
-      req.user_id,
+      Number(req.user_id),
       new Date(),
       true,
       0,
@@ -2762,7 +3137,7 @@ server.get("/comments", async (req, res) => {
   let userFormat = "%s",
     user_id1,
     user_id2;
-  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt)) {
+  if (req.headers.jwt && authorizeTokenFunc(req.headers.jwt, req.cookies.JWT)) {
     user_id = await authorizeTokenFunc(req.headers.jwt, req.cookies.JWT);
     user_id1 = user_id.user_id;
     user_id2 = user_id.user_id;
@@ -2817,14 +3192,25 @@ WHERE "comments".place_id = $1 AND ("comments".visible=true OR comments_replies.
   });
 });
 server.post("/score/reply", authorizeToken, (req, res) => {
-  if (!(Number(req.body.type) && req.body.reply_id && req.body.comment_id)) {
+  if (
+    !(
+      Number(Number(req.body.type)) &&
+      req.body.reply_id &&
+      Number(req.body.comment_id)
+    )
+  ) {
     res.status(400).send("Not enough data was provided");
     return false;
   }
 
   pool.query(
     "SELECT COUNT(*) FROM replies_actions WHERE comment_id=$1 AND user_id=$2 AND action=$3 AND reply_id=$4",
-    [req.body.comment_id, req.user_id, req.body.type, req.body.reply_id],
+    [
+      Number(req.body.comment_id),
+      Number(req.user_id),
+      Number(req.body.type),
+      req.body.reply_id,
+    ],
     async (err, data) => {
       if (err) {
         res.status(500);
@@ -2832,7 +3218,7 @@ server.post("/score/reply", authorizeToken, (req, res) => {
       }
       //Check if the same action has already been performed
       if (Number(data.rows[0].count)) {
-        if (req.body.type == 1) {
+        if (Number(req.body.type) == 1) {
           await pool.query(
             `UPDATE public.comments_replies
 	SET score=score+1
@@ -2849,17 +3235,17 @@ server.post("/score/reply", authorizeToken, (req, res) => {
         }
         await pool.query(
           "DELETE FROM replies_actions WHERE user_id=$1 AND reply_id=$2",
-          [req.user_id, req.body.reply_id]
+          [Number(req.user_id), req.body.reply_id]
         );
       } else {
         let sql = format(
           `UPDATE public.comments_replies	SET score=score %s 1	WHERE id=$1`,
-          req.body.type == 1 ? "-" : "+"
+          Number(req.body.type) == 1 ? "-" : "+"
         );
         await pool.query(sql, [req.body.reply_id]);
         pool.query(
           "SELECT COUNT(*) FROM replies_actions WHERE user_id=$1 AND reply_id=$2",
-          [req.user_id, req.body.reply_id],
+          [Number(req.user_id), req.body.reply_id],
           async (err, data) => {
             if (err) {
               res.status(500).send("Internal server error");
@@ -2870,17 +3256,17 @@ server.post("/score/reply", authorizeToken, (req, res) => {
               await pool.query(
                 "INSERT INTO replies_actions(user_id,reply_id,action,comment_id,date) VALUES($1,$2,$3,$4,$5)",
                 [
-                  req.user_id,
+                  Number(req.user_id),
                   req.body.reply_id,
-                  req.body.type,
-                  req.body.comment_id,
+                  Number(req.body.type),
+                  Number(req.body.comment_id),
                   new Date(),
                 ]
               );
             } else {
               await pool.query(
                 "DELETE FROM replies_actions WHERE user_id=$1 AND reply_id=$2",
-                [req.user_id, req.body.reply_id]
+                [Number(req.user_id), req.body.reply_id]
               );
             }
           }
@@ -2892,13 +3278,17 @@ server.post("/score/reply", authorizeToken, (req, res) => {
   //Check if opposite statement exists and if true, erase it and update the value
 });
 server.post("/score/comment", authorizeToken, (req, res) => {
-  if (!(Number(req.body.type) && req.body.comment_id)) {
+  if (!(Number(Number(req.body.type)) && Number(req.body.comment_id))) {
     res.status(400).send("Not enough data was provided");
     return false;
   }
   pool.query(
     "SELECT COUNT(*) FROM comments_actions WHERE comment_id=$1 AND user_id=$2 AND action=$3",
-    [req.body.comment_id, req.user_id, req.body.type],
+    [
+      Number(Number(req.body.comment_id)),
+      Number(Number(req.user_id)),
+      Number(Number(req.body.type)),
+    ],
     async (err, data) => {
       if (err) {
         res.status(500);
@@ -2906,34 +3296,34 @@ server.post("/score/comment", authorizeToken, (req, res) => {
       }
       //Check if the same action has already been performed
       if (Number(data.rows[0].count)) {
-        if (req.body.type == 1) {
+        if (Number(req.body.type) == 1) {
           await pool.query(
             `UPDATE public.comments
 	SET score=score+1
 	WHERE id=$1`,
-            [req.body.comment_id]
+            [Number(Number(req.body.comment_id))]
           );
         } else {
           await pool.query(
             `UPDATE public.comments
 	SET score=score-1
 	WHERE id=$1`,
-            [req.body.comment_id]
+            [Number(Number(req.body.comment_id))]
           );
         }
         await pool.query(
           "DELETE FROM comments_actions WHERE user_id=$1 AND comment_id=$2",
-          [req.user_id, req.body.comment_id]
+          [Number(req.user_id), Number(req.body.comment_id)]
         );
       } else {
         let sql = format(
           `UPDATE public.comments	SET score=score %s 1	WHERE id=$1`,
-          req.body.type == 1 ? "-" : "+"
+          Number(req.body.type) == 1 ? "-" : "+"
         );
-        await pool.query(sql, [req.body.comment_id]);
+        await pool.query(sql, [Number(req.body.comment_id)]);
         pool.query(
           "SELECT COUNT(*) FROM comments_actions WHERE user_id=$1 AND comment_id=$2",
-          [req.user_id, req.body.comment_id],
+          [Number(req.user_id), Number(req.body.comment_id)],
           async (err, data) => {
             if (err) {
               res.status(500).send("Internal server error");
@@ -2942,12 +3332,17 @@ server.post("/score/comment", authorizeToken, (req, res) => {
             if (!Number(data.rows[0].count)) {
               await pool.query(
                 "INSERT INTO comments_actions(user_id,comment_id,action,date) VALUES($1,$2,$3,$4)",
-                [req.user_id, req.body.comment_id, req.body.type, new Date()]
+                [
+                  Number(req.user_id),
+                  Number(req.body.comment_id),
+                  Number(req.body.type),
+                  new Date(),
+                ]
               );
             } else {
               await pool.query(
                 "DELETE FROM comments_actions WHERE user_id=$1 AND comment_id=$2",
-                [req.user_id, req.body.comment_id]
+                [Number(req.user_id), Number(req.body.comment_id)]
               );
             }
           }
@@ -2959,15 +3354,15 @@ server.post("/score/comment", authorizeToken, (req, res) => {
   //Check if opposite statement exists and if true, erase it and update the value
 });
 server.delete("/comment/delete", authorizeToken, async (req, res) => {
-  if (!req.body.comment_id) {
+  if (!Number(req.body.comment_id)) {
     res.status(400).send("Incomplete data");
     return false;
   }
   let b = await !adminTokenFunc(req.headers.jwt);
   let specialUser = !b ? "" : " AND user_id=$2";
   let params = !b
-    ? [Number(req.body.comment_id)]
-    : [Number(req.body.comment_id), Number(req.user_id)];
+    ? [Number(Number(req.body.comment_id))]
+    : [Number(Number(req.body.comment_id)), Number(Number(req.user_id))];
   let sql = "SELECT COUNT(*) FROM comments WHERE id=$1" + specialUser;
   pool.query(sql, params, async (err, data) => {
     if (err) {
@@ -2976,13 +3371,13 @@ server.delete("/comment/delete", authorizeToken, async (req, res) => {
     }
     if (Number(data.rows[0].count) !== 0) {
       await pool.query("DELETE FROM replies_actions WHERE comment_id=$1", [
-        req.body.comment_id,
+        Number(req.body.comment_id),
       ]);
       await pool.query("DELETE FROM comments_actions WHERE comment_id=$1", [
-        req.body.comment_id,
+        Number(req.body.comment_id),
       ]);
       await pool.query("DELETE FROM comments_replies WHERE relating=$1", [
-        req.body.comment_id,
+        Number(req.body.comment_id),
       ]);
       let final = await pool.query(
         "DELETE FROM comments WHERE id = $1" + specialUser,
@@ -2997,8 +3392,8 @@ server.delete("/comment/delete", authorizeToken, async (req, res) => {
   });
 });
 server.delete("/reply/delete", authorizeToken, async (req, res) => {
-  if (req.body.comment_id) {
-    req.body.reply_id = req.body.comment_id;
+  if (Number(req.body.comment_id)) {
+    req.body.reply_id = Number(req.body.comment_id);
   }
   if (!req.body.reply_id) {
     res.status(400).send("Incomplete data");
@@ -3008,7 +3403,7 @@ server.delete("/reply/delete", authorizeToken, async (req, res) => {
   let specialUser = !b ? "" : " AND user_id=$2";
   let params = !b
     ? [Number(req.body.reply_id)]
-    : [Number(req.body.reply_id), Number(req.user_id)];
+    : [Number(req.body.reply_id), Number(Number(req.user_id))];
   let sql = "SELECT COUNT(*) FROM comments_replies WHERE id=$1" + specialUser;
   pool.query(sql, params, async (err, data) => {
     if (err) {
@@ -3075,7 +3470,7 @@ server.put("/user/password/forgotten", (req, res) => {
         );
         sendMail(
           `Възстановяване на паролата`,
-          `Поискали сте възстановяване на паролата. Натиснете следния линк: http://localhost:3000/reset/${token}`,
+          `Поискали сте възстановяване на паролата. Натиснете следния линк: https://unpopular-bulgaria.com/reset/${token}`,
           data.rows[0].email
         );
       }
@@ -3168,10 +3563,10 @@ server.get("/user/unblock/:id", async (req, res) => {
     );
     res.status(200).send("Профилът е отключен");
   } else {
-    res.status(401).send("Грешен код");
+    res.status(200).send("Грешен код");
   }
 });
-server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
+server.put("/user/password", authorizeToken, async (req, res) => {
   if (
     !req.body.password ||
     req.body.newPassword.length < 8 ||
@@ -3183,7 +3578,7 @@ server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
     res.status(400).send("Not enough data was provided");
     return false;
   }
-  let previous = await Verification_Email(req.user_id);
+  let previous = await Verification_Email(Number(req.user_id));
   if (!previous) {
     res.status(405).send("Too many email requests");
     return false;
@@ -3215,7 +3610,7 @@ server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
           let token = genToken(100);
           await pool.query(
             "DELETE FROM verification_actions WHERE user_id=$1 AND type='password'",
-            [req.user_id]
+            [Number(req.user_id)]
           );
           try {
             encrypt(req.body.newPassword).then((hash) => {
@@ -3223,11 +3618,11 @@ server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
                 `INSERT INTO public.verification_actions(
 	user_id, type, url, payload, date)
 	VALUES ($1, $2, $3, $4, $5)`,
-                [req.user_id, "password", token, hash, new Date()]
+                [Number(req.user_id), "password", token, hash, new Date()]
               );
               sendMail(
                 `Промяна на паролата`,
-                `Поискали сте промяна на името. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/password/${token} Променете си паролата ако не сте поисквали промяна.`,
+                `Поискали сте промяна на паролата. Натиснете линка, за да потвърдите: https://unpopular-bulgaria.com/scrat/user/password/${token} Променете си паролата ако не сте поисквали промяна.`,
                 req.email
               );
               res.status(200).send("Done");
@@ -3243,7 +3638,7 @@ server.put("/user/password", authorizeToken, hcverify, async (req, res) => {
 
 server.get("/user/password/:id", (req, res) => {
   if (!req.params.id || req.params.id.length !== 200) {
-    res.status(400).send("Неверн код");
+    res.status(400).send("Неверен код");
     return false;
   }
   pool.query(
@@ -3260,6 +3655,7 @@ SET hash=$1
 WHERE id=$2`,
           [data.rows[0].payload, data.rows[0].user_id]
         );
+
         res
           .status(200)
           .send(
@@ -3270,13 +3666,13 @@ WHERE id=$2`,
           [data.rows[0].user_id]
         );
       } else {
-        res.status(200).send("Неверен код");
+        res.status(200).send("Грешен код");
       }
     }
   );
 });
 
-server.put("/user/email", authorizeToken, hcverify, async (req, res) => {
+server.put("/user/email", authorizeToken, async (req, res) => {
   if (
     req.body.password == undefined ||
     req.body.email == undefined ||
@@ -3288,7 +3684,7 @@ server.put("/user/email", authorizeToken, hcverify, async (req, res) => {
     res.status(400).send("Not enough data was provided.");
     return false;
   }
-  let previous = await Verification_Email(req.user_id);
+  let previous = await Verification_Email(Number(req.user_id));
   if (!previous) {
     res.status(405).send("Too many email requests");
     return false;
@@ -3318,33 +3714,68 @@ server.put("/user/email", authorizeToken, hcverify, async (req, res) => {
         res.status(400).send("No record associated with the email");
         return false;
       }
-      bcrypt.compare(req.body.password, data.rows[0].hash, async (err) => {
-        if (err) {
-          res.status(500).send("Internal server error");
-          return false;
-        }
-        let token = genToken(100);
-        await pool.query(
-          "DELETE FROM verification_actions WHERE user_id=$1 AND type='email'",
-          [req.user_id]
-        );
-        try {
+      bcrypt.compare(
+        req.body.password,
+        data.rows[0].hash,
+        async (err, result) => {
+          if (err) {
+            res.status(500).send("Internal server error");
+            return false;
+          }
+          if (!result) {
+            res.status(401).send("Wrong password");
+            return false;
+          }
+          let token = genToken(100);
           await pool.query(
-            `UPDATE public.users
+            "DELETE FROM verification_actions WHERE user_id=$1 AND type='email'",
+            [Number(req.user_id)]
+          );
+          try {
+            await pool.query(
+              `UPDATE public.users
   SET email=$1
   WHERE id=$2`,
-            [req.body.email, req.user_id]
-          );
-          res.status(200).send("Done");
-        } catch (err) {
-          res.status(500).send("Internal server error");
+              [req.body.email, Number(req.user_id)]
+            );
+            let admin = await pool.query(
+              "SELECT admin from users WHERE id=$1",
+              [req.user_id]
+            );
+
+            let jwtToken = await generateToken(
+              req.user,
+              true,
+              req.user_id,
+              req.body.email,
+              Boolean(admin.rows[0].admin) == true
+            );
+            let jwtToken2 = await generateToken(
+              req.user,
+              true,
+              req.user_id,
+              req.body.email,
+              Boolean(admin.rows[0].admin) == true
+            );
+            res
+              .status(200)
+              .cookie("JWT", jwtToken2, {
+                expire: 1000 * 60 * 60 * 24 * 30 * 9,
+                httpOnly: true,
+                secure: true,
+                sameSite: "none",
+              })
+              .send({ jwt: jwtToken });
+          } catch (err) {
+            res.status(500).send("Internal server error");
+          }
         }
-      });
+      );
     }
   );
 });
 
-server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
+server.put("/user/name", authorizeToken, async (req, res) => {
   if (
     req.body.name.length > 20 ||
     req.body.name.length < 5 ||
@@ -3359,7 +3790,7 @@ server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
       );
     return false;
   }
-  let previous = await Verification_Email(req.user_id);
+  let previous = await Verification_Email(Number(req.user_id));
   if (!previous) {
     res.status(405).send("Too many email requests");
     return false;
@@ -3374,13 +3805,13 @@ server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
   }
   await pool.query(
     "DELETE FROM verification_actions WHERE user_id=$1 AND type='name'",
-    [req.user_id]
+    [Number(req.user_id)]
   );
   pool.query(
     `INSERT INTO public.verification_actions(
      user_id, type, url, payload, date)
     VALUES ($1,$2,$3,$4,$5)`,
-    [req.user_id, "name", token, req.body.name, new Date()],
+    [Number(req.user_id), "name", token, req.body.name, new Date()],
     (err) => {
       if (err) {
         res.status(500).send("Internal Server Error");
@@ -3388,7 +3819,7 @@ server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
       }
       sendMail(
         `Промяна на името`,
-        `Поискали сте промяна на името. Натиснете линка, за да потвърдите: https://unknown-backend.herokuapp.com/user/name/${token} Променете си паролата ако не сте поисквали промяна.`,
+        `Поискали сте промяна на името. Натиснете линка, за да потвърдите: https://unpopular-bulgaria.com/scrat/user/name/${token} Променете си паролата ако не сте поисквали промяна.`,
         req.email
       );
       res.status(200).send("Check your email");
@@ -3398,15 +3829,17 @@ server.put("/user/name", authorizeToken, hcverify, async (req, res) => {
 
 server.get("/user/name/:id", (req, res) => {
   if (!req.params.id || req.params.id.length !== 200) {
-    res.status(400).send("Неверн код");
+    res.status(400).send("Неверен код");
     return false;
   }
   pool.query(
-    "SELECT payload,user_id,username FROM verification_actions JOIN users on user_id=id WHERE url=$1",
+    "SELECT payload,user_id,username,email,admin FROM verification_actions JOIN users on user_id=id WHERE url=$1",
     [req.params.id],
     async (err, data) => {
       if (err) {
-        res.status(500).send();
+        console.log(err);
+        res.status(500).send("Internal server error");
+        return false;
       }
       if (Number(data.rowCount) > 0) {
         await pool.query(
@@ -3415,11 +3848,29 @@ SET username=$1
 WHERE id=$2`,
           [data.rows[0].payload, data.rows[0].user_id]
         );
+        let jwtToken = await generateToken(
+          data.rows[0].payload,
+          true,
+          data.rows[0].user_id,
+          data.rows[0].email,
+          Boolean(data.rows[0].admin) == true
+        );
+        let jwtToken2 = await generateToken(
+          data.rows[0].payload,
+          true,
+          data.rows[0].user_id,
+          data.rows[0].email,
+          Boolean(data.rows[0].admin) == true
+        );
         res
           .status(200)
-          .send(
-            "Името е променено. Влезнете отново в профила си, за да видите промяната"
-          );
+          .cookie("JWT", jwtToken2, {
+            expire: 1000 * 60 * 60 * 24 * 30 * 9,
+            httpOnly: true,
+            secure: true,
+            sameSite: "none",
+          })
+          .send({ jwt: jwtToken });
         pool.query(
           "DELETE FROM verification_actions WHERE user_id=$1 AND type='name'",
           [data.rows[0].user_id]
@@ -3437,7 +3888,7 @@ server.get("/user/profile/", throttle({ rate: "5/s" }), (req, res) => {
     return false;
   }
   pool.query(
-    `SELECT places.place_id,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,user_id,images.url,username,(SELECT avatar FROM users WHERE username=$1) FROM places  JOIN users on users.id=places.user_id 
+    `SELECT places.place_id,admin,views,title,description,visible,score,placelocation,category,price,accessibility,places.date,city,dangerous,user_id,images.url,username,(SELECT avatar FROM users WHERE username=$1) FROM places  JOIN users on users.id=places.user_id 
     LEFT JOIN images on images.place_id = places.place_id WHERE username=$1  LIMIT 100
     `,
     [req.query.username],
@@ -3454,7 +3905,7 @@ server.get("/user/profile/", throttle({ rate: "5/s" }), (req, res) => {
           copyObj.place_id = Math.random();
         }
       }
-      let final = groupBy(copyObj, "place_id");
+      let final = groupBy(copyObj, "title");
       let finalArray = [];
       //Turn the newly created object of objects into an array of objects for front-end manipulation
       Object.keys(final).forEach(function (key) {
@@ -3473,7 +3924,7 @@ server.get(
       return false;
     }
     pool.query(
-      "SELECT avatar,username,date FROM users WHERE username=$1",
+      "SELECT avatar,username,date,admin FROM users WHERE username=$1",
       [req.query.username],
       (err, data) => {
         if (err) {
@@ -3511,3 +3962,7 @@ const Verification_Email = async (user_id) => {
 const onlyUnique = (value, index, self) => {
   return self.indexOf(value) === index;
 };
+server.get("*", function (req, res) {
+  res.setHeader("Content-type", "text/html");
+  res.status(404).send("Може би си загубил пътя?");
+});

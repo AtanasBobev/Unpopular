@@ -10,6 +10,7 @@ import ReportOutlinedIcon from "@material-ui/icons/ReportOutlined";
 import ReplyIcon from "@material-ui/icons/Reply";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
+import Link from "@material-ui/core/Link";
 import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 import TooltipImage from "./../tooltipImage";
@@ -18,9 +19,6 @@ import jwt_decode from "jwt-decode";
 import Report from "./../report";
 import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
-import FormControl from "@material-ui/core/FormControl";
-import FormHelperText from "@material-ui/core/FormHelperText";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import AddReply from "./addReply";
 import Reply from "./reply";
 const axios = require("axios");
@@ -41,6 +39,10 @@ const Comment = (props) => {
   const [openReport, setReportOpen] = React.useState(false);
   const [score, setScore] = React.useState(Number(props.score));
   const [reply, setReply] = React.useState(false);
+  const [more, setMore] = React.useState(
+    !(window.innerWidth < window.innerHeight)
+  );
+
   React.useLayoutEffect(() => {
     setReply(false);
     setScore(Number(props.score));
@@ -95,8 +97,9 @@ const Comment = (props) => {
       }
     }
     let link = props.SpecialReply
-      ? "http://localhost:5000/score/reply"
-      : "http://localhost:5000/score/comment";
+      ? "https://unpopular-backend.herokuapp.com/score/reply"
+      : "https://unpopular-backend.herokuapp.com/score/comment";
+
     axios
       .post(
         link,
@@ -170,8 +173,8 @@ const Comment = (props) => {
   };
   const deleteComment = () => {
     let link = props.SpecialReply
-      ? "http://localhost:5000/reply/delete"
-      : "http://localhost:5000/comment/delete";
+      ? "https://unpopular-backend.herokuapp.com/reply/delete"
+      : "https://unpopular-backend.herokuapp.com/comment/delete";
     axios
       .delete(link, {
         headers: {
@@ -261,6 +264,18 @@ const Comment = (props) => {
         }}
         className="comment"
       >
+        {!isNaN(props.place_id) && (
+          <center>
+            <Link
+              href={`https://unpopular-bulgaria.com/place/${window.btoa(
+                props.place_id
+              )}`}
+              target="_blank"
+            >
+              Покажи
+            </Link>
+          </center>
+        )}
         <Box className="commentUp">
           <Box className="vote">
             {verify() && (
@@ -282,7 +297,7 @@ const Comment = (props) => {
                 <KeyboardArrowUpIcon />
               </IconButton>
             )}
-            <Typography style={{ textAlign: "center", userSelect: "none" }}>
+            <Typography style={{ textAlign: "center", pointerEvents: "none" }}>
               {score}
             </Typography>
             {verify() && (
@@ -309,93 +324,102 @@ const Comment = (props) => {
             {props.content}
           </Typography>
         </Box>
-        <Box className="buttonArray">
-          <Typography
-            style={{
-              alignSelf: "flex-start",
-              flex: 1,
-              marginTop: "1.3vmax",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            {" "}
-            <TooltipImage author={props.author} avatar={props.avatar} />| Дата:{" "}
-            {moment(props.date).format("llll")}
-            {" | "}
-            {!props.noReply &&
-              (props.el[0].reply_content == null
-                ? "Няма отговори"
-                : props.el[0].reply_content !== null && props.el.length == 1
-                ? "1 отговор"
-                : props.el[0].reply_content !== null && props.el.length == 2
-                ? "2 отговора"
-                : props.el.length + " отговори")}
-          </Typography>
-
-          {verify() && !props.noReply && (
-            <Button
-              onClick={() => setReply(!reply)}
-              startIcon={<ReplyIcon />}
+        <center>
+          {window.innerWidth < window.innerHeight && (
+            <Button onClick={() => setMore((prev) => !prev)}>
+              {more ? "-" : "+"}
+            </Button>
+          )}
+        </center>
+        {more && (
+          <Box className="buttonArray">
+            <Typography
               style={{
-                textTransform: "none",
-                border: reply && "2px solid gold",
+                alignSelf: "flex-start",
+                flex: 1,
+                marginTop: "1.3vmax",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "1.1vmax",
               }}
             >
-              Отговори
-            </Button>
-          )}
-          {((verify() && ID() == props.user_id) || isAdmin()) && (
-            <Button
-              style={{ textTransform: "none" }}
-              startIcon={<DeleteIcon />}
-              onClick={() => {
-                confirmAlert({
-                  title: "Потвърдете",
-                  message:
-                    "Сигурен ли сте, че искате да изтриете коментара? Това решение не може да се върне назад",
-                  buttons: [
-                    {
-                      label: "Да",
-                      onClick: () => deleteComment(),
-                    },
-                    {
-                      label: "Не",
-                    },
-                  ],
-                });
-              }}
-            >
-              Изтрий
-            </Button>
-          )}
-          {verify() && (
-            <>
+              <TooltipImage author={props.author} avatar={props.avatar} /> {"|"}{" "}
+              Дата: {moment(props.date).format("llll")}
+              {"|"}{" "}
+              {!props.noReply &&
+                (props.el[0].reply_content == null
+                  ? "Няма отговори"
+                  : props.el[0].reply_content !== null && props.el.length == 1
+                  ? "1 отговор"
+                  : props.el[0].reply_content !== null && props.el.length == 2
+                  ? "2 отговора"
+                  : props.el.length + " отговори")}
+            </Typography>
+
+            {verify() && !props.noReply && (
               <Button
-                onClick={() => setReportOpen(!openReport)}
-                style={{ textTransform: "none" }}
-                startIcon={<ReportOutlinedIcon />}
-              >
-                Нередност
-              </Button>
-              <PureModal
-                header="Съобщи за нередност"
-                isOpen={openReport}
-                onClose={() => {
-                  setReportOpen(false);
-                  return true;
+                onClick={() => setReply(!reply)}
+                startIcon={<ReplyIcon />}
+                style={{
+                  textTransform: "none",
+                  border: reply && "2px solid gold",
                 }}
               >
-                <Report
-                  toast={props.toast}
-                  item_id={props.idData}
-                  setReportOpen={setReportOpen}
-                  type="comment"
-                />
-              </PureModal>
-            </>
-          )}
-        </Box>
+                Отговори
+              </Button>
+            )}
+            {((verify() && ID() == props.user_id) || isAdmin()) && (
+              <Button
+                style={{ textTransform: "none" }}
+                startIcon={<DeleteIcon />}
+                onClick={() => {
+                  confirmAlert({
+                    title: "Потвърдете",
+                    message:
+                      "Сигурен ли сте, че искате да изтриете коментара? Това решение не може да се върне назад",
+                    buttons: [
+                      {
+                        label: "Да",
+                        onClick: () => deleteComment(),
+                      },
+                      {
+                        label: "Не",
+                      },
+                    ],
+                  });
+                }}
+              >
+                Изтрий
+              </Button>
+            )}
+            {verify() && (
+              <>
+                <Button
+                  onClick={() => setReportOpen(!openReport)}
+                  style={{ textTransform: "none" }}
+                  startIcon={<ReportOutlinedIcon />}
+                >
+                  Нередност
+                </Button>
+                <PureModal
+                  header="Съобщи за нередност"
+                  isOpen={openReport}
+                  onClose={() => {
+                    setReportOpen(false);
+                    return true;
+                  }}
+                >
+                  <Report
+                    toast={props.toast}
+                    item_id={props.idData}
+                    setReportOpen={setReportOpen}
+                    type="comment"
+                  />
+                </PureModal>
+              </>
+            )}
+          </Box>
+        )}
         {reply && (
           <AddReply
             refreshData={props.refreshData}

@@ -10,7 +10,7 @@ const ForgottenPassword = (props) => {
     e.preventDefault();
     axios
       .request({
-        url: "http://localhost:5000/user/password/forgotten",
+        url: "https://unpopular-backend.herokuapp.com/user/password/forgotten",
         method: "PUT",
         data: { cred: cred },
       })
@@ -53,11 +53,10 @@ const ForgottenPassword = (props) => {
         />
         <Button
           type="submit"
-          style={{ textTransform: "none" }}
+          style={{ textTransform: "none", color: "black" }}
           variant="contained"
-          color="primary"
         >
-          Изпрати
+          Потвърди
         </Button>
       </form>
     </Box>

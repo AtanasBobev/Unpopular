@@ -13,19 +13,9 @@ import Checkbox from "@material-ui/core/Checkbox";
 import { getCenter, getPreciseDistance } from "geolib";
 import jwt_decode from "jwt-decode";
 import { Map, Marker, ZoomControl, Overlay } from "pigeon-maps";
-import { createMuiTheme, ThemeProvider } from "@material-ui/core";
 
 const axios = require("axios");
-const theme = createMuiTheme({
-  palette: {
-    primary: {
-      main: "#EEBC1D",
-    },
-    secondary: {
-      main: "#EEBC1D",
-    },
-  },
-});
+
 const Saved = (props) => {
   const [location, setLocation] = React.useState();
   const [center, setCenter] = React.useState();
@@ -39,6 +29,7 @@ const Saved = (props) => {
   const [savedLoading, setSavedLoading] = React.useState(1);
   const [savedQueryData, setSavedQueryData] = React.useState([]);
   const [savedQueryLimit, setSavedQueryLimit] = React.useState(10);
+
   const getCenterCoordinates = () => {
     if (savedQueryData.length) {
       let locationsArray = savedQueryData.map((el) => {
@@ -64,6 +55,9 @@ const Saved = (props) => {
   React.useEffect(() => {
     getCenterCoordinates();
   }, [savedQueryData]);
+  React.useEffect(() => {
+    fetchSaved();
+  }, [savedQueryLimit]);
   const markerColor = (e) => {
     switch (Number(e.category)) {
       case 1:
@@ -164,7 +158,7 @@ const Saved = (props) => {
   const fetchSaved = async () => {
     await setSavedLoading(2);
     await axios
-      .get("http://localhost:5000/userSavedPlaces", {
+      .get("https://unpopular-backend.herokuapp.com/userSavedPlaces", {
         headers: { jwt: localStorage.getItem("jwt") },
         params: { limit: savedQueryLimit },
       })
@@ -190,10 +184,11 @@ const Saved = (props) => {
   };
   React.useLayoutEffect(() => {
     fetchSaved();
+    fetchNumberSaved();
   }, []);
   const fetchNumberSaved = () => {
     axios
-      .get("http://localhost:5000/user/count/savedPlaces", {
+      .get("https://unpopular-backend.herokuapp.com/user/count/savedPlaces", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
@@ -212,284 +207,291 @@ const Saved = (props) => {
       });
   };
   return (
-    <ThemeProvider theme={theme}>
-      <Box>
-        <center>
-          <Typography style={{ margin: "2vmax" }} variant="h3">
-            Запазени места
+    <Box>
+      <center>
+        <Typography
+          style={{ margin: "2vmax" }}
+          className="likedText"
+          variant="h3"
+        >
+          Запазени места
+        </Typography>
+        <Box className="oneLiner">
+          <Typography gutterBottom variant="h5">
+            {savedLoading == 3 && numberPlaces !== 0
+              ? Number(numberPlaces) == 1
+                ? "1 резултат"
+                : Number(numberPlaces) == 2
+                ? "2 резултата"
+                : Number(numberPlaces) + " резултати"
+              : savedLoading !== 2 && "Няма резултати"}
           </Typography>
-          <Box className="oneLiner">
-            <Typography gutterBottom variant="h5">
-              {savedLoading == 3 && savedQueryData.length !== 0
-                ? Number(savedQueryData.length) == 1
-                  ? "1 резултат"
-                  : Number(savedQueryData.length) == 2
-                  ? "2 резултата"
-                  : Number(savedQueryData.length) + " резултати"
-                : savedLoading !== 2 && "Няма резултати"}
-            </Typography>
-            {savedLoading !== 2 && (
-              <IconButton onClick={() => fetchSaved()}>
-                <CachedIcon />
-              </IconButton>
-            )}
-          </Box>
-        </center>
-        <Box maxWidth="sm">
-          {!savedQueryData.length && savedLoading == 3 ? (
-            <img
-              src={require("../images/saved.svg").default}
-              className="noResultsBanner"
-            />
-          ) : (
-            ""
+          {savedLoading !== 2 && (
+            <IconButton onClick={() => fetchSaved()}>
+              <CachedIcon />
+            </IconButton>
           )}
+        </Box>
+      </center>
+      <Box maxWidth="sm">
+        {!savedQueryData.length && savedLoading == 3 ? (
+          <img
+            src={require("../images/saved.svg").default}
+            className="noResultsBanner"
+          />
+        ) : (
+          ""
+        )}
 
-          {savedQueryData.length ? (
-            <FadeIn
-              transitionDuration={600}
-              delay={100}
-              className="CardContainer"
-            >
-              <div className="MapContainer">
-                <center>
-                  <Map
-                    metaWheelZoom={true}
-                    metaWheelZoomWarning={
-                      "Използвайте ctrl+scroll, за да промените мащаба"
-                    }
-                    center={location ? location : center}
-                    zoom={7}
-                    width={"70vw"}
-                    height={"60vh"}
-                  >
-                    <ZoomControl />
-                    {locationChecked && location && (
-                      <Marker anchor={location} color={"red"} />
-                    )}
-                    {markersChecked &&
-                      location &&
-                      savedQueryData.map((el) => (
-                        <Marker
-                          anchor={el[0].placelocation
-                            .replace(/\s+/g, "")
-                            .split(",")
-                            .map(Number)}
-                          color={markerColor(el[0])}
-                        />
-                      ))}
-                    {placesChecked &&
-                      (places.length && locationChecked
-                        ? places.map((el) => (
+        {savedQueryData.length ? (
+          <FadeIn
+            transitionDuration={600}
+            delay={100}
+            className="CardContainer"
+          >
+            <div className="MapContainer">
+              <center>
+                <Map
+                  metaWheelZoom={true}
+                  metaWheelZoomWarning={
+                    "Използвайте ctrl+scroll, за да промените мащаба"
+                  }
+                  center={location ? location : center}
+                  zoom={7}
+                  width={"70vw"}
+                  height={"60vh"}
+                >
+                  <ZoomControl />
+                  {locationChecked && location && (
+                    <Marker anchor={location} color={"red"} />
+                  )}
+                  {markersChecked &&
+                    location &&
+                    savedQueryData.map((el) => (
+                      <Marker
+                        anchor={el[0].placelocation
+                          .replace(/\s+/g, "")
+                          .split(",")
+                          .map(Number)}
+                        color={markerColor(el[0])}
+                      />
+                    ))}
+                  {placesChecked &&
+                    (places.length && locationChecked
+                      ? places.map((el) => (
+                          <Overlay
+                            offset={[0, 50]}
+                            anchor={el[1][0].placelocation
+                              .replace(/\s+/g, "")
+                              .split(",")
+                              .map(Number)}
+                          >
+                            <Card
+                              username={el[1][0].username}
+                              inSearch={true}
+                              inMap={true}
+                              toast={props.toast}
+                              key={Math.random()}
+                              date={el[1][0].date}
+                              user_id={el[1][0].user_id}
+                              idData={el[1][0].place_id}
+                              title={el[1][0].title}
+                              views={el[1][0].views}
+                              description={el[1][0].description}
+                              price={el[1][0].price}
+                              accessibility={el[1][0].accessibility}
+                              category={el[1][0].category}
+                              views={el[1][0].views}
+                              placelocation={el[1][0].placelocation}
+                              dangerous={el[1][0].dangerous}
+                              user_id={el[1][0].user_id}
+                              avatar={el[1][0].avatar}
+                              likeButtonVisible={verify()}
+                              reportButtonVisible={true}
+                              liked={el[1][0].liked == "true" ? true : false}
+                              saved={el[1][0].saved == "true" ? true : false}
+                              numbersLiked={Number(el[1][0].likednumber)}
+                              mainImg={el[1][0].url}
+                              city={el[1][0].city}
+                              images={el[1]}
+                              saveButtonVisible={verify()}
+                              adminRights={el[1][0].user_id == ID()}
+                              distance={el[0]}
+                              date={el[1][0].date}
+                            />
+                          </Overlay>
+                        ))
+                      : savedQueryData.map((el) => {
+                          return (
                             <Overlay
                               offset={[0, 50]}
-                              anchor={el[1][0].placelocation
+                              anchor={el[0].placelocation
                                 .replace(/\s+/g, "")
                                 .split(",")
                                 .map(Number)}
                             >
                               <Card
-                                username={el[1][0].username}
                                 inSearch={true}
+                                username={el[0].username}
                                 inMap={true}
+                                date={el[0].date}
                                 toast={props.toast}
                                 key={Math.random()}
-                                date={el[1][0].date}
-                                user_id={el[1][0].user_id}
-                                idData={el[1][0].place_id}
-                                title={el[1][0].title}
-                                description={el[1][0].description}
-                                price={el[1][0].price}
-                                accessibility={el[1][0].accessibility}
-                                category={el[1][0].category}
-                                placelocation={el[1][0].placelocation}
-                                dangerous={el[1][0].dangerous}
-                                user_id={el[1][0].user_id}
-                                avatar={el[1][0].avatar}
+                                idData={el[0].place_id}
+                                user_id={el[0].user_id}
+                                title={el[0].title}
+                                views={el[0].views}
+                                views={el[0].views}
+                                description={el[0].description}
+                                price={el[0].price}
+                                accessibility={el[0].accessibility}
+                                category={el[0].category}
+                                placelocation={el[0].placelocation}
+                                dangerous={el[0].dangerous}
                                 likeButtonVisible={verify()}
                                 reportButtonVisible={true}
-                                liked={el[1][0].liked == "true" ? true : false}
-                                saved={el[1][0].saved == "true" ? true : false}
-                                numbersLiked={Number(el[1][0].likednumber)}
-                                mainImg={el[1][0].url}
-                                city={el[1][0].city}
-                                images={el[1]}
+                                liked={el[0].liked == "true" ? true : false}
+                                saved={el[0].saved == "true" ? true : false}
+                                numbersLiked={Number(el[0].likednumber)}
+                                mainImg={el[0].url}
+                                city={el[0].city}
+                                user_id={el[0].user_id}
+                                avatar={el[0].avatar}
+                                images={el}
                                 saveButtonVisible={verify()}
-                                adminRights={el[1][0].user_id == ID()}
-                                distance={el[0]}
-                                date={el[1][0].date}
+                                adminRights={el[0].user_id == ID()}
                               />
                             </Overlay>
-                          ))
-                        : savedQueryData.map((el) => {
-                            return (
-                              <Overlay
-                                offset={[0, 50]}
-                                anchor={el[0].placelocation
-                                  .replace(/\s+/g, "")
-                                  .split(",")
-                                  .map(Number)}
-                              >
-                                <Card
-                                  inSearch={true}
-                                  username={el[0].username}
-                                  inMap={true}
-                                  date={el[0].date}
-                                  toast={props.toast}
-                                  key={Math.random()}
-                                  idData={el[0].place_id}
-                                  user_id={el[0].user_id}
-                                  title={el[0].title}
-                                  description={el[0].description}
-                                  price={el[0].price}
-                                  accessibility={el[0].accessibility}
-                                  category={el[0].category}
-                                  placelocation={el[0].placelocation}
-                                  dangerous={el[0].dangerous}
-                                  likeButtonVisible={verify()}
-                                  reportButtonVisible={true}
-                                  liked={el[0].liked == "true" ? true : false}
-                                  saved={el[0].saved == "true" ? true : false}
-                                  numbersLiked={Number(el[0].likednumber)}
-                                  mainImg={el[0].url}
-                                  city={el[0].city}
-                                  user_id={el[0].user_id}
-                                  avatar={el[0].avatar}
-                                  images={el}
-                                  saveButtonVisible={verify()}
-                                  adminRights={el[0].user_id == ID()}
-                                />
-                              </Overlay>
-                            );
-                          }))}
-                  </Map>
-                </center>
+                          );
+                        }))}
+                </Map>
+              </center>
 
-                <Box
+              <Box
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingTop: "0.5vmax",
+                }}
+              >
+                <div
                   style={{
                     display: "flex",
                     flexWrap: "wrap",
-                    flexDirection: "row",
-                    justifyContent: "space-between",
                     alignItems: "center",
-                    paddingTop: "0.5vmax",
                   }}
                 >
                   <div
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      alignItems: "center",
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "red",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
                     }}
-                  >
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "red",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Моята локация</Typography>
+                  ></div>
+                  <Typography>Моята локация</Typography>
 
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "purple",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Заведение</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "orange",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Нощно заведение</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "RoyalBlue",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Магазин</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "green",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Пътека</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "pink",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Място</Typography>
-                    <div
-                      style={{
-                        height: "1vmax",
-                        width: "1vmax",
-                        borderRadius: "50%",
-                        backgroundColor: "black",
-                        marginRight: "0.5vmax",
-                        marginLeft: "1vmax",
-                      }}
-                    ></div>
-                    <Typography>Друго</Typography>
-                  </div>
                   <div
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      alignItems: "center",
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "purple",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
                     }}
-                  >
-                    <Switch
-                      checked={locationChecked && location}
-                      onChange={(e) => setLocationChecked(e.target.checked)}
-                    />
-                    <Typography>Сортирай по близост</Typography>
-                    <Checkbox
-                      trackColor={{ true: "red", false: "grey" }}
-                      checked={markersChecked}
-                      onChange={(e) => setMarkersChecked(e.target.checked)}
-                    />
-                    <Typography>Маркери</Typography>
-                    <Checkbox
-                      checked={placesChecked}
-                      onChange={(e) => setPlacesChecked(e.target.checked)}
-                    />
-                    <Typography>Места</Typography>
-                  </div>
-                </Box>
-              </div>
-              {savedLoading == 3 || savedLoading == 1 ? (
-                places.length && locationChecked ? (
-                  places.map((el) => {
+                  ></div>
+                  <Typography>Сграда</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "orange",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Гледка</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "RoyalBlue",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Екотуризъм</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "green",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Изкуство</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "pink",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Заведение</Typography>
+                  <div
+                    style={{
+                      height: "1vmax",
+                      width: "1vmax",
+                      borderRadius: "50%",
+                      backgroundColor: "black",
+                      marginRight: "0.5vmax",
+                      marginLeft: "1vmax",
+                    }}
+                  ></div>
+                  <Typography>Друго</Typography>
+                </div>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                  }}
+                >
+                  <Switch
+                    checked={locationChecked && location}
+                    onChange={(e) => setLocationChecked(e.target.checked)}
+                  />
+                  <Typography>Сортирай по близост</Typography>
+                  <Checkbox
+                    trackColor={{ true: "red", false: "grey" }}
+                    checked={markersChecked}
+                    onChange={(e) => setMarkersChecked(e.target.checked)}
+                  />
+                  <Typography>Маркери</Typography>
+                  <Checkbox
+                    checked={placesChecked}
+                    onChange={(e) => setPlacesChecked(e.target.checked)}
+                  />
+                  <Typography>Места</Typography>
+                </div>
+              </Box>
+            </div>
+            {savedLoading == 3 || savedLoading == 1
+              ? places.length && locationChecked
+                ? places.map((el) => {
                     return (
                       <>
                         <Card
@@ -502,6 +504,7 @@ const Saved = (props) => {
                           title={el[1][0].title}
                           description={el[1][0].description}
                           user_id={el[1][0].user_id}
+                          views={el[1][0].views}
                           price={el[1][0].price}
                           accessibility={el[1][0].accessibility}
                           category={el[1][0].category}
@@ -525,8 +528,7 @@ const Saved = (props) => {
                       </>
                     );
                   })
-                ) : (
-                  savedQueryData.map((el) => {
+                : savedQueryData.map((el) => {
                     return (
                       <>
                         <Card
@@ -540,6 +542,7 @@ const Saved = (props) => {
                           description={el[0].description}
                           price={el[0].price}
                           user_id={el[0].user_id}
+                          views={el[0].views}
                           accessibility={el[0].accessibility}
                           category={el[0].category}
                           placelocation={el[0].placelocation}
@@ -560,67 +563,93 @@ const Saved = (props) => {
                       </>
                     );
                   })
-                )
-              ) : (
-                <ContentLoader
-                  width={800}
-                  height={575}
-                  viewBox="0 0 800 575"
-                  backgroundColor="#f3f3f3"
-                  foregroundColor="#ecebeb"
-                  {...props}
-                >
-                  <rect x="12" y="58" rx="2" ry="2" width="211" height="211" />
-                  <rect x="240" y="57" rx="2" ry="2" width="211" height="211" />
-                  <rect x="467" y="56" rx="2" ry="2" width="211" height="211" />
-                  <rect x="12" y="283" rx="2" ry="2" width="211" height="211" />
-                  <rect
-                    x="240"
-                    y="281"
-                    rx="2"
-                    ry="2"
-                    width="211"
-                    height="211"
-                  />
-                  <rect
-                    x="468"
-                    y="279"
-                    rx="2"
-                    ry="2"
-                    width="211"
-                    height="211"
-                  />
-                </ContentLoader>
-              )}
-            </FadeIn>
-          ) : (
-            ""
-          )}
-          {(savedLoading == 3 || savedLoading == 1) &&
-          Number(savedQueryLimit) < Number(numberPlaces) ? (
-            <Box
-              style={{
-                width: "100vw",
-                display: "flex",
-                justifyContent: "center",
-                marginTop: "2vmax",
+              : !(window.innerWidth < window.innerHeight) && (
+                  <ContentLoader
+                    width={800}
+                    height={575}
+                    viewBox="0 0 800 575"
+                    backgroundColor="#f3f3f3"
+                    foregroundColor="#ecebeb"
+                    {...props}
+                  >
+                    <rect
+                      x="12"
+                      y="58"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="240"
+                      y="57"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="467"
+                      y="56"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="12"
+                      y="283"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="240"
+                      y="281"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                    <rect
+                      x="468"
+                      y="279"
+                      rx="2"
+                      ry="2"
+                      width="211"
+                      height="211"
+                    />
+                  </ContentLoader>
+                )}
+          </FadeIn>
+        ) : (
+          ""
+        )}
+        {(savedLoading == 3 || savedLoading == 1) &&
+        Number(savedQueryLimit) < Number(numberPlaces) ? (
+          <Box
+            style={{
+              width: "100vw",
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "2vmax",
+            }}
+          >
+            <Button
+              onClick={() => {
+                setSavedQueryLimit((prev) => prev + 10);
               }}
+              startIcon={<AddIcon />}
             >
-              <Button
-                onClick={() => {
-                  setSavedQueryLimit((prev) => prev + 10);
-                }}
-                startIcon={<AddIcon />}
-              >
-                Зареди още
-              </Button>
-            </Box>
-          ) : (
-            ""
-          )}
-        </Box>
+              Зареди още
+            </Button>
+          </Box>
+        ) : (
+          ""
+        )}
       </Box>
-    </ThemeProvider>
+    </Box>
   );
 };
 

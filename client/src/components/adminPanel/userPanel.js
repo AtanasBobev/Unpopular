@@ -15,10 +15,9 @@ import { confirmAlert } from "react-confirm-alert";
 import jwt_decode from "jwt-decode";
 import { toast } from "react-toastify";
 import CardComponent from "./../card";
-import Image from "material-ui-image";
+import moment from "moment";
 
 const axios = require("axios");
-import moment from "moment";
 
 const UserCard = (props) => {
   const [expanded, setExpanded] = React.useState(false);
@@ -26,6 +25,7 @@ const UserCard = (props) => {
   const [view, setView] = React.useState(1);
   const [comments, setComments] = React.useState(1);
   const [replies, setReplies] = React.useState(1);
+
   const isAdmin = () => {
     try {
       if (Boolean(jwt_decode(localStorage.getItem("jwt")).admin)) {
@@ -50,7 +50,7 @@ const UserCard = (props) => {
   React.useEffect(() => {
     axios
       .post(
-        "http://localhost:5000/user/places",
+        "https://unpopular-backend.herokuapp.com/user/places",
         { limit: 999, admin: props.id },
         { headers: { jwt: localStorage.getItem("jwt") } }
       )
@@ -59,7 +59,7 @@ const UserCard = (props) => {
       });
 
     axios
-      .get("http://localhost:5000/user/comments", {
+      .get("https://unpopular-backend.herokuapp.com/user/comments", {
         params: { limit: 999, id: props.id },
         headers: { jwt: localStorage.getItem("jwt") },
       })
@@ -67,7 +67,7 @@ const UserCard = (props) => {
         setComments(data.data);
       });
     axios
-      .get("http://localhost:5000/user/replies", {
+      .get("https://unpopular-backend.herokuapp.com/user/replies", {
         params: { limit: 999, id: props.id },
         headers: { jwt: localStorage.getItem("jwt") },
       })
@@ -94,13 +94,13 @@ const UserCard = (props) => {
   const deleteUser = () => {
     axios
       .request({
-        url: "http://localhost:5000/admin/delete",
+        url: "https://unpopular-backend.herokuapp.com/admin/delete",
         method: "DELETE",
         headers: { jwt: localStorage.getItem("jwt"), id: props.id },
       })
       .then((data) => {
         props.removeMe(props.id);
-        toast("Профилът е изтрит успешно", {
+        toast("Профилът е изтрит", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -192,11 +192,7 @@ const UserCard = (props) => {
               Аватар:
               <Box>
                 {props.avatar ? (
-                  <Image
-                    style={{ maxWidth: "5vw", width: "100%" }}
-                    alt=""
-                    src={"http://localhost:5000/image/" + props.avatar}
-                  />
+                  <img style={{ maxWidth: "10vw" }} alt="" src={props.avatar} />
                 ) : (
                   "Няма"
                 )}
@@ -212,7 +208,7 @@ const UserCard = (props) => {
                 label="Покажи"
                 onChange={(e) => setView(e.target.value)}
               >
-                {places ? <MenuItem value={1}>Места</MenuItem> : ""}
+                {places.length ? <MenuItem value={1}>Места</MenuItem> : ""}
                 {comments.length ? (
                   <MenuItem value={2}>Коментари</MenuItem>
                 ) : (
@@ -228,7 +224,10 @@ const UserCard = (props) => {
           <Box
             style={{
               display: "flex",
-              justifyContent: "space-around",
+              justifyContent:
+                window.innerWidth < window.innerHeight
+                  ? "flex-start"
+                  : "space-between",
               flexWrap: "wrap",
             }}
           >
@@ -248,6 +247,7 @@ const UserCard = (props) => {
                     category={el[0].category}
                     dangerous={el[0].dangerous}
                     placelocation={el[0].placelocation}
+                    views={el[0].views}
                     likeButtonVisible={verify()}
                     reportButtonVisible={true}
                     liked={el[0].liked == "true" ? true : false}
@@ -279,6 +279,7 @@ const UserCard = (props) => {
                   comments_actions={el.comments_actions}
                   avatar={el.avatar}
                   el={el}
+                  place_id={el.place_id}
                   toast={toast}
                   refreshData={removeComment}
                 />

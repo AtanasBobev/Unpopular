@@ -4,11 +4,53 @@ import Button from "@material-ui/core/Button";
 import Divider from "@mui/material/Divider";
 import Image from "material-ui-image";
 import HCaptcha from "@hcaptcha/react-hcaptcha";
+import { toast } from "react-toastify";
+const acceptedImageTypes = ["image/jpeg", "image/png", "image/jpg"];
 
 const axios = require("axios");
 const Avatar = (props) => {
-  const [newAvatar, setNewAvatar] = React.useState(false);
   const [token, setToken] = React.useState();
+
+  React.useEffect(() => {
+    if (!props.files.length) {
+      return false;
+    }
+    if (props.files.length > 1) {
+      props.setFiles(props.files[0]);
+    }
+    if (!acceptedImageTypes.includes(props.files[0]["type"])) {
+      props.toast.warn("Позволените формати са jpeg и png", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      props.setFiles((prev) => prev.filter((b) => b.name !== prev[0].name));
+      return false;
+    }
+    if (props.files[0].size > 3e6) {
+      props.toast.warn(
+        "Снимката е с размер " +
+          (props.files[0].size / 1e6).toFixed(2) +
+          " МБ. Максималният позволен е 3МБ",
+        {
+          position: "bottom-left",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+        }
+      );
+      props.setFiles((prev) => prev.filter((b) => Number(b.size) <= 3e6));
+      return false;
+    }
+  }, [props.files]);
+
   const upload = () => {
     if (!token) {
       props.toast.warn("Не сте потвърдили, че не сте робот", {
@@ -25,12 +67,12 @@ const Avatar = (props) => {
     const data = new FormData();
     data.append("images", props.files[0]);
     axios
-      .post("http://localhost:5000/user/avatar", data, {
+      .post("https://unpopular-backend.herokuapp.com/user/avatar", data, {
         headers: { jwt: localStorage.getItem("jwt"), token: token },
       })
       .then(() => {
         props.setOpenAvatar(false);
-        props.toast.success("Качването е успешно", {
+        props.toast("Готово", {
           position: "bottom-left",
           autoClose: 5000,
           hideProgressBar: false,
@@ -41,7 +83,7 @@ const Avatar = (props) => {
         });
       })
       .catch((err) => {
-        props.toast.error(
+        props.toast.warn(
           "Не е позволено качването на повече от 1 снимки с размер до 3 МБ",
           {
             position: "bottom-left",
@@ -62,12 +104,10 @@ const Avatar = (props) => {
           accept="image/*"
           style={{ display: "none" }}
           id="raised-button-file"
-          multiple
           type="file"
           onChange={(e) => {
-            console.log(e.target.files);
             if (e.target.files.length > 1) {
-              props.toast.error(
+              props.toast.warn(
                 "Не е позволено качването на повече от 1 снимки с размер до 3 МБ",
                 {
                   position: "bottom-left",
@@ -81,21 +121,19 @@ const Avatar = (props) => {
               );
               return false;
             }
-            if (e.target.files) {
-              setNewAvatar(true);
-              props.setFiles(e.target.files);
-            }
+            props.setFiles((prev) => {
+              return Array.from(e.target.files.length ? e.target.files : prev);
+            });
           }}
         />
         {props.files.length ? (
           <>
-            <Image
+            <img
               draggable="false"
               style={{
-                height: "20vh",
-                width: "20vh",
+                width: "80%",
                 borderRadius: "50%",
-                userSelect: "none",
+                pointerEvents: "none",
               }}
               src={props.files[0] && URL.createObjectURL(props.files[0])}
             />
@@ -103,28 +141,27 @@ const Avatar = (props) => {
         ) : (
           props.avatar && (
             <>
-              <Image
+              <img
                 draggable="false"
                 style={{
-                  height: "20vh",
-                  width: "20vh",
+                  width: "80%",
                   borderRadius: "50%",
                   userSelect: "none",
                 }}
-                src={"http://localhost:5000/image/" + props.avatar}
+                src={"" + props.avatar}
               />
             </>
           )
         )}
         <HCaptcha
-          sitekey="10000000-ffff-ffff-ffff-000000000001"
+          sitekey="f21dbfcd-0f79-42dd-ac97-2a7b6b63980a"
           size="normal"
           languageOverride="bg"
           onVerify={(token) => {
             setToken(token);
           }}
           onError={() => {
-            toast.warn(
+            props.toast.warn(
               "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
               {
                 position: "bottom-left",
@@ -138,7 +175,7 @@ const Avatar = (props) => {
             );
           }}
           onExpire={() => {
-            toast.warn("Потвърдете отново, че не сте робот", {
+            props.toast.warn("Потвърдете отново, че не сте робот", {
               position: "bottom-left",
               autoClose: 5000,
               hideProgressBar: false,
@@ -150,36 +187,52 @@ const Avatar = (props) => {
           }}
         />
         <label htmlFor="raised-button-file">
-          <center></center>
-          {newAvatar ||
-            (props.avatar && (
-              <Button
-                style={{ textTransform: "none", margin: "1vmax" }}
-                variant="outlined"
-                onClick={() => {
-                  axios
-                    .delete("http://localhost:5000/avatar/delete", {
-                      headers: { jwt: localStorage.getItem("jwt") },
-                    })
-                    .then(() => {
-                      props.setOpenAvatar(false);
-                      props.setFiles([]);
-                      props.setAvatar("");
-                      props.toast("Аватарът е изтрит", {
-                        position: "bottom-left",
-                        autoClose: 5000,
-                        hideProgressBar: false,
-                        closeOnClick: true,
-                        pauseOnHover: true,
-                        draggable: true,
-                        progress: undefined,
-                      });
+          {props.avatar && (
+            <Button
+              style={{ textTransform: "none", margin: "1vmax" }}
+              variant="outlined"
+              onClick={() => {
+                if (!token) {
+                  props.toast.warn("Не сте потвърдили, че не сте робот", {
+                    position: "bottom-left",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    progress: undefined,
+                  });
+                  return false;
+                }
+                axios
+                  .delete(
+                    "https://unpopular-backend.herokuapp.com/avatar/delete",
+                    {
+                      headers: {
+                        jwt: localStorage.getItem("jwt"),
+                        token: token,
+                      },
+                    }
+                  )
+                  .then(() => {
+                    props.setOpenAvatar(false);
+                    props.setFiles([]);
+                    props.setAvatar("");
+                    props.toast("Аватарът е изтрит", {
+                      position: "bottom-left",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
                     });
-                }}
-              >
-                Премахни аватар
-              </Button>
-            ))}
+                  });
+              }}
+            >
+              Премахни аватар
+            </Button>
+          )}
           <center>
             <Button
               style={{ textTransform: "none", margin: "1vmax" }}
@@ -189,7 +242,7 @@ const Avatar = (props) => {
               Качи нова снимка
             </Button>
           </center>
-          {newAvatar && (
+          {props.files.length ? (
             <>
               <Button
                 style={{ textTransform: "none", margin: "1vmax" }}
@@ -199,6 +252,8 @@ const Avatar = (props) => {
                 Потвърди аватара
               </Button>
             </>
+          ) : (
+            ""
           )}
         </label>
       </center>

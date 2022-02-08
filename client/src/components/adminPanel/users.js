@@ -1,14 +1,15 @@
 import React from "react";
-const axios = require("axios");
 import Box from "@material-ui/core/Box";
 import UserCard from "./userPanel";
 import Typography from "@material-ui/core/Typography";
+import { toast } from "react-toastify";
+const axios = require("axios");
 
 const Dashboard = () => {
   const [users, setUsers] = React.useState([]);
   React.useLayoutEffect(() => {
     axios
-      .get("http://localhost:5000/users", {
+      .get("https://unpopular-backend.herokuapp.com/users", {
         params: { limit: 999 },
         headers: { jwt: localStorage.getItem("jwt") },
       })

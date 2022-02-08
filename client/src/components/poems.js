@@ -30,36 +30,14 @@ const CardElement = (props) => {
   };
   React.useEffect(async () => {
     let el = Math.floor(Math.random() * poems.length);
-    if (props.available.length >= poems.length) {
-      await props.setAvailable([]);
-    } else {
-      while (props.available.includes(el)) {
-        el = Math.round(Math.random() * poems.length);
-      }
-    }
-    props.setAvailable((available) => [...available, el]);
     try {
-      if (poems[el].hasOwnProperty("text")) {
-        setText(poems[el].text);
-      }
-      if (poems[el].hasOwnProperty("author")) {
-        setAuthor(poems[el].author);
-      }
-      if (poems[el].hasOwnProperty("authorData")) {
-        setAuthorData(poems[el].authorData);
-      }
-      if (poems[el].hasOwnProperty("coverText")) {
-        setCoverText(poems[el].coverText);
-      }
-      if (poems[el].hasOwnProperty("title")) {
-        setTitle(poems[el].title);
-      }
-      if (poems[el].hasOwnProperty("authorImage")) {
-        setImage(poems[el].authorImage);
-      }
-    } catch (err) {
-      console.log(err, el);
-    }
+      setText(poems[el].text);
+      setAuthor(poems[el].author);
+      setAuthorData(poems[el].authorData);
+      setCoverText(poems[el].coverText);
+      setTitle(poems[el].title);
+      setImage(poems[el].authorImage);
+    } catch (err) {}
   }, []);
   return (
     <div>
@@ -97,7 +75,7 @@ const CardElement = (props) => {
                 fontWeight: "900",
                 textShadow: "0px 0px 6px rgba(255,255,255,0.7)",
               }}
-              variant="h3"
+              variant={window.innerWidth < window.innerHeight ? "h4" : "h3"}
             >
               {title}
             </Typography>
@@ -108,12 +86,14 @@ const CardElement = (props) => {
               alignItems: "flex-start",
               justifyContent: "center",
               alignContent: "stretch",
+              flexWrap: window.innerWidth < window.innerHeight && "wrap",
             }}
+            className="poemsMain"
           >
             <div
               style={{
                 fontSize: "1.5vmax",
-                width: "50%",
+                width: window.innerWidth < window.innerHeight ? "100%" : "50%",
                 display: "inline-block",
               }}
               className="specialText"
@@ -125,26 +105,29 @@ const CardElement = (props) => {
             <div
               style={{
                 fontSize: "1.5vmax",
-                width: "50%",
-                width: "40%",
+                width: window.innerWidth < window.innerHeight ? "100%" : "40%",
                 marginLeft: "10%",
                 display: "inline-block",
               }}
               className="specialText"
             >
-              <Image
+              <img
                 style={{
-                  width: "68%",
+                  height: "auto",
+                  width: "100%",
                   boxShadow:
                     "0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23)",
                   borderRadius: "2%",
+                  pointerEvents: "none",
                 }}
                 src={image}
+                gutterBottom
               />
               <Typography
                 style={{
                   fontWeight: "bold",
-                  fontSize: "2vmax",
+                  fontSize:
+                    window.innerWidth < window.innerHeight ? "4vmax" : "2vmax",
                 }}
                 gutterBottom
               >

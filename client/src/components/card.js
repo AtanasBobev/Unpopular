@@ -21,6 +21,8 @@ import ReportOutlinedIcon from "@material-ui/icons/ReportOutlined";
 import ShareOutlinedIcon from "@material-ui/icons/ShareOutlined";
 import FavoriteOutlinedIcon from "@material-ui/icons/FavoriteOutlined";
 import BookmarkOutlinedIcon from "@material-ui/icons/BookmarkOutlined";
+import IconButton from "@mui/material/IconButton";
+import InfoIcon from "@mui/icons-material/Info";
 import ToggleIcon from "material-ui-toggle-icon";
 import { Map, Marker, ZoomControl } from "pigeon-maps";
 import isValidCoords from "is-valid-coords";
@@ -37,6 +39,7 @@ import Edit from "./edit";
 import moment from "moment";
 import TooltipImage from "./tooltipImage";
 import Image from "material-ui-image";
+import Note from "./note";
 const axios = require("axios");
 
 const CardElement = (props) => {
@@ -49,6 +52,8 @@ const CardElement = (props) => {
   const [saved, setSaved] = React.useState(props.saved);
   const [comments, setComments] = React.useState([]);
   const [likedNumbers, setLikedNumbers] = React.useState(props.numbersLiked);
+  const [showWeather, setShowWeather] = React.useState(false);
+  const [showInfo, setShowInfo] = React.useState(false);
 
   React.useEffect(() => {
     if (!localStorage.getItem("jwt")) {
@@ -61,7 +66,7 @@ const CardElement = (props) => {
         axios
           .request({
             method: "GET",
-            url: "http://localhost:5000/places/liked/saved",
+            url: "https://unpopular-backend.herokuapp.com/places/liked/saved",
             headers: {
               jwt: localStorage.getItem("jwt"),
             },
@@ -80,7 +85,7 @@ const CardElement = (props) => {
             }
           })
           .catch((err) => {
-            console.log(err);
+            console.error(err);
           });
       }
     }
@@ -88,28 +93,35 @@ const CardElement = (props) => {
 
   const handleClickOpen = () => {
     setOpen(true);
+    axios.request({
+      method: "POST",
+      url: `https://unpopular-backend.herokuapp.com/places/views`,
+      data: {
+        place_id: props.idData,
+      },
+    });
   };
   const handleClose = () => {
     setOpen(false);
   };
   const category = (num) => {
     switch (Number(num)) {
+      case 1:
+        return "Сграда";
+        break;
       case 2:
-        return "Заведение";
+        return "Гледка";
         break;
       case 3:
-        return "Нощно заведение";
+        return "Екотуризъм";
         break;
       case 4:
-        return "Магазин";
+        return "Изкуство";
         break;
       case 5:
-        return "Пътека";
+        return "Заведение";
         break;
       case 6:
-        return "Място";
-        break;
-      case 7:
         return "Друго";
         break;
       default:
@@ -170,7 +182,7 @@ const CardElement = (props) => {
   const like = async (id) => {
     let a = jwt_decode(localStorage.getItem("jwt"));
     if (a.Username == props.username) {
-      props.toast.warn("Не може да харесте място, което сте създали", {
+      props.toast.warn("Не може да харесaте място, което сте създали", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -187,7 +199,7 @@ const CardElement = (props) => {
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/like`,
+        url: `https://unpopular-backend.herokuapp.com/like`,
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -209,7 +221,7 @@ const CardElement = (props) => {
             progress: undefined,
           });
         } else if (err.response.status == 403) {
-          props.toast.warn("Не може да харесте място, което сте създали", {
+          props.toast.warn("Не може да харесaте място, което сте създали", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -275,7 +287,7 @@ const CardElement = (props) => {
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/unlike`,
+        url: `https://unpopular-backend.herokuapp.com/unlike`,
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -288,9 +300,11 @@ const CardElement = (props) => {
         setLiked(true);
         setLikedNumbers((prev) => prev + 1);
         if (err.response.status == 406) {
-          console.warn("Вече сте отхаресали това място");
+          console.warn("Вече не харесвате това място");
         } else if (err.response.status == 401) {
-          console.warn("За да отхаресате място трябва да сте регистрирани");
+          console.warn(
+            "За да не харесвате това място трябва да сте регистрирани"
+          );
         } else {
           props.toast.error(
             "Имаше проблем със сървъра при запитването. Пробвайте отново по-късно!",
@@ -312,7 +326,7 @@ const CardElement = (props) => {
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/save`,
+        url: `https://unpopular-backend.herokuapp.com/save`,
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -347,7 +361,7 @@ const CardElement = (props) => {
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/unsave`,
+        url: `https://unpopular-backend.herokuapp.com/unsave`,
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -400,7 +414,7 @@ const CardElement = (props) => {
   };
   const getWeather = () => {
     axios
-      .get("http://localhost:5000/weather", {
+      .get("https://unpopular-backend.herokuapp.com/weather", {
         params: {
           latitude: props.placelocation
             .replace(/\s+/g, "")
@@ -421,7 +435,7 @@ const CardElement = (props) => {
       return false;
     }
     axios
-      .request("http://localhost:5000/comments", {
+      .request("https://unpopular-backend.herokuapp.com/comments", {
         params: {
           place_id: props.idData,
         },
@@ -444,7 +458,7 @@ const CardElement = (props) => {
   const [visible, setVisible] = React.useState(true);
   const deletePlace = () => {
     axios
-      .delete("http://localhost:5000/place", {
+      .delete("https://unpopular-backend.herokuapp.com/place", {
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -491,6 +505,8 @@ const CardElement = (props) => {
         opacity: visible ? 1 : 0.3,
         filter: !visible ? "blur(1.5px)" : "none",
         pointerEvents: visible ? "auto" : "none",
+        display: "flex",
+        justifyContent: "center",
       }}
     >
       <Card
@@ -508,11 +524,11 @@ const CardElement = (props) => {
             <CardMedia
               className="mediaImgOverview"
               style={{ height: props.inMap && "100px" }}
-              image={"http://localhost:5000/image/" + props.mainImg}
+              image={"" + props.mainImg}
               title="Главно изображение"
             />
           )}
-          {props.demo && props.files.length && (
+          {props.demo && props.files.length ? (
             <CardMedia
               className="mediaImgOverview"
               component={() => (
@@ -524,6 +540,8 @@ const CardElement = (props) => {
               )}
               title="Главно изображение"
             />
+          ) : (
+            ""
           )}
 
           <CardContent>
@@ -543,8 +561,8 @@ const CardElement = (props) => {
             >
               {!props.inMap &&
                 props.description &&
-                (props.description.length > 45
-                  ? props.description.substring(0, 45) + "..."
+                (props.description.length > 60
+                  ? props.description.substring(0, 60) + "..."
                   : props.description)}
             </Typography>
           </CardContent>
@@ -581,13 +599,15 @@ const CardElement = (props) => {
             <Typography
               style={{
                 marginLeft: props.likeButtonVisible ? 0 : "0.2vmax",
-                userSelect: "none",
+                pointerEvents: "none",
               }}
             >
               {verify()
                 ? likedNumbers
                 : likedNumbers == 1
                 ? "1 харесване"
+                : likedNumbers == 0
+                ? "Няма харесвания"
                 : likedNumbers + " харесвания"}
             </Typography>
           </Box>
@@ -633,11 +653,7 @@ const CardElement = (props) => {
                 props.images[0].url &&
                 props.images.map((el) => (
                   <div key={Math.random()}>
-                    <img
-                      alt=""
-                      src={"http://localhost:5000/image/" + el.url}
-                      aspectRatio={16 / 9}
-                    />
+                    <img alt="" src={"" + el.url} aspectRatio={16 / 9} />
                     <p className="legend">{el.caption}</p>
                   </div>
                 ))}
@@ -665,7 +681,7 @@ const CardElement = (props) => {
                 metaWheelZoomWarning={
                   "Използвайте ctrl+scroll, за да промените мащаба"
                 }
-                height={500}
+                height={window.innerWidth < window.innerHeight ? 200 : 450}
                 defaultCenter={props.placelocation
                   .replace(/\s+/g, "")
                   .split(",")
@@ -682,19 +698,185 @@ const CardElement = (props) => {
                   width={50}
                 />
               </Map>
-              <Button
-                startIcon={<LinkIcon />}
-                style={{
-                  textTransform: "none",
-                }}
-                target="_blank"
-                href={"https://maps.google.com/maps?q=" + props.placelocation}
-              >
-                Google Maps
-              </Button>
-              {Number(Object.keys(weather).length) !== 0 && (
-                <Weather data={weather} />
+              <center>
+                <Typography>Координати: {props.placelocation}</Typography>
+              </center>
+              <Box className="links">
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={"https://maps.google.com/maps?q=" + props.placelocation}
+                >
+                  Google Maps
+                </Button>
+
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={
+                    "https://geohack.toolforge.org/geohack.php?language=bg&pagename=" +
+                    props.title +
+                    "&params=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "_N_" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "_E_scale:8000"
+                  }
+                >
+                  GeoHack
+                </Button>
+
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={
+                    "https://www.bing.com/maps/?v=2&cp=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "~" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "&style=r&lvl=14&sp=Point." +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "_" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "_" +
+                    props.title +
+                    "___"
+                  }
+                >
+                  Bing Maps
+                </Button>
+
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={
+                    "https://www.openstreetmap.org/?mlat=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "8&mlon=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "&zoom=14#map=14/" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "/" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1]
+                  }
+                >
+                  Open Street Map
+                </Button>
+
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={
+                    "https://mapper.acme.com/?ll=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "," +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "4&z=14&t=M&marker0=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "," +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1] +
+                    "," +
+                    props.title
+                  }
+                >
+                  ACME Map
+                </Button>
+
+                <Button
+                  startIcon={<LinkIcon />}
+                  style={{
+                    textTransform: "none",
+                  }}
+                  target="_blank"
+                  href={
+                    "https://www.waze.com/live-map/directions?to=" +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[0] +
+                    "," +
+                    props.placelocation
+                      .replace(/\s+/g, "")
+                      .split(",")
+                      .map(Number)[1]
+                  }
+                >
+                  Waze
+                </Button>
+              </Box>{" "}
+              {window.innerWidth < window.innerHeight && (
+                <center>
+                  <Button
+                    variant="outlined"
+                    onClick={() => setShowWeather((prev) => !prev)}
+                    style={{ textTransform: "none" }}
+                  >
+                    Покажи времето/бележки
+                  </Button>
+                  <br></br>
+                </center>
               )}
+              {(!(window.innerWidth < window.innerHeight) || showWeather) &&
+                Number(Object.keys(weather).length) !== 0 && (
+                  <Weather data={weather} />
+                )}
             </Box>
           )}
           <center className="userCards">
@@ -735,6 +917,23 @@ const CardElement = (props) => {
                 </Typography>
               </Box>
             )}
+            {typeof Number(props.views) == "number" && (
+              <Box
+                style={{
+                  display: "inline-flex",
+                  justifyContent: "flex-end",
+                  alignItems: "center",
+                  padding: "1vmax",
+                  borderRadius: "1vmax",
+                  margin: "2vmax",
+                }}
+                className="userProfileGradient"
+              >
+                <Typography style={{ marginRight: "0.5vmax", color: "white" }}>
+                  {"Брой гледания " + props.views}
+                </Typography>
+              </Box>
+            )}
             {props.distance && (
               <Box
                 style={{
@@ -757,6 +956,10 @@ const CardElement = (props) => {
               </Box>
             )}
           </center>
+          {(showWeather || !(window.innerWidth < window.innerHeight)) && (
+            <Note place_id={props.idData} />
+          )}
+
           {!props.demo && (
             <Comments
               getComments={getComments}
@@ -796,7 +999,7 @@ const CardElement = (props) => {
             <Typography
               style={{
                 marginLeft: props.likeButtonVisible ? 0 : "0.2vmax",
-                userSelect: "none",
+                pointerEvents: "none",
               }}
             >
               {likedNumbers == 0
@@ -861,6 +1064,7 @@ const CardElement = (props) => {
                     accessibility={props.accessibility}
                     item_id={props.idData}
                     isOwner={isOwner}
+                    edit={true}
                   />
                 </PureModal>
 
@@ -877,8 +1081,8 @@ const CardElement = (props) => {
                     name={props.title}
                     description={
                       props.description &&
-                      (props.description.length > 100
-                        ? props.description.substring(0, 100) + "..."
+                      (props.description.length > 140
+                        ? props.description.substring(0, 140) + "..."
                         : props.description)
                     }
                     item_id={props.idData}

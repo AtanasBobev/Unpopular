@@ -32,24 +32,28 @@ const Place = (props) => {
     if (Number(id) == null || Number(id) == undefined) {
       return false;
     }
-    if (!Number(window.atob(id))) {
-      setLoading(3);
-      return false;
-    }
-    axios
-      .get("http://localhost:5000/place/specific", {
-        params: { place_id: Number(window.atob(id)) },
-      })
-      .then((data) => {
+    try {
+      if (!Number(window.atob(id))) {
         setLoading(3);
-        setEl(data.data.length ? data.data[0] : []);
-        console.log(data.data.length ? data.data[0] : []);
-      });
+        return false;
+      }
+      axios
+        .get("https://unpopular-backend.herokuapp.com/place/specific", {
+          params: { place_id: Number(window.atob(id)) },
+        })
+        .then((data) => {
+          setLoading(3);
+          setEl(data.data.length ? data.data[0] : []);
+        });
+    } catch (err) {
+      setLoading(3);
+    }
   };
 
   React.useEffect(() => {
     getData();
   }, []);
+
   return (
     <Box>
       <Box
@@ -77,8 +81,10 @@ const Place = (props) => {
               user_id={el[0].user_id}
               description={el[0].description}
               price={el[0].price}
+              views={el[0].views}
               accessibility={el[0].accessibility}
               category={el[0].category}
+              username={el[0].username}
               placelocation={el[0].placelocation}
               dangerous={el[0].dangerous}
               likeButtonVisible={verify()}
@@ -87,6 +93,7 @@ const Place = (props) => {
               saved={el[0].saved == "true" ? true : false}
               numbersLiked={Number(el[0].likednumber)}
               mainImg={el[0].url}
+              date={el[0].date}
               images={el}
               saveButtonVisible={verify()}
               adminRights={el[0].user_id == ID()}
@@ -97,9 +104,18 @@ const Place = (props) => {
                 display: loading !== 3 && "none",
               }}
             >
-              <center>
+              <center className="notFound">
                 <Typography
-                  style={{ fontSize: "2vmax", marginBottom: "1vmax" }}
+                  style={{
+                    fontSize:
+                      window.innerWidth < window.innerHeight
+                        ? "4vmax "
+                        : "2vmax",
+                    marginBottom:
+                      window.innerWidth < window.innerHeight
+                        ? "3vmax"
+                        : "1vmax",
+                  }}
                 >
                   Мястото не е намерено
                 </Typography>{" "}
@@ -107,7 +123,7 @@ const Place = (props) => {
               <img
                 style={{
                   width: "40vw",
-                  userSelect: "none",
+                  pointerEvents: "none",
                   pointerEvents: "none",
                 }}
                 src={require("./../images/404Places.svg").default}

@@ -8,14 +8,14 @@ const SuggestedPlaces = () => {
   const [data, setData] = React.useState([]);
   React.useLayoutEffect(() => {
     axios
-      .get("http://localhost:5000/place/suggested", {
+      .get("https://unpopular-backend.herokuapp.com/place/suggested", {
         headers: { jwt: localStorage.getItem("jwt") },
       })
       .then((data) => {
         setData(data.data);
       })
       .catch((err) => {
-        console.log("failed to get data");
+        console.error("failed to get data");
       });
   }, []);
   const deleteMe = (id) => {

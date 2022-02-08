@@ -1,6 +1,7 @@
 import React from "react";
 import Box from "@material-ui/core/Box";
 import Link from "@material-ui/core/Link";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@material-ui/core/Typography";
 import FacebookIcon from "@material-ui/icons/Facebook";
 import IconButton from "@material-ui/core/IconButton";
@@ -33,7 +34,7 @@ const Share = (props) => {
       <center>
         <QRCode
           id="qr-gen"
-          value={`https://www.localhost:3000/place/${window.btoa(
+          value={`https://unpopular-bulgaria.com/place/${window.btoa(
             props.item_id
           )}`}
           size={200}
@@ -43,9 +44,12 @@ const Share = (props) => {
         />
         <Typography>
           <Link
-            href={`http://localhost:3000/place/${window.btoa(props.item_id)}`}
+            href={`https://unpopular-bulgaria.com/place/${window.btoa(
+              props.item_id
+            )}`}
           >
-            http://localhost:3000/place/{window.btoa(props.item_id)}
+            https://unpopular-bulgaria.com/place/
+            {window.btoa(props.item_id)}
           </Link>
         </Typography>
         <Box
@@ -55,60 +59,19 @@ const Share = (props) => {
             marginTop: "2vmax",
           }}
         >
-          <IconButton onClick={downloadQRCode} children={<GetAppIcon />} />
-          <IconButton
-            onClick={() => {
-              try {
-                navigator.clipboard.writeText(
-                  `localhost:3000/place/${window.btoa(props.item_id)}`
-                );
-                props.toast("Линкът е копиран в клипборда", {
-                  position: "bottom-left",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                });
-              } catch (err) {
-                props.toast.error(
-                  "Не успяхме да копираме линка в клиборда, бразурът не позволи. Копирайте го ръчно",
-                  {
-                    position: "bottom-left",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: true,
-                    pauseOnHover: true,
-                    draggable: true,
-                    progress: undefined,
-                  }
-                );
-              }
-            }}
-            children={<LinkIcon />}
-          />
-          <IconButton
-            onClick={() => {
-              axios
-                .request({
-                  url: `http://localhost:5000/place/data/${props.item_id}`,
-                  method: "GET",
-                  responseType: "blob",
-                })
-                .then((response) => {
-                  const url = window.URL.createObjectURL(
-                    new Blob([response.data])
+          <Tooltip title="Изтегли QR код">
+            <IconButton onClick={downloadQRCode} children={<GetAppIcon />} />
+          </Tooltip>
+          <Tooltip title="Копирай линка в клипборда">
+            <IconButton
+              onClick={() => {
+                try {
+                  navigator.clipboard.writeText(
+                    `https://www.unpopular-bulgaria.com/place/${window.btoa(
+                      props.item_id
+                    )}`
                   );
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.setAttribute(
-                    "download",
-                    `${props.item_id}_Unpopular.json`
-                  );
-                  document.body.appendChild(link);
-                  link.click();
-                  props.toast("Изтяглянето се стартира", {
+                  props.toast("Линкът е копиран в клипборда", {
                     position: "bottom-left",
                     autoClose: 5000,
                     hideProgressBar: false,
@@ -117,33 +80,87 @@ const Share = (props) => {
                     draggable: true,
                     progress: undefined,
                   });
-                })
-                .catch((err) => {
-                  console.log(err);
-                });
-            }}
-            children={<DescriptionIcon />}
-          />
-          <IconButton
-            href={getFacebookUrl({
-              url: `https://www.localhost:3000/place/${window.btoa(
-                props.item_id
-              )}`,
-              quote: `Запознай се с ${props.name}`,
-              hashtag: "Неизвестно",
-            })}
-            children={<FacebookIcon />}
-          />
-          <IconButton
-            href={getTwitterUrl({
-              url: `https://www.localhost:3000/place/${window.btoa(
-                props.item_id
-              )}`,
-              text: `Запознай се с ${props.name}`,
-              hashtags: "Неизвестно",
-            })}
-            children={<TwitterIcon />}
-          />
+                } catch (err) {
+                  props.toast.error(
+                    "Не успяхме да копираме линка в клиборда, може би използвате стар браузър. Копирайте го ръчно от по-горе",
+                    {
+                      position: "bottom-left",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                    }
+                  );
+                }
+              }}
+              children={<LinkIcon />}
+            />
+          </Tooltip>
+
+          <Tooltip title="Изтегли данните на мястото">
+            <IconButton
+              onClick={() => {
+                axios
+                  .request({
+                    url: `https://unpopular-backend.herokuapp.com/place/data/${props.item_id}`,
+                    method: "GET",
+                    responseType: "blob",
+                  })
+                  .then((response) => {
+                    const url = window.URL.createObjectURL(
+                      new Blob([response.data])
+                    );
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.setAttribute(
+                      "download",
+                      `${props.item_id}_Unpopular.json`
+                    );
+                    document.body.appendChild(link);
+                    link.click();
+                    props.toast("Изтеглянето се стартира", {
+                      position: "bottom-left",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                    });
+                  })
+                  .catch((err) => {
+                    console.error(err);
+                  });
+              }}
+              children={<DescriptionIcon />}
+            />
+          </Tooltip>
+          <Tooltip title="Сподели във Фейсбук">
+            <IconButton
+              href={getFacebookUrl({
+                url: `https://www.https://www.unpopular-bulgaria.com/place/${window.btoa(
+                  props.item_id
+                )}`,
+                quote: `Запознай се с ${props.name}`,
+                hashtag: "Непопулярно",
+              })}
+              children={<FacebookIcon />}
+            />
+          </Tooltip>
+          <Tooltip title="Сподели в Туитър">
+            <IconButton
+              href={getTwitterUrl({
+                url: `https://www.https://www.unpopular-bulgaria.com/place/${window.btoa(
+                  props.item_id
+                )}`,
+                text: `Запознай се с ${props.name}`,
+                hashtags: "Непопулярно",
+              })}
+              children={<TwitterIcon />}
+            />
+          </Tooltip>
         </Box>
       </center>
     </Box>

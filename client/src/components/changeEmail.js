@@ -4,7 +4,6 @@ import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import axios from "axios";
 import jwt_decode from "jwt-decode";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
 import ToggleIcon from "material-ui-toggle-icon";
@@ -15,25 +14,12 @@ import IconButton from "@mui/material/IconButton";
 const Email = (props) => {
   const [email, setEmail] = React.useState();
   const [password, setPassword] = React.useState();
-  const [token, setToken] = React.useState();
   const [passwordShow, setShowPassword] = React.useState(false);
 
   const updateEmail = (e) => {
     e.preventDefault();
     if (jwt_decode(localStorage.getItem("jwt")).email == email) {
       props.toast("Не може имейлът да е същия като предишния", {
-        position: "bottom-left",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      return false;
-    }
-    if (!token) {
-      props.toast.warn("Не сте потвърдили, че не сте робот", {
         position: "bottom-left",
         autoClose: 5000,
         hideProgressBar: false,
@@ -61,12 +47,13 @@ const Email = (props) => {
     }
     axios
       .request({
-        url: "http://localhost:5000/user/email",
+        url: "https://unpopular-backend.herokuapp.com/user/email",
         method: "PUT",
         data: { email: email, password: password },
-        headers: { jwt: localStorage.getItem("jwt"), token: token },
+        headers: { jwt: localStorage.getItem("jwt") },
       })
-      .then(() => {
+      .then((data) => {
+        localStorage.setItem("jwt", data.data.jwt);
         props.toast("Имейлът е променен", {
           position: "bottom-left",
           autoClose: 5000,
@@ -111,8 +98,31 @@ const Email = (props) => {
               progress: undefined,
             }
           );
+        } else if (err.response.status == 400) {
+          props.toast.warn(
+            "Или не сте въвели данни, или браузърът ги попълва автоматично. Въведете ги ръчно",
+            {
+              position: "bottom-left",
+              autoClose: 5000,
+              hideProgressBar: false,
+              closeOnClick: true,
+              pauseOnHover: true,
+              draggable: true,
+              progress: undefined,
+            }
+          );
+        } else if (err.response.status == 401) {
+          props.toast.warn("Грешна парола", {
+            position: "bottom-left",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+          });
         } else {
-          props.toast.error("Неспецифична сървърна грешка", {
+          props.toast.error("Пробвайте отново", {
             position: "bottom-left",
             autoClose: 5000,
             hideProgressBar: false,
@@ -158,39 +168,6 @@ const Email = (props) => {
             </InputAdornment>
           }
         ></Input>
-        <HCaptcha
-          sitekey="10000000-ffff-ffff-ffff-000000000001"
-          size="normal"
-          languageOverride="bg"
-          onVerify={(token) => {
-            setToken(token);
-          }}
-          onError={() => {
-            props.toast.warn(
-              "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
-              {
-                position: "bottom-left",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              }
-            );
-          }}
-          onExpire={() => {
-            props.toast.warn("Потвърдете отново, че не сте робот", {
-              position: "bottom-left",
-              autoClose: 5000,
-              hideProgressBar: false,
-              closeOnClick: true,
-              pauseOnHover: true,
-              draggable: true,
-              progress: undefined,
-            });
-          }}
-        />
         <center>
           <Button
             style={{ textTransform: "none" }}

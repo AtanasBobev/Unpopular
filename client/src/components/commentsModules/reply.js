@@ -38,12 +38,14 @@ const isAdmin = () => {
 };
 const Reply = (props) => {
   const [openReport, setReportOpen] = React.useState(false);
-  const [token, setToken] = React.useState();
   const [score, setScore] = React.useState(Number(props.score));
-
+  const [more, setMore] = React.useState(false);
+  const [isMobile, setIsMobile] = React.useState(
+    window.innerWidth < window.innerHeight
+  );
   const deleteRelply = () => {
     axios
-      .delete("http://localhost:5000/reply/delete", {
+      .delete("https://unpopular-backend.herokuapp.com/reply/delete", {
         headers: {
           jwt: localStorage.getItem("jwt"),
         },
@@ -143,7 +145,7 @@ const Reply = (props) => {
     }
     axios
       .post(
-        "http://localhost:5000/score/reply",
+        "https://unpopular-backend.herokuapp.com/score/reply",
         {
           type: type,
           reply_id: props.idData,
@@ -249,7 +251,7 @@ const Reply = (props) => {
                 <KeyboardArrowUpIcon />
               </IconButton>
             )}
-            <Typography style={{ textAlign: "center", userSelect: "none" }}>
+            <Typography style={{ textAlign: "center", pointerEvents: "none" }}>
               {score}
             </Typography>
             {verify() && (
@@ -276,68 +278,78 @@ const Reply = (props) => {
             {props.content}
           </Typography>
         </Box>
-        <Box className="buttonArray">
-          <Typography
-            style={{
-              alignSelf: "flex-start",
-              flex: 1,
-              marginTop: "1.3vmax",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <TooltipImage author={props.author} avatar={props.avatar} /> | Дата:{" "}
-            {moment(props.date).format("llll")}
-          </Typography>
-          {((verify() && ID() == props.user_id) || isAdmin()) && (
-            <Button
-              style={{ textTransform: "none" }}
-              startIcon={<DeleteIcon />}
-              onClick={() => {
-                confirmAlert({
-                  title: "Потвърдете",
-                  message:
-                    "Сигурен ли сте, че искате да изтриете отговора? Това решение не може да се върне назад",
-                  buttons: [
-                    {
-                      label: "Да",
-                      onClick: () => deleteRelply(),
-                    },
-                    {
-                      label: "Не",
-                    },
-                  ],
-                });
+        <center>
+          {window.innerWidth < window.innerHeight && (
+            <Button onClick={() => setMore((prev) => !prev)}>
+              {more ? "-" : "+"}
+            </Button>
+          )}
+        </center>
+        {((more && isMobile) || !isMobile) && (
+          <Box className="buttonArray">
+            <Typography
+              style={{
+                alignSelf: "flex-start",
+                flex: 1,
+                marginTop: "1.3vmax",
+                display: "flex",
+                alignItems: "center",
+                fontSize: "1.1vmax",
               }}
             >
-              Изтрий
-            </Button>
-          )}
-          {verify() && (
-            <Button
-              onClick={() => setReportOpen(!openReport)}
-              style={{ textTransform: "none" }}
-              startIcon={<ReportOutlinedIcon />}
+              <TooltipImage author={props.author} avatar={props.avatar} /> |
+              Дата: {moment(props.date).format("llll")}
+            </Typography>
+            {((verify() && ID() == props.user_id) || isAdmin()) && (
+              <Button
+                style={{ textTransform: "none" }}
+                startIcon={<DeleteIcon />}
+                onClick={() => {
+                  confirmAlert({
+                    title: "Потвърдете",
+                    message:
+                      "Сигурен ли сте, че искате да изтриете отговора? Това решение не може да се върне назад",
+                    buttons: [
+                      {
+                        label: "Да",
+                        onClick: () => deleteRelply(),
+                      },
+                      {
+                        label: "Не",
+                      },
+                    ],
+                  });
+                }}
+              >
+                Изтрий
+              </Button>
+            )}
+            {verify() && (
+              <Button
+                onClick={() => setReportOpen(!openReport)}
+                style={{ textTransform: "none" }}
+                startIcon={<ReportOutlinedIcon />}
+              >
+                Нередност
+              </Button>
+            )}
+            <PureModal
+              header="Съобщи за нередност"
+              isOpen={openReport}
+              onClose={() => {
+                setReportOpen(false);
+                return true;
+              }}
             >
-              Нередност
-            </Button>
-          )}
-          <PureModal
-            header="Съобщи за нередност"
-            isOpen={openReport}
-            onClose={() => {
-              setReportOpen(false);
-              return true;
-            }}
-          >
-            <Report
-              toast={props.toast}
-              item_id={props.idData}
-              setReportOpen={setReportOpen}
-              type="reply"
-            />
-          </PureModal>
-        </Box>
+              <Report
+                toast={props.toast}
+                item_id={props.idData}
+                setReportOpen={setReportOpen}
+                type="reply"
+              />
+            </PureModal>
+          </Box>
+        )}
       </Box>
     </Box>
   );

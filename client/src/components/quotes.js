@@ -1,5 +1,3 @@
-//0-5 quote
-//5-10 game
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 import quotes from "./widgets/quotes.json";
@@ -10,16 +8,9 @@ const Quotes = (props) => {
   );
   const [author, setAuthor] = React.useState("Иван Вазов");
   const [source, setSource] = React.useState("");
+
   React.useEffect(async () => {
     let el = Math.floor(Math.random() * quotes.length);
-    if (props.available.length >= quotes.length) {
-      await props.setAvailable([]);
-    } else {
-      while (props.available.includes(el)) {
-        el = Math.round(Math.random() * quotes.length);
-      }
-    }
-    props.setAvailable((available) => [...available, el]);
     try {
       if (quotes[el].hasOwnProperty("quote")) {
         setText(quotes[el].quote);
@@ -40,8 +31,10 @@ const Quotes = (props) => {
       <Typography
         className="quoteText"
         style={{
-          fontSize: "1.2vmax",
+          fontSize:
+            window.innerWidth < window.innerHeight ? "2.5vmax" : "1.2vmax",
           marginBottom: "1vmax",
+          color: "white",
         }}
       >
         {text}
@@ -52,13 +45,22 @@ const Quotes = (props) => {
           justifyContent: "space-between",
         }}
       >
-        <Typography style={{ fontSize: "0.8vmax", color: "#808080" }}>
+        <Typography
+          style={{
+            fontSize:
+              window.innerWidth < window.innerHeight ? "1.5vmax" : "0.8vmax",
+            color: "#808080",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
           {source}
         </Typography>
         {author && (
           <Typography
             style={{
-              fontSize: "0.8vmax",
+              fontSize:
+                window.innerWidth < window.innerHeight ? "2vmax" : "0.8vmax",
               color: "#D3D3D3",
               textAlign: "right",
               width: "70%",

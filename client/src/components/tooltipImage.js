@@ -4,7 +4,6 @@ import Tooltip, { tooltipClasses } from "@mui/material/Tooltip";
 import { styled } from "@mui/material/styles";
 import Image from "material-ui-image";
 import Link from "@material-ui/core/Link";
-
 const axios = require("axios");
 
 const HtmlTooltip = styled(({ className, ...props }) => (
@@ -19,42 +18,52 @@ const HtmlTooltip = styled(({ className, ...props }) => (
 }));
 const ImageTooltip = (props) => {
   const [posts, setPosts] = React.useState(0);
+
   return (
     <HtmlTooltip
       onMouseEnter={() => {
         axios
-          .get(`http://localhost:5000/user/preview`, {
+          .get(`https://unpopular-backend.herokuapp.com/user/preview`, {
             params: {
               username: props.author,
+              user_id: props.user_id,
             },
           })
           .then((data) => {
-            setPosts(Number(data.data));
+            setPosts(data.data);
           });
       }}
       title={
         <React.Fragment>
           <center>
-            {props.avatar && (
+            {(props.avatar || posts.avatar) && (
               <Image
                 style={{
-                  width: "10vw",
+                  width: "100%",
+                  height: "auto",
+                  pointerEvents: "none",
                 }}
-                src={"http://localhost:5000/image/" + props.avatar}
+                src={posts.avatar}
               />
             )}
             <Link
               target="_blank"
               style={{ textAlign: "center", fontSize: "3vmax", color: "black" }}
-              href={"http://localhost:3000/profile/" + props.author}
+              href={
+                "/profile/" + (props.author ? props.author : posts.username)
+              }
             >
               {" "}
-              {props.author}
+              {props.author ? props.author : posts.username}
             </Link>
             <Typography style={{ textAlign: "center" }} variant="h6">
               {"Качени " +
-                posts +
-                (posts > 1 ? " места" : posts == 1 ? " място" : " места")}
+                Number(posts.count) +
+                (Number(posts.count) > 1
+                  ? " места"
+                  : posts == 1
+                  ? " място"
+                  : " места")}
             </Typography>
           </center>
         </React.Fragment>
@@ -65,20 +74,20 @@ const ImageTooltip = (props) => {
           <img
             style={{
               borderRadius: "50%",
-              width: "1.5rem",
-              height: "1.5rem",
-              marginRight: "0.5vmax",
+              width: window.innerWidth < window.innerHeight ? "6vw" : "1.5vw",
+              marginRight: "0.2vmax",
+              pointerEvents: "none",
             }}
-            src={"http://localhost:5000/image/" + props.avatar}
+            src={"" + props.avatar}
           />
         )}
         <Link
           target="_blank"
           style={{ color: !props.white ? "black" : "white" }}
-          href={"http://localhost:3000/profile/" + props.author}
+          href={"/profile/" + (props.author ? props.author : posts.username)}
         >
           {" "}
-          {props.author}
+          {props.author ? props.author : posts.username}
         </Link>
       </div>
     </HtmlTooltip>

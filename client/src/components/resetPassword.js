@@ -1,11 +1,19 @@
 import React from "react";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
-import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import { useHistory, useParams } from "react-router-dom";
 import axios from "axios";
 import Particles from "react-tsparticles";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import Input from "@mui/material/Input";
+import InputAdornment from "@mui/material/InputAdornment";
+import IconButton from "@mui/material/IconButton";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import ToggleIcon from "material-ui-toggle-icon";
+import HCaptcha from "@hcaptcha/react-hcaptcha";
 const passwordValidator = require("password-validator");
 
 let schema = new passwordValidator();
@@ -45,8 +53,23 @@ const ResetPassword = (props) => {
   const [password, setPassword] = React.useState();
   const [validity, setValidity] = React.useState(true);
   const [repeatNewPassword, setRepeatNewPassword] = React.useState();
+  const [passwordShow1, setShowPassword1] = React.useState(false);
+  const [passwordShow2, setShowPassword2] = React.useState(false);
+  const [token, setToken] = React.useState("");
   const submitPassword = (e) => {
     e.preventDefault();
+    if (!token) {
+      props.toast.warn("Не сте потвърдили, че не сте робот", {
+        position: "bottom-left",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+      });
+      return false;
+    }
     if (password !== repeatNewPassword) {
       props.toast.warn("Паролите не съвпадат", {
         position: "bottom-left",
@@ -100,12 +123,13 @@ const ResetPassword = (props) => {
     }
     axios
       .request({
-        url: "http://localhost:5000/user/password/reset",
+        url: "https://unpopular-backend.herokuapp.com/user/password/reset",
         method: "PUT",
         data: { password: password, code: id },
+        headers: { token: token },
       })
       .then(() => {
-        props.toast("Паролата е променана успешно", {
+        props.toast("Паролата е променена", {
           position: "bottom-left",
           autoClose: 15000,
           hideProgressBar: false,
@@ -156,7 +180,7 @@ const ResetPassword = (props) => {
   React.useEffect(() => {
     axios
       .request({
-        url: "http://localhost:5000/user/password/code",
+        url: "https://unpopular-backend.herokuapp.com/user/password/code",
         method: "PUT",
         data: { code: id },
       })
@@ -192,29 +216,20 @@ const ResetPassword = (props) => {
           fullScreen: {
             zIndex: 1,
           },
-          fpsLimit: 90,
           interactivity: {
             events: {
               onClick: {
-                enable: true,
-                mode: "push",
-              },
-              onDiv: {
-                selectors: "#repulse-div",
-                mode: "repulse",
+                mode: "bubble",
               },
               onHover: {
-                mode: "connect",
+                enable: true,
+                mode: "slow",
                 parallax: {
-                  enable: true,
-                  force: 70,
+                  force: 60,
                 },
               },
             },
             modes: {
-              attract: {
-                maxSpeed: 20,
-              },
               bubble: {
                 distance: 400,
                 duration: 2,
@@ -228,13 +243,14 @@ const ResetPassword = (props) => {
           },
           particles: {
             color: {
-              value: "#ffffff",
+              value: "#000",
             },
             links: {
               color: {
                 value: "#000",
               },
               distance: 150,
+              enable: true,
               opacity: 0.4,
             },
             move: {
@@ -255,260 +271,113 @@ const ResetPassword = (props) => {
               spin: {},
             },
             number: {
-              density: {
-                enable: true,
-              },
-              value: 80,
+              value: 0,
             },
             opacity: {
+              value: 0.5,
+              animation: {
+                speed: 1,
+                minimumValue: 0.1,
+              },
+            },
+            size: {
               random: {
                 enable: true,
               },
               value: {
-                min: 0.1,
-                max: 1,
+                min: 1,
+                max: 5,
               },
-              animation: {
-                enable: true,
-                speed: 1,
-                minimumValue: 0.2,
-              },
-            },
-            rotate: {
-              random: {
-                enable: true,
-              },
-              animation: {
-                enable: true,
-                speed: 5,
-              },
-              direction: "random",
-            },
-            shape: {
-              options: {
-                character: {
-                  fill: false,
-                  font: "Verdana",
-                  style: "",
-                  value: "*",
-                  weight: "400",
-                },
-                char: {
-                  fill: false,
-                  font: "Verdana",
-                  style: "",
-                  value: "*",
-                  weight: "400",
-                },
-                polygon: {
-                  sides: 5,
-                },
-                star: {
-                  sides: 5,
-                },
-                image: [
-                  {
-                    src: "https://particles.js.org/images/fruits//apple.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//avocado.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//banana.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//berries.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//cherry.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//grapes.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//lemon.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//orange.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//peach.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//pear.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//pepper.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//plum.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//star.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//strawberry.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//watermelon.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//watermelon_slice.png",
-                    width: 32,
-                    height: 32,
-                  },
-                ],
-                images: [
-                  {
-                    src: "https://particles.js.org/images/fruits//apple.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//avocado.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//banana.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//berries.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//cherry.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//grapes.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//lemon.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//orange.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//peach.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//pear.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//pepper.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//plum.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//star.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//strawberry.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//watermelon.png",
-                    width: 32,
-                    height: 32,
-                  },
-                  {
-                    src: "https://particles.js.org/images/fruits//watermelon_slice.png",
-                    width: 32,
-                    height: 32,
-                  },
-                ],
-              },
-              type: "image",
-            },
-            size: {
-              value: 16,
               animation: {
                 speed: 40,
                 minimumValue: 0.1,
               },
             },
-            stroke: {
-              color: {
-                value: "#000000",
-                animation: {
-                  h: {
-                    count: 0,
-                    enable: false,
-                    offset: 0,
-                    speed: 1,
-                    sync: true,
-                  },
-                  s: {
-                    count: 0,
-                    enable: false,
-                    offset: 0,
-                    speed: 1,
-                    sync: true,
-                  },
-                  l: {
-                    count: 0,
-                    enable: false,
-                    offset: 0,
-                    speed: 1,
-                    sync: true,
-                  },
-                },
+          },
+          absorbers: {
+            color: {
+              value: "#000000",
+            },
+            draggable: false,
+            opacity: 1,
+            destroy: true,
+            orbits: false,
+            size: {
+              random: {
+                enable: true,
+                minimumValue: 30,
+              },
+              value: {
+                min: 30,
+                max: 50,
+              },
+              density: 20,
+              limit: {
+                radius: 100,
+                mass: 0,
               },
             },
+            position: {
+              x: 50,
+              y: 50,
+            },
           },
+          emitters: [
+            {
+              autoPlay: true,
+              fill: true,
+              life: {
+                wait: false,
+              },
+              rate: {
+                quantity: 1,
+                delay: 0.1,
+              },
+              shape: "square",
+              startCount: 0,
+              direction: "top-right",
+              particles: {
+                shape: {
+                  type: "circle",
+                },
+                color: {
+                  value: "random",
+                },
+                lineLinked: {
+                  enable: false,
+                },
+                opacity: {
+                  value: 0.3,
+                },
+                rotate: {
+                  value: 0,
+                  random: true,
+                  direction: "counter-clockwise",
+                  animation: {
+                    enable: true,
+                    speed: 15,
+                    sync: false,
+                  },
+                },
+                size: {
+                  value: 10,
+                  random: {
+                    enable: true,
+                    minimumValue: 5,
+                  },
+                },
+                move: {
+                  speed: 5,
+                  random: false,
+                  outMode: "bounce",
+                },
+              },
+              position: {
+                x: 0,
+                y: 100,
+              },
+            },
+          ],
         }}
       />
       {validity ? (
@@ -518,26 +387,102 @@ const ResetPassword = (props) => {
           >
             Промяна на паролата
           </Typography>
-          <TextField
+
+          <Input
+            style={{
+              width: "100%",
+              marginBottom: "2vmax",
+              marginTop: "1vmax",
+            }}
             onBlur={(e) => setPassword(e.target.value)}
             inputProps={{ maxLength: 100 }}
             id="standard-name"
             label="Нова парола"
-            type="password"
+            type={passwordShow2 ? "text" : "password"}
             className="inputField"
             margin="normal"
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="Покажи/скрий паролата"
+                  onClick={() => setShowPassword2((state) => !state)}
+                  edge="end"
+                >
+                  <ToggleIcon
+                    on={passwordShow2}
+                    onIcon={<Visibility />}
+                    offIcon={<VisibilityOff />}
+                  />
+                </IconButton>
+              </InputAdornment>
+            }
             required
           />
+
           <br />
-          <TextField
+
+          <Input
+            style={{
+              width: "100%",
+              marginBottom: "2vmax",
+              marginTop: "1vmax",
+            }}
             onBlur={(e) => setRepeatNewPassword(e.target.value)}
             inputProps={{ maxLength: 100 }}
             id="standard-name"
             label="Потвърди нова парола"
-            type="password"
+            type={passwordShow1 ? "text" : "password"}
             className="inputField"
             margin="normal"
+            endAdornment={
+              <InputAdornment position="end">
+                <IconButton
+                  aria-label="Покажи/скрий паролата"
+                  onClick={() => setShowPassword1((state) => !state)}
+                  edge="end"
+                >
+                  <ToggleIcon
+                    on={passwordShow1}
+                    onIcon={<Visibility />}
+                    offIcon={<VisibilityOff />}
+                  />
+                </IconButton>
+              </InputAdornment>
+            }
             required
+          />
+          <HCaptcha
+            sitekey="f21dbfcd-0f79-42dd-ac97-2a7b6b63980a"
+            size="normal"
+            languageOverride="bg"
+            onVerify={(token) => {
+              setToken(token);
+            }}
+            onError={() => {
+              props.toast.warn(
+                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
+                {
+                  position: "bottom-left",
+                  autoClose: 5000,
+                  hideProgressBar: false,
+                  closeOnClick: true,
+                  pauseOnHover: true,
+                  draggable: true,
+                  progress: undefined,
+                }
+              );
+            }}
+            onExpire={() => {
+              props.toast.warn("Потвърдете отново, че не сте робот", {
+                position: "bottom-left",
+                autoClose: 5000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                progress: undefined,
+              });
+            }}
           />
           <br />
           <Button

@@ -20,7 +20,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import FormControl from "@material-ui/core/FormControl";
 import FormHelperText from "@material-ui/core/FormHelperText";
-import HCaptcha from "@hcaptcha/react-hcaptcha";
 
 const axios = require("axios");
 const moment = require("moment");
@@ -37,7 +36,6 @@ const isAdmin = () => {
   }
 };
 const AddReply = (props) => {
-  const [token, setToken] = React.useState();
   const [content, setContent] = React.useState("");
   const verify = () => {
     try {
@@ -75,25 +73,13 @@ const AddReply = (props) => {
       );
       return false;
     }
-    if (!token) {
-      props.toast.warn("Не сте потвърдили, че не сте робот", {
-        position: "bottom-left",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-      });
-      return false;
-    }
+
     axios
       .request({
         method: "POST",
-        url: `http://localhost:5000/reply`,
+        url: `https://unpopular-backend.herokuapp.com/reply`,
         headers: {
           jwt: localStorage.getItem("jwt"),
-          token: token,
         },
         data: {
           relating: props.relating,
@@ -162,8 +148,9 @@ const AddReply = (props) => {
           multiline
           variant="outlined"
           style={{ width: "80%" }}
+          className="replyInput"
           inputProps={{ maxLength: 500 }}
-          onBlur={(e) => setContent(e.target.value)}
+          onChange={(e) => setContent(e.target.value)}
         />
 
         <Button
@@ -182,41 +169,6 @@ const AddReply = (props) => {
           <Typography style={{ color: content.length > 500 && "red" }}>
             {content.length}/500 символа
           </Typography>
-        )}
-        {verify() && (
-          <HCaptcha
-            sitekey="10000000-ffff-ffff-ffff-000000000001"
-            size="normal"
-            languageOverride="bg"
-            onVerify={(token) => {
-              setToken(token);
-            }}
-            onError={() => {
-              props.toast.warn(
-                "Имаше грешка при потвърждаването, че не сте робот, пробвайте отново",
-                {
-                  position: "bottom-left",
-                  autoClose: 5000,
-                  hideProgressBar: false,
-                  closeOnClick: true,
-                  pauseOnHover: true,
-                  draggable: true,
-                  progress: undefined,
-                }
-              );
-            }}
-            onExpire={() => {
-              props.toast.warn("Потвърдете отново, че не сте робот", {
-                position: "bottom-left",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: true,
-                pauseOnHover: true,
-                draggable: true,
-                progress: undefined,
-              });
-            }}
-          />
         )}
       </Box>
     </Box>
