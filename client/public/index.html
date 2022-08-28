@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="bg">
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="%PUBLIC_URL%/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="Непопулярно" content="Платформа за споделяне на неверотяни места в България" />
+  <meta property="og:title" content="Непопулярно" />
+  <meta property="og:image" content="%PUBLIC_URL%/favicon.svg" />
+  <meta property="og:description" content="Платформа за споделяна на невероятни места в България" />
+  <meta name="googlebot" content="notranslate" />
+  <meta name="author" content="Атанас Бобев">
+  <meta name="keywords" content="">
+  <meta name="language" content="Bulgarian">
+  <meta http-equiv="content-language" content="bg">
+  <meta name="og:image" content="%PUBLIC_URL%/favicon.svg" />
+  <meta name="og:site_name" content="Непопулярно" />
+  <meta name="og:country-name" content="Bulgaria" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta content="yes" name="apple-touch-fullscreen" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="twitter:title" content="Непопулярно">
+  <meta name="twitter:description" content="Платформа за споделяна на невероятни места в България">
+  <meta name="twitter:image" content="%PUBLIC_URL%/favicon.svg">
+  <meta name="twitter:image:alt" content="Ела на сайта!">
+  <meta name="robots" content="noindex" />
+  <meta content="text/html; charset=UTF-8; X-Content-Type-Options=nosniff" http-equiv="Content-Type" />
+
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <title>Непопулярно</title>
+</head>
+
+<body>
+  <noscript>Няма как да работи без Javascript</noscript>
+  <div id="root"></div>
+  <script>
+    console.log('    %c ',
+      'font-size:700px; background:url(https://www.memecreator.org/static/images/memes/4761972.jpg) center center no-repeat;'
+    );
+    console.log(
+      "%cПомогни на проекта в GitHub или с дарение",
+      "color: gold; font-size: 35px;"
+    );
+    const host = "unpopular-bulgaria.com";
+    if ((host == window.location.host) && (window.location.protocol != "https:")) {
+      window.location.protocol = "https";
+    }
+    window.onblur = function () {
+      document.title = "Хей, къде отиде :)";
+    };
+
+    window.onfocus = function () {
+      document.title = "Непопулярно";
+    };
+  </script>
+</body>
+
+</html>

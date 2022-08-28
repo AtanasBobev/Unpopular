@@ -1,0 +1,1937 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital@1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Ledger&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;900&display=swap');
+
+@font-face {
+  font-family: titleFont;
+  src: url("./fonts/Library3am.otf");
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: white;
+}
+
+/* custom scrollbar */
+::-webkit-scrollbar {
+  width: 20px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: #f5f5f5;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: #d6dee1;
+  border-radius: 20px;
+  border: 6px solid transparent;
+  background-clip: content-box;
+}
+
+body {
+  font-family: "Roboto", sans-serif;
+  overflow-x: hidden;
+}
+
+*::selection {
+  background: red;
+  color: white;
+}
+
+.App {
+  background: white;
+  height: 100vh;
+}
+
+.flex {
+  flex: 1;
+}
+
+.title {
+  font-family: titleFont !important;
+}
+
+.spaceFiller {
+  height: 2vh;
+  width: 100vw;
+}
+
+.searchInput {
+  margin-top: 2vmax !important;
+  width: 40vw;
+}
+
+.centerFilter {
+  justify-content: space-between !important;
+  flex-wrap: wrap;
+}
+
+.mainTitle {
+  text-shadow: 2px 7px 5px rgba(0, 0, 0, 0.3),
+    0px -4px 10px rgba(255, 255, 255, 0.3);
+}
+
+.CardContainer {
+  margin-left: 5vw;
+  width: 90vw;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around !important;
+  justify-content: space-evenly;
+}
+
+.panel-parent {
+  display: flex;
+  justify-content: space-evenly;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.carousel-status {
+  display: none;
+}
+
+.card {
+  width: 400px;
+  margin-top: 30px;
+}
+
+.mediaImgOverview {
+  height: 15vmax;
+}
+
+.ButtonHolder {
+  display: flex;
+  justify-content: space-between;
+  padding: 1.5vmax !important;
+}
+
+.mainBar {
+  width: 100vw;
+}
+
+header {
+  width: 100vw;
+}
+
+.btnCard {
+  display: flex;
+  justify-content: space-between !important;
+}
+
+.btnCard>* {
+  margin: 0.5vmax;
+  display: flex;
+}
+
+.likesContainer {
+  display: flex;
+  align-items: center;
+}
+
+.likesContainer>* {
+  margin-right: 0.5vw;
+}
+
+
+
+.buttonHolder {
+  justify-content: space-between !important;
+  display: flex;
+}
+
+.inputFieldArea>* {
+  width: 100%;
+}
+
+.centerInteractive {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.loginRegisterContainer {
+  position: absolute;
+  padding: 1.5vmax;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  background-color: white;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 0.5em;
+}
+
+.backgroundCard {
+  background: white;
+  width: 70vw;
+}
+
+
+.UploadForm {
+  margin: 2vmax;
+  margin-top: 5vmax;
+  margin-bottom: 5vmax;
+  padding: 2vmax;
+  display: flex;
+  flex-wrap: wrap;
+  background: white;
+  border-radius: 0.4em;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22);
+}
+
+.leaflet-right {
+  display: none;
+}
+
+.leaflet-crosshair,
+.leaflet-container,
+.leaflet-touch,
+.leaflet-fade-anim,
+.leaflet-grab,
+.leaflet-touch-drag,
+.leaflet-touch-zoom {
+  z-index: 0
+}
+
+
+
+.uploadBtn {
+  background: linear-gradient(237deg, #77a1d3, #79cbca, #e684ae);
+  background-size: 600% 600%;
+  transition: 0.5s !important;
+  -webkit-animation: ButtonUpload 52s ease infinite;
+  -moz-animation: ButtonUpload 52s ease infinite;
+  -o-animation: ButtonUpload 52s ease infinite;
+  animation: ButtonUpload 52s ease infinite;
+  color: white !important;
+  font-size: 1.5vmax !important;
+  border: none !important;
+  margin-bottom: 1.5vmax !important;
+  width: 15vw !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.uploadBtn:hover {
+  width: 20vw !important;
+  box-shadow: 0 19px 38px rgba(0, 0, 0, 0.30), 0 15px 12px rgba(0, 0, 0, 0.22);
+}
+
+
+@-webkit-keyframes ButtonUpload {
+  0% {
+    background-position: 0% 88%
+  }
+
+  50% {
+    background-position: 100% 13%
+  }
+
+  100% {
+    background-position: 0% 88%
+  }
+}
+
+@-moz-keyframes ButtonUpload {
+  0% {
+    background-position: 0% 88%
+  }
+
+  50% {
+    background-position: 100% 13%
+  }
+
+  100% {
+    background-position: 0% 88%
+  }
+}
+
+@-o-keyframes ButtonUpload {
+  0% {
+    background-position: 0% 88%
+  }
+
+  50% {
+    background-position: 100% 13%
+  }
+
+  100% {
+    background-position: 0% 88%
+  }
+}
+
+@keyframes ButtonUpload {
+  0% {
+    background-position: 0% 88%
+  }
+
+  50% {
+    background-position: 100% 13%
+  }
+
+  100% {
+    background-position: 0% 88%
+  }
+}
+
+.UploadForm>* {
+  width: 100%;
+  margin: 1vmax !important;
+}
+
+.verify {
+  margin-top: 5vmax;
+  text-align: center;
+}
+
+.verify>* {
+  margin: 1vmax !important;
+}
+
+.legend {
+  display: none;
+}
+
+.searchButton:hover {
+  box-shadow: rgba(240, 46, 170, 0.4) 5px 5px, rgba(240, 46, 170, 0.3) 10px 10px,
+    rgba(240, 46, 170, 0.2) 15px 15px, rgba(240, 46, 170, 0.1) 20px 20px,
+    rgba(240, 46, 170, 0.05) 25px 25px;
+}
+
+.searchButton {
+  transition: 1s;
+  background: linear-gradient(109deg, #fc466b, #3f5efb, #c471ed, #12c2e9);
+  background-size: 800% 800%;
+  color: white !important;
+  border: none !important;
+  -webkit-animation: SearchButton 53s ease infinite;
+  -moz-animation: SearchButton 53s ease infinite;
+  -o-animation: SearchButton 53s ease infinite;
+  animation: SearchButton 53s ease infinite;
+}
+
+@-webkit-keyframes SearchButton {
+  0% {
+    background-position: 0% 26%;
+  }
+
+  50% {
+    background-position: 100% 75%;
+  }
+
+  100% {
+    background-position: 0% 26%;
+  }
+}
+
+@-moz-keyframes SearchButton {
+  0% {
+    background-position: 0% 26%;
+  }
+
+  50% {
+    background-position: 100% 75%;
+  }
+
+  100% {
+    background-position: 0% 26%;
+  }
+}
+
+@-o-keyframes SearchButton {
+  0% {
+    background-position: 0% 26%;
+  }
+
+  50% {
+    background-position: 100% 75%;
+  }
+
+  100% {
+    background-position: 0% 26%;
+  }
+}
+
+@keyframes SearchButton {
+  0% {
+    background-position: 0% 26%;
+  }
+
+  50% {
+    background-position: 100% 75%;
+  }
+
+  100% {
+    background-position: 0% 26%;
+  }
+}
+
+.react-typewriter-text {
+  text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0 #b9b9b9,
+    0 5px 0 #aaa, 0 6px 1px rgb(0 0 0 / 10%), 0 0 5px rgb(0 0 0 / 10%),
+    0 1px 3px rgb(0 0 0 / 30%), 0 3px 5px rgb(0 0 0 / 20%),
+    0 5px 10px rgb(0 0 0 / 25%), 0 10px 10px rgb(0 0 0 / 20%),
+    0 20px 20px rgb(0 0 0 / 15%);
+  color: white;
+}
+
+.fading {
+  display: flex;
+}
+
+.uploadButton {
+  transition: 1s;
+}
+
+
+.ToggleIcon-onIcon-13 {
+  fill: black;
+  transform: scale(1.1);
+}
+
+
+.noResultsBanner {
+  height: 50%;
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, 0);
+  pointer-events: none;
+  margin-top: 5%;
+  display: block !important;
+}
+
+.oneLiner {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.MuiAppBar-positionFixed {
+  z-index: 1 !important;
+}
+
+.MuiDialog-root {
+  z-index: 2 !important;
+}
+
+.loginRegisterImage {
+  width: 30vw;
+  position: fixed;
+  top: 50%;
+  left: -5vw;
+  transform: translate(0, -50%);
+}
+
+.MuiListItemIcon-root {
+  min-width: 0 !important;
+  margin-right: 0.6vmax;
+}
+
+.imageDynamic {
+  text-align: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 5px;
+  padding: 0.5vmax;
+  align-self: flex-start;
+}
+
+.dynamicImageInside {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.mainWeatherWrapper,
+.daily {
+  display: flex;
+  justify-content: space-around;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.weatherWrapper {
+  padding: 0.5vmax;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 0.5vmax;
+  color: white !important;
+  background: linear-gradient(124deg, #00f260, #0575e6);
+  background-size: 400% 400%;
+
+  -webkit-animation: MainWeatherBackground 52s ease infinite;
+  -moz-animation: MainWeatherBackground 52s ease infinite;
+  -o-animation: MainWeatherBackground 52s ease infinite;
+  animation: MainWeatherBackground 52s ease infinite;
+}
+
+@-webkit-keyframes MainWeatherBackground {
+  0% {
+    background-position: 0% 19%;
+  }
+
+  50% {
+    background-position: 100% 82%;
+  }
+
+  100% {
+    background-position: 0% 19%;
+  }
+}
+
+@-moz-keyframes MainWeatherBackground {
+  0% {
+    background-position: 0% 19%;
+  }
+
+  50% {
+    background-position: 100% 82%;
+  }
+
+  100% {
+    background-position: 0% 19%;
+  }
+}
+
+@-o-keyframes MainWeatherBackground {
+  0% {
+    background-position: 0% 19%;
+  }
+
+  50% {
+    background-position: 100% 82%;
+  }
+
+  100% {
+    background-position: 0% 19%;
+  }
+}
+
+@keyframes MainWeatherBackground {
+  0% {
+    background-position: 0% 19%;
+  }
+
+  50% {
+    background-position: 100% 82%;
+  }
+
+  100% {
+    background-position: 0% 19%;
+  }
+}
+
+.mainWeatherWrapper {
+  border-radius: 0.5vmax;
+  margin-bottom: 1vmax;
+}
+
+.avatarProfile {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.day {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border: 1px solid white;
+  background: white;
+  color: black;
+  border-radius: 0.5vmax;
+  padding: 1vmax;
+  opacity: 0.7;
+  margin-bottom: 1vmax;
+}
+
+.dayTitle {
+  text-align: center;
+  font-weight: bold;
+  border-bottom: 1px solid grey;
+}
+
+.mainWeatherWrapper div {
+  margin: 0.5vmax;
+}
+
+.mainSend {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  margin-top: 2vmax;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 24%);
+  margin-bottom: 2vh;
+  padding: 2vmax;
+}
+
+.postButton {
+  text-transform: none !important;
+}
+
+.MuiDialogContent-dividers {
+  overflow-x: hidden;
+}
+
+.buttonArray {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.comment {
+  margin-top: 0.5vmax;
+  padding: 0.8vmax;
+  border-left: 5px solid gold;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  padding-left: 1vw;
+}
+
+.commentUp {
+  display: flex;
+  align-items: center;
+}
+
+.vote {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.reply {
+  margin-left: 5vw;
+  padding-left: 1vw;
+  margin-top: 1vmax;
+}
+
+.endButtons>* {
+  margin-right: 1vw;
+}
+
+.panel-heading {
+  background: white !important;
+  text-align: center;
+  border-top-right-radius: 0.5em;
+  border-top-left-radius: 0.5em;
+  padding: 1vmax;
+  padding-right: 3vmax;
+  padding-left: 3vmax;
+}
+
+.panel-body {
+  border-bottom-left-radius: 0.5em;
+  border-bottom-right-radius: 0.5em;
+  padding-left: 1vw !important;
+  padding-right: 1vw !important;
+}
+
+.panel-title {
+  padding: 1.2vmax !important;
+  font-size: 2vmax;
+}
+
+.pure-modal .panel-body,
+.pure-modal .panel-footer,
+.pure-modal .panel-title {
+  word-break: normal !important;
+  padding: none;
+}
+
+.pure-modal {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 0.2vmax;
+}
+
+.pure-modal .panel-body {
+  padding: none;
+}
+
+.close {
+  margin-top: 0.5vmax;
+}
+
+.pure-modal-backdrop .pure-modal {
+  min-width: 50vw !important;
+  max-height: 80vh !important;
+}
+
+.MapContainer {
+  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+  padding: 1vmax;
+  background-color: white;
+  border-radius: 0.4vmax;
+}
+
+.quoteBox {
+  margin-Top: 2vmax;
+  margin-bottom: 2vmax;
+  padding: 1vmax;
+  box-shadow: 0px 2px 1px -1px rgb(0 0 0 / 20%), 0px 1px 1px 0px rgb(0 0 0 / 14%), 0px 1px 3px 0px rgb(0 0 0 / 12%);
+  border-radius: 0.4vmax;
+  width: 375px;
+  background: linear-gradient(201deg, #000000, #434343);
+  background-size: 400% 400%;
+  -webkit-animation: QuotesDark 48s ease infinite;
+  -moz-animation: QuotesDark 48s ease infinite;
+  -o-animation: QuotesDark 48s ease infinite;
+  animation: QuotesDark 48s ease infinite;
+}
+
+.quoteText {
+  font-family: 'Playfair Display', serif !important;
+}
+
+@-webkit-keyframes QuotesDark {
+  0% {
+    background-position: 68% 0%
+  }
+
+  50% {
+    background-position: 33% 100%
+  }
+
+  100% {
+    background-position: 68% 0%
+  }
+}
+
+@-moz-keyframes QuotesDark {
+  0% {
+    background-position: 68% 0%
+  }
+
+  50% {
+    background-position: 33% 100%
+  }
+
+  100% {
+    background-position: 68% 0%
+  }
+}
+
+@-o-keyframes QuotesDark {
+  0% {
+    background-position: 68% 0%
+  }
+
+  50% {
+    background-position: 33% 100%
+  }
+
+  100% {
+    background-position: 68% 0%
+  }
+}
+
+@keyframes QuotesDark {
+  0% {
+    background-position: 68% 0%
+  }
+
+  50% {
+    background-position: 33% 100%
+  }
+
+  100% {
+    background-position: 68% 0%
+  }
+}
+
+.specialText {
+  white-space: pre-wrap;
+  font-family: 'Playfair Display', serif;
+}
+
+.specialCard {
+  background-color: #2c3e50 !important;
+}
+
+.specialCard p {
+  color: white;
+}
+
+@-webkit-keyframes Poems {
+  0% {
+    background-position: 0% 2%
+  }
+
+  50% {
+    background-position: 100% 99%
+  }
+
+  100% {
+    background-position: 0% 2%
+  }
+}
+
+@-moz-keyframes Poems {
+  0% {
+    background-position: 0% 2%
+  }
+
+  50% {
+    background-position: 100% 99%
+  }
+
+  100% {
+    background-position: 0% 2%
+  }
+}
+
+@-o-keyframes Poems {
+  0% {
+    background-position: 0% 2%
+  }
+
+  50% {
+    background-position: 100% 99%
+  }
+
+  100% {
+    background-position: 0% 2%
+  }
+}
+
+@keyframes Poems {
+  0% {
+    background-position: 0% 2%
+  }
+
+  50% {
+    background-position: 100% 99%
+  }
+
+  100% {
+    background-position: 0% 2%
+  }
+}
+
+.userProfileGradient {
+  background: linear-gradient(112deg, #5433ff, #20bdff, #a5fecb);
+  background-size: 600% 600%;
+
+  -webkit-animation: UserBackground 30s ease infinite;
+  -moz-animation: UserBackground 30s ease infinite;
+  -o-animation: UserBackground 30s ease infinite;
+  animation: UserBackground 30s ease infinite;
+  color: white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+@-webkit-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@-moz-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@-o-keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+@keyframes UserBackground {
+  0% {
+    background-position: 0% 28%
+  }
+
+  50% {
+    background-position: 100% 73%
+  }
+
+  100% {
+    background-position: 0% 28%
+  }
+}
+
+.resetPassword {
+  display: flex;
+  width: 30vw;
+  flex-wrap: wrap;
+  background-color: white;
+  padding: 1vmax;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.resetPassword>* {
+  width: 100%;
+}
+
+#root>div>div:nth-child(4)>div.CardContainer>div:nth-child(1)>div>center>div,
+.MapContainer>center>div:nth-child(1) {
+  width: 100% !important;
+  z-index: 1 !important;
+}
+
+.tooltipButton {
+  text-transform: none;
+  display: flex;
+  cursor: pointer;
+  padding: 0.5vmax;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+}
+
+.userCards {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  justify-content: space-evenly;
+  align-content: center;
+  align-items: center;
+}
+
+.loginBtn {
+  background: linear-gradient(220deg, #00c6fb, #005bea);
+  background-size: 400% 400%;
+  color: white !important;
+  -webkit-animation: Background 51s ease infinite;
+  -moz-animation: Background 51s ease infinite;
+  -o-animation: Background 51s ease infinite;
+  animation: Background 51s ease infinite;
+}
+
+@-webkit-keyframes GradientAnimator {
+  0% {
+    background-position: 86% 0%
+  }
+
+  50% {
+    background-position: 15% 100%
+  }
+
+  100% {
+    background-position: 86% 0%
+  }
+}
+
+@-moz-keyframes GradientAnimator {
+  0% {
+    background-position: 86% 0%
+  }
+
+  50% {
+    background-position: 15% 100%
+  }
+
+  100% {
+    background-position: 86% 0%
+  }
+}
+
+@-o-keyframes GradientAnimator {
+  0% {
+    background-position: 86% 0%
+  }
+
+  50% {
+    background-position: 15% 100%
+  }
+
+  100% {
+    background-position: 86% 0%
+  }
+}
+
+@keyframes GradientAnimator {
+  0% {
+    background-position: 86% 0%
+  }
+
+  50% {
+    background-position: 15% 100%
+  }
+
+  100% {
+    background-position: 86% 0%
+  }
+}
+
+.MuiAppBar-root {
+  z-index: 2 !important;
+}
+
+.day {
+  cursor: default
+}
+
+.info {
+  width: 50vw;
+  background-color: white;
+  padding: 2vmax;
+  box-shadow: 0 20px 50px rgba(8, 112, 184, 0.7);
+  display: inline-block;
+  z-index: 1;
+}
+
+.meImg {
+  width: 20vw;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  -khtml-user-select: none;
+  -o-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  user-select: none !important;
+  margin-bottom: 1vmax;
+}
+
+
+
+.bcg {
+  padding: 1vmax;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 24%);
+}
+
+
+
+.infoPanelElement {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+  display: inline-block;
+  padding: 1vmax;
+  border-radius: 4%;
+  color: white;
+  margin-top: 1vmax;
+}
+
+.blueGradient {
+  background: linear-gradient(216deg, #2193b0, #6dd5ed, #a8e8ff);
+  background-size: 600% 600%;
+
+  -webkit-animation: BlueGradient 30s ease infinite;
+  -moz-animation: BlueGradient 30s ease infinite;
+  -o-animation: BlueGradient 30s ease infinite;
+  animation: BlueGradient 30s ease infinite;
+}
+
+@-webkit-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes BlueGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.greenGradient {
+  background: linear-gradient(216deg, #a8ff78, #78ffd6);
+  background-size: 400% 400%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.yellowGradient {
+  background: linear-gradient(216deg, #f2994a, #f2c94c);
+  background-size: 400% 400%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.pinkGradient {
+  background: linear-gradient(216deg, #a770ef, #cf8bf3, #fdb99b);
+  background-size: 600% 600%;
+
+  -webkit-animation: GreenGradient 30s ease infinite;
+  -moz-animation: GreenGradient 30s ease infinite;
+  -o-animation: GreenGradient 30s ease infinite;
+  animation: GreenGradient 30s ease infinite;
+}
+
+@-webkit-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes GreenGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.veryGreenGradient {
+  background: linear-gradient(216deg, #e53935, #e35d5b);
+  background-size: 400% 400%;
+
+  -webkit-animation: RedGradient 30s ease infinite;
+  -moz-animation: RedGradient 30s ease infinite;
+  -o-animation: RedGradient 30s ease infinite;
+  animation: RedGradient 30s ease infinite;
+}
+
+@-webkit-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes RedGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.stellarGradient {
+  background: linear-gradient(216deg, #7474bf, #348ac7);
+  background-size: 400% 400%;
+
+  -webkit-animation: StellarGradient 30s ease infinite;
+  -moz-animation: StellarGradient 30s ease infinite;
+  -o-animation: StellarGradient 30s ease infinite;
+  animation: StellarGradient 30s ease infinite;
+}
+
+@-webkit-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-moz-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@-o-keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+@keyframes StellarGradient {
+  0% {
+    background-position: 84% 0%
+  }
+
+  50% {
+    background-position: 17% 100%
+  }
+
+  100% {
+    background-position: 84% 0%
+  }
+}
+
+.defaultContainer {
+  background-color: #f5f5f5;
+  color: black;
+}
+
+.specialTable {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23) !important;
+}
+
+.side {
+  width: 45%;
+  margin: .5vmax;
+}
+
+.infoBox {
+  display: flex;
+  width: 95%;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1vmax;
+  padding: 1vmax;
+  border-radius: 0.2vmax;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.moreInfoBox {
+  width: 95%;
+
+  margin: 1vmax;
+  padding: 1vmax;
+  border-radius: 0.2vmax;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.boxes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.boxes>* {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  transition: all 0.3s cubic-bezier(.25, .8, .25, 1);
+  margin: 1vmax;
+  border-radius: 10px;
+  padding: 1vmax;
+  color: white;
+  display: flex;
+  align-items: center;
+  text-align: center;
+  background: linear-gradient(128deg, #36d1dc, #5b86e5);
+  background-size: 400% 400%;
+
+  -webkit-animation: Background 51s ease infinite;
+  -moz-animation: Background 51s ease infinite;
+  -o-animation: Background 51s ease infinite;
+  animation: Background 51s ease infinite;
+}
+
+@-webkit-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@-moz-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@-o-keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+@keyframes Background {
+  0% {
+    background-position: 0% 0%
+  }
+
+  50% {
+    background-position: 93% 100%
+  }
+
+  100% {
+    background-position: 0% 0%
+  }
+}
+
+.backgroundInfo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 5vmax;
+  background: white;
+}
+
+.complainBox {
+  width: 48vw;
+  line-break: anywhere;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  padding: 0.2vmax;
+  margin: 1vmax;
+  border-radius: 0.2em;
+}
+
+.firstRowComplain {
+  display: flex;
+  justify-content: space-between;
+  padding: 1vmax;
+}
+
+.lastRowComplain {
+  display: flex;
+  justify-content: center;
+}
+
+.suggestedElement {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.suggestions {
+  width: 50vw !important;
+}
+
+.ButtonHolderSuggestions {
+  display: flex;
+  justify-content: space-between;
+  padding: 1vmax;
+}
+
+.insights .pure-modal {
+  width: 90vw !important;
+  height: 90vw;
+  z-index: -1 !important;
+}
+
+.insights .panel-body {
+  z-index: -1 !important;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.textInsight {
+  margin-bottom: 3vmax;
+  width: 30ch;
+  font-size: 3vmax !important;
+}
+
+.flexUser {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin: 1vmax;
+  width: 90%;
+  margin-left: 5%;
+}
+
+
+
+.shadowy2 {
+  width: 90%
+}
+
+.shadowy {
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
+
+.bm-burger-button {
+  position: fixed;
+  width: 36px;
+  height: 30px;
+  left: 36px;
+  top: 36px;
+}
+
+/* Color/shape of burger icon bars */
+.bm-burger-bars {
+  background: #373a47;
+}
+
+/* Color/shape of burger icon bars on hover*/
+.bm-burger-bars-hover {
+  background: #a90000;
+}
+
+/* Position and sizing of clickable cross button */
+.bm-cross-button {
+  height: 24px;
+  width: 24px;
+}
+
+/* Color/shape of close button cross */
+.bm-cross {
+  background: #bdc3c7;
+}
+
+/*
+Sidebar wrapper styles
+Note: Beware of modifying this element as it can break the animations - you should not need to touch it in most cases
+*/
+.bm-menu-wrap {
+  position: fixed;
+  height: 100%;
+  width: auto !important;
+}
+
+/* General sidebar styles */
+.bm-menu {
+  background: #373a47;
+  padding: none;
+  font-size: 1.15em;
+}
+
+/* Morph shape necessary with bubble or elastic */
+.bm-morph-shape {
+  fill: #373a47;
+}
+
+/* Wrapper for item list */
+.bm-item-list {
+  color: #b8b7ad;
+  padding: 0.8em;
+}
+
+/* Individual item */
+.bm-item {
+  display: inline-block;
+}
+
+/* Styling of overlay */
+.bm-overlay {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+@media (orientation:portrait) {
+  .react-typewriter-text {
+    padding: 0;
+    margin: 0;
+    text-align: right;
+    font-size: 9vw;
+    position: absolute;
+    top: 36 px;
+    top: 28px;
+    right: 20px;
+  }
+
+  .columns {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+  }
+
+  .bm-menu {
+    display: flex
+  }
+
+  .bm-menu {
+    fill: white;
+    box-sizing: content-box;
+    justify-content: flex-end;
+  }
+
+  .bm-morph-shape {
+    fill: white;
+  }
+
+  .bm-menu {
+    background: white;
+  }
+
+  .searchInput {
+    margin-top: 2vmax !important;
+    width: 80vw !important;
+  }
+
+
+
+  .MuiCard-root {
+    width: 80vw;
+  }
+
+  .bm-burger-button {
+    z-index: 2 !important;
+  }
+
+  .mainSend {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 2vmax;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 24%);
+    margin-bottom: 2vh;
+    padding: 2vmax;
+  }
+
+  .mainSend>*>* {
+    margin: 1vmax;
+  }
+
+  .infoBox:last-child {
+    margin-bottom: 5vmax;
+  }
+
+  #anchor {
+    width: 200px !important;
+  }
+
+  .btnCard {
+    padding: 5px !important;
+  }
+
+  .panel-title {
+    font-size: 4vmax;
+  }
+
+  .flexUser {
+    justify-content: center;
+  }
+
+  .pure-modal {
+    width: 95vw !important;
+  }
+
+  .react-confirm-alert-body {
+    width: 70vw !important;
+  }
+
+  div.panel-body.scrollable>div>form>center>div>div {
+    width: 100% !important;
+  }
+
+  .bm-item {
+    display: flex !important;
+    flex-direction: column;
+    align-items: baseline;
+  }
+
+  div.bm-menu>nav>*:nth-child(2) {
+    display: flex !important;
+    align-items: normal;
+  }
+
+  .centerFilter {
+    flex-wrap: wrap;
+
+  }
+
+  .info {
+    width: 90vw !important;
+  }
+
+  .slide {
+    width: 90% !important;
+    margin-left: 5%;
+  }
+
+  .panel-parent {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .two {
+    display: flex;
+    align-items: baseline;
+    flex-direction: column;
+  }
+
+  .meImg {
+    width: 55vw !important;
+    user-select: none;
+  }
+
+  .poemsMain {
+    flex-wrap: wrap;
+  }
+
+  .specialText {
+    width: 100% !important;
+    margin-left: none;
+    font-size: 2.5vmax !important;
+    margin-bottom: 3vmax;
+  }
+
+  .quoteBox {
+    max-width: 80vw;
+  }
+
+  .spaceFiller {
+    height: 10vh;
+    width: 100vw;
+  }
+
+  .complainBox {
+    width: 90vw !important;
+  }
+
+  .infoBox {
+    margin-left: 5% !important;
+    width: 90% !important;
+    padding: 0.1vmax !important;
+  }
+
+  .infoBox:first-child {
+    margin-top: 5vmax !important;
+  }
+
+  .weatherWrapper {
+    margin-top: 2vmax;
+  }
+
+  div.DraftEditor-editorContainer>div {
+    height: 10vh !important;
+  }
+
+  .loginRegisterContainer {
+    width: 85vw !important;
+  }
+
+  .noResultsBanner {
+    width: 70% !important;
+    pointer-events: none;
+  }
+
+  .likedText {
+    margin: 1vmax;
+    margin-top: 4vmax;
+  }
+
+  .avatarProfile {
+    width: 20vmax !important;
+    height: 20vmax !important
+  }
+
+  .replyInput {
+    width: 100% !important;
+  }
+
+  .notFound {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 1 vmax;
+  }
+
+  .imageDynamic {
+    width: 100% !important;
+  }
+
+  .uploadBtn {
+    font-size: 3vmax !important;
+    padding: 2vmax;
+    width: 40vw !important;
+    margin-top: 3vmax;
+  }
+}
+
+.centerBox {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 1vmax;
+  z-index: 9;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+  border-radius: 5px;
+}
